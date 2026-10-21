@@ -62,12 +62,7 @@ The project has two modules:
 
 ## Acknowledgements
 
-We warmly thank the team and contributors behind SmartTube. Their work and hard-earned lessons on television
-interfaces and remote-control navigation have been a valuable reference while building TypeType TV. TypeType TV
-remains an independent client and is not affiliated with this project.
-
-- [SmartTube](https://github.com/yuliskov/SmartTube), for ten-foot interface and remote-control interaction
-  patterns
+A big thank you to the team and contributors behind [SmartTube](https://github.com/yuliskov/SmartTube).
 
 ## License
 
