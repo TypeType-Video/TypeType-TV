@@ -5,10 +5,6 @@ import video.typetype.tv.ui.components.ScreenFailure
 import video.typetype.tv.ui.auth.UiMessage
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.RepeatMode
-import androidx.compose.animation.core.animateFloat
-import androidx.compose.animation.core.infiniteRepeatable
-import androidx.compose.animation.core.rememberInfiniteTransition
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
@@ -33,10 +29,10 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.delay
 import video.typetype.tv.R
 import video.typetype.tv.data.ContentRepository
@@ -191,13 +187,13 @@ fun SearchScreen(
 
 @Composable
 private fun QueryField(query: String) {
-    val caret = rememberInfiniteTransition(label = "caret")
-    val caretAlpha by caret.animateFloat(
-        initialValue = 1f,
-        targetValue = 0f,
-        animationSpec = infiniteRepeatable(tween(520), RepeatMode.Reverse),
-        label = "caret-alpha",
-    )
+    var caretShown by remember { mutableStateOf(true) }
+    LaunchedEffect(Unit) {
+        while (true) {
+            delay(CARET_BLINK_MILLIS)
+            caretShown = !caretShown
+        }
+    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -221,8 +217,10 @@ private fun QueryField(query: String) {
             Modifier
                 .width(2.dp)
                 .height(20.dp)
-                .alpha(caretAlpha)
+                .graphicsLayer { alpha = if (caretShown) 1f else 0f }
                 .background(Palette.Accent),
         )
     }
 }
+
+private const val CARET_BLINK_MILLIS = 530L
