@@ -27,17 +27,15 @@ import video.typetype.tv.data.session.SessionManager
 import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
-const val DEFAULT_INSTANCE = "https://experiment.typetype.video"
-
 @Composable
 fun SetupScreen(session: SessionManager, modifier: Modifier = Modifier) {
-    var address by rememberSaveable { mutableStateOf(DEFAULT_INSTANCE) }
+    var address by rememberSaveable { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<UiMessage?>(null) }
     var certificate by remember { mutableStateOf<CertificateRequest?>(null) }
     val scope = rememberCoroutineScope()
-    val submitRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) { submitRequester.requestFocusWhenReady() }
+    val addressRequester = remember { FocusRequester() }
+    LaunchedEffect(Unit) { addressRequester.requestFocusWhenReady() }
 
     fun submit() {
         if (busy) return
@@ -81,6 +79,7 @@ fun SetupScreen(session: SessionManager, modifier: Modifier = Modifier) {
                 value = address,
                 onValueChange = { address = it },
                 label = stringResource(R.string.setup_address_label),
+                modifier = Modifier.focusRequester(addressRequester),
                 keyboardType = KeyboardType.Uri,
                 imeAction = ImeAction.Go,
                 onImeAction = ::submit,
@@ -91,7 +90,6 @@ fun SetupScreen(session: SessionManager, modifier: Modifier = Modifier) {
                 icon = Icons.Rounded.ArrowForward,
                 onClick = ::submit,
                 emphasized = true,
-                modifier = Modifier.focusRequester(submitRequester),
             )
             Spacer(Modifier.height(14.dp))
             MessageText(message)
