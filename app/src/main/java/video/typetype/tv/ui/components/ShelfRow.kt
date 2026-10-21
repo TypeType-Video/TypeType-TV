@@ -48,7 +48,7 @@ fun ShelfRow(
         }
     }
     val cardWidth = if (shelf.wide) Dimens.WideCardWidth else Dimens.CardWidth
-    Column(modifier = modifier) {
+    Column(modifier = modifier.cachedLayer()) {
         TextLabel(
             text = shelf.title.uppercase(),
             style = Type.Label,
