@@ -6,7 +6,7 @@ import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.net.FailureCategory
 import video.typetype.tv.data.session.DiscoveryResult
 
-data class UiMessage(@StringRes val textRes: Int, val requestId: String? = null)
+data class UiMessage(@StringRes val textRes: Int, val requestId: String? = null, val transient: Boolean = false)
 
 fun describeAuthFailure(failure: ApiException): UiMessage {
     val details = failure.failure

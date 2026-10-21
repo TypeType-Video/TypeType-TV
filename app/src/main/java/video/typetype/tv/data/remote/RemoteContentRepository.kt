@@ -28,6 +28,7 @@ import video.typetype.tv.data.api.TypeTypeApi
 import video.typetype.tv.data.dto.BlockChannelRequest
 import video.typetype.tv.data.dto.StreamDto
 import video.typetype.tv.data.net.ApiException
+import video.typetype.tv.data.net.ServerWatch
 
 class RemoteContentRepository(
     private val api: TypeTypeApi,
@@ -36,6 +37,7 @@ class RemoteContentRepository(
     private val settingsSource: RemoteSettings,
     private val texts: TextProvider,
     private val presence: RemotePresence,
+    private val watch: ServerWatch,
     private val clock: () -> Long = System::currentTimeMillis,
 ) : ContentRepository {
     private val streams = TtlCache<String, StreamDto>(STREAM_TTL_MILLIS, STREAM_ENTRIES, clock)
@@ -51,13 +53,13 @@ class RemoteContentRepository(
     override suspend fun home(): HomeContent {
         homeCache.fresh(HOME_KEY)?.let { return it }
         return try {
-            homeLoader.load().also { homeCache.put(HOME_KEY, it) }
+            watch.watch { homeLoader.load() }.also { homeCache.put(HOME_KEY, it) }
         } catch (failure: ApiException) {
             homeCache.stale(HOME_KEY) ?: throw failure
         }
     }
 
-    override suspend fun video(id: String): Video? = branding.apply(listOf(stream(id).toVideo(id, clock()))).single()
+    override suspend fun video(id: String): Video? = watch.watch { branding.apply(listOf(stream(id).toVideo(id, clock()))).single() }
 
     override suspend fun related(id: String): List<Video> {
         if (filter.visibility().hideRelatedVideos) return emptyList()
@@ -65,10 +67,11 @@ class RemoteContentRepository(
         return branding.apply(filter.allowed(stream(id).relatedStreams.mapNotNull { it.toVideo(now) }).take(RELATED_LIMIT))
     }
 
-    override suspend fun search(query: String, source: ContentSource, kind: SearchKind): SearchResults =
+    override suspend fun search(query: String, source: ContentSource, kind: SearchKind): SearchResults = watch.watch {
         playlists.search(query, source, kind)
+    }
 
-    override suspend fun publicPlaylist(url: String, page: String?): PublicPlaylistPage = playlists.page(url, page)
+    override suspend fun publicPlaylist(url: String, page: String?): PublicPlaylistPage = watch.watch { playlists.page(url, page) }
 
     override suspend fun channelPodcasts(channelUrl: String): List<PublicPlaylist> =
         if (ContentSource.of(channelUrl) == ContentSource.YouTube) playlists.podcasts(channelUrl) else emptyList()
@@ -90,7 +93,7 @@ class RemoteContentRepository(
         return listOf(LibrarySection.History, LibrarySection.Favorites, LibrarySection.WatchLater) + playlists + saved
     }
 
-    override suspend fun library(section: LibrarySection): List<Video> {
+    override suspend fun library(section: LibrarySection): List<Video> = watch.watch {
         val now = clock()
         val items = when (section) {
             LibrarySection.History -> api.history(HISTORY_LIMIT).map { it.toVideo(now, resume = true) }
@@ -100,7 +103,7 @@ class RemoteContentRepository(
             is LibrarySection.Saved -> this.playlists.page(section.url, null).videos
             LibrarySection.Downloads -> emptyList()
         }
-        return items.filterNotNull().distinctBy { it.id }.take(LIBRARY_LIMIT)
+        items.filterNotNull().distinctBy { it.id }.take(LIBRARY_LIMIT)
     }
 
     override suspend fun searchIdeas(): List<String> =
@@ -110,7 +113,7 @@ class RemoteContentRepository(
             .distinct()
             .take(IDEA_LIMIT)
 
-    override suspend fun settings(): List<SettingsGroup> = settingsSource.groups(api)
+    override suspend fun settings(): List<SettingsGroup> = watch.watch { settingsSource.groups(api) }
 
     override suspend fun startupPreferences(): StartupPreferences = userSettings.startupPreferences()
 
@@ -157,8 +160,9 @@ class RemoteContentRepository(
         return api.commentReplies(videoUrl, repliesPage).toCommentsPage(clock())
     }
 
-    override suspend fun channel(url: String, page: String?): ChannelPage =
+    override suspend fun channel(url: String, page: String?): ChannelPage = watch.watch {
         api.channelPage(url, page).toChannelPage(url, clock()).let { it.copy(videos = branding.apply(filter.allowed(it.videos))) }
+    }
 
     override suspend fun bulletComments(videoUrl: String): List<BulletComment> {
         if (ContentSource.of(videoUrl) == ContentSource.YouTube) return emptyList()

@@ -53,6 +53,7 @@ class AppContainer(context: Context) {
             device = deviceProfile.profile(),
             enabled = !profile.id.startsWith("guest"),
         ).also { it.report(PresenceReport.Online) },
+        watch = backend.watch,
     )
 
     @OptIn(UnstableApi::class)
