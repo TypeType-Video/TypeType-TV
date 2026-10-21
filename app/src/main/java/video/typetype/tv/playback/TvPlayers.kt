@@ -2,10 +2,15 @@ package video.typetype.tv.playback
 
 import android.app.ActivityManager
 import android.content.Context
+import android.os.Looper
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
+import androidx.media3.exoplayer.DefaultRenderersFactory
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.Renderer
 import androidx.media3.exoplayer.SeekParameters
+import androidx.media3.exoplayer.text.TextOutput
+import androidx.media3.exoplayer.text.TextRenderer
 
 /**
  * Every player of the app is built here. ExoPlayer's defaults wait for 2.5 s of media before starting and 5 s after a
@@ -24,10 +29,24 @@ object TvPlayers {
             .setPrioritizeTimeOverSizeThresholds(false)
             .setBackBuffer(budget.backBufferMs, true)
             .build()
-        return ExoPlayer.Builder(context)
+        return ExoPlayer.Builder(context, SideloadedTextRenderers(context))
             .setLoadControl(loadControl)
             .setSeekParameters(SeekParameters.CLOSEST_SYNC)
             .build()
+    }
+}
+
+@UnstableApi
+private class SideloadedTextRenderers(context: Context) : DefaultRenderersFactory(context) {
+    override fun buildTextRenderers(
+        context: Context,
+        output: TextOutput,
+        outputLooper: Looper,
+        extensionRendererMode: Int,
+        out: ArrayList<Renderer>,
+    ) {
+        super.buildTextRenderers(context, output, outputLooper, extensionRendererMode, out)
+        out.filterIsInstance<TextRenderer>().forEach { it.experimentalSetLegacyDecodingEnabled(true) }
     }
 }
 
