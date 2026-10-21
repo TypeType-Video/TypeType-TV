@@ -18,6 +18,7 @@ import kotlinx.coroutines.launch
 import video.typetype.tv.AppContainer
 import video.typetype.tv.data.session.SessionState
 import video.typetype.tv.ui.auth.LoginScreen
+import video.typetype.tv.ui.auth.ReconnectScreen
 import video.typetype.tv.ui.auth.SetupScreen
 import video.typetype.tv.ui.components.InkBackground
 
@@ -32,6 +33,7 @@ fun AppEntry(container: AppContainer) {
     when (val current = state) {
         SessionState.Starting -> InkBackground()
         SessionState.Unconfigured -> SetupScreen(session)
+        is SessionState.Reconnecting -> ReconnectScreen(session, current.backend.apiBase.host, current.failedAttempts)
         is SessionState.SignedOut -> LoginScreen(current.backend, session, current.notice)
         is SessionState.SignedIn -> {
             val repository = remember(current.backend, current.profile.id) {

@@ -19,10 +19,10 @@ import video.typetype.tv.data.net.AccessTokens
 import video.typetype.tv.data.net.ApiClient
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.net.ApiJson
-import video.typetype.tv.data.net.FailureCategory
 import video.typetype.tv.data.net.HttpClients
 import video.typetype.tv.data.net.RefreshCookieJar
 import video.typetype.tv.data.net.SecretStore
+import video.typetype.tv.data.net.ServerWatch
 import video.typetype.tv.data.net.tls.CertificateInfo
 import video.typetype.tv.data.net.tls.CertificateProbe
 import video.typetype.tv.data.net.tls.PinTrust
@@ -30,7 +30,9 @@ import video.typetype.tv.data.net.tls.TlsPin
 import video.typetype.tv.data.net.TokenRefresher
 import java.io.IOException
 import java.util.concurrent.atomic.AtomicReference
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeoutOrNull
 import kotlinx.coroutines.Dispatchers
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -42,6 +44,8 @@ class SessionManager(private val store: SecretStore) : AccessTokens, TokenRefres
     private val token = AtomicReference<String?>(null)
     private val tokenLoaded = AtomicBoolean(false)
     private val refreshLock = Any()
+    private val profiles = ProfileCache(store)
+    private val retryNow = Channel<Unit>(Channel.CONFLATED)
     private val mutableState = MutableStateFlow<SessionState>(SessionState.Starting)
     private var backend: Backend? = null
 
@@ -70,16 +74,51 @@ class SessionManager(private val store: SecretStore) : AccessTokens, TokenRefres
             mutableState.value = SessionState.SignedOut(built)
             return
         }
-        try {
-            mutableState.value = SessionState.SignedIn(built, built.api.me())
-        } catch (failure: ApiException) {
-            val reason = if (failure.failure.category == FailureCategory.Unauthorized) {
-                SignOutReason.Expired
-            } else {
-                SignOutReason.Unreachable
-            }
-            mutableState.value = SessionState.SignedOut(built, reason)
+        val cached = profiles.get()
+        if (cached == null) {
+            reconnect(built)
+            return
         }
+        mutableState.value = SessionState.SignedIn(built, cached)
+        val check = SessionCheck.of(built)
+        if ((state.value as? SessionState.SignedIn)?.backend !== built) return
+        when (check) {
+            is SessionCheck.Valid -> {
+                profiles.put(check.profile)
+                mutableState.value = SessionState.SignedIn(built, check.profile)
+            }
+            SessionCheck.Rejected -> expire()
+            SessionCheck.Unknown -> Unit
+        }
+    }
+
+    private suspend fun reconnect(built: Backend) {
+        var attempt = 0
+        while (backend === built && token.get() != null) {
+            mutableState.value = SessionState.Reconnecting(built, attempt)
+            val check = SessionCheck.of(built)
+            if (backend !== built) return
+            when (check) {
+                is SessionCheck.Valid -> {
+                    profiles.put(check.profile)
+                    mutableState.value = SessionState.SignedIn(built, check.profile)
+                    return
+                }
+                SessionCheck.Rejected -> {
+                    expire()
+                    return
+                }
+                SessionCheck.Unknown -> {
+                    attempt++
+                    mutableState.value = SessionState.Reconnecting(built, attempt)
+                    withTimeoutOrNull(SessionCheck.retryDelayMillis(attempt)) { retryNow.receive() }
+                }
+            }
+        }
+    }
+
+    fun retryConnection() {
+        retryNow.trySend(Unit)
     }
 
     suspend fun configure(origin: String): DiscoveryResult {
@@ -152,15 +191,17 @@ class SessionManager(private val store: SecretStore) : AccessTokens, TokenRefres
             .url(apiBase.resolve("auth/refresh") ?: return null)
             .post("{}".toRequestBody(JSON))
             .build()
+        var rejected = false
         val fresh = try {
             plainHttp.newCall(request).execute().use { response ->
+                rejected = response.code == 401 || response.code == 403
                 if (!response.isSuccessful) return@use null
                 ApiJson.instance.decodeFromString(SessionResponse.serializer(), response.body.string()).accessToken
             }
         } catch (_: IOException) {
             null
         }
-        if (fresh != null) storeToken(fresh) else expire()
+        if (fresh != null) storeToken(fresh) else if (rejected) expire()
         fresh
     }
 
@@ -168,7 +209,9 @@ class SessionManager(private val store: SecretStore) : AccessTokens, TokenRefres
         val current = backend ?: error("Instance not configured")
         val fresh = obtain(current)
         storeToken(fresh)
-        mutableState.value = SessionState.SignedIn(current, current.api.me())
+        val profile = current.api.me()
+        profiles.put(profile)
+        mutableState.value = SessionState.SignedIn(current, profile)
     }
 
     private fun build(apiBase: HttpUrl, instance: InstanceDto): Backend {
@@ -182,6 +225,7 @@ class SessionManager(private val store: SecretStore) : AccessTokens, TokenRefres
             presence = PresenceApi(ApiClient(apiBase, authed)),
             sabr = SabrApi(ApiClient(apiBase, authed)),
             mediaHttp = HttpClients.media(apiBase.host, this, this, pinTrust),
+            watch = ServerWatch.health(apiBase, plainHttp),
         )
         backend = built
         return built
@@ -199,12 +243,14 @@ class SessionManager(private val store: SecretStore) : AccessTokens, TokenRefres
     private fun expire() {
         token.set(null)
         store.remove(KEY_ACCESS)
+        profiles.clear()
         backend?.let { mutableState.value = SessionState.SignedOut(it, SignOutReason.Expired) }
     }
 
     private fun clearCredentials() {
         token.set(null)
         store.remove(KEY_ACCESS)
+        profiles.clear()
         cookieJar.clear()
     }
 

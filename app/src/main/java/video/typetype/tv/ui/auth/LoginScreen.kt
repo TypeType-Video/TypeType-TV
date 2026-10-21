@@ -49,7 +49,7 @@ fun LoginScreen(
     var registering by rememberSaveable { mutableStateOf(false) }
     var busy by remember { mutableStateOf(false) }
     var message by remember {
-        mutableStateOf(notice?.let { UiMessage(if (it == SignOutReason.Expired) R.string.login_notice_expired else R.string.login_notice_unreachable) })
+        mutableStateOf(notice?.let { UiMessage(R.string.login_notice_expired) })
     }
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current

@@ -142,12 +142,18 @@
     <string name="login_error_generic">Something went wrong. Try again.</string>
     <string name="login_error_missing">Fill in every field first.</string>
     <string name="login_notice_expired">Your session expired. Sign in again.</string>
-    <string name="login_notice_unreachable">The server could not be reached. Sign in again when it is back.</string>
+    <string name="reconnect_title">Connecting to your server</string>
+    <string name="reconnect_checking">Checking your session.</string>
+    <string name="reconnect_waiting">The server is not answering. The app keeps trying and continues as soon as it is back.</string>
     <string name="request_id">Request id: %1$s</string>
     <string name="state_retry">Try again</string>
     <string name="player_error_title">This video could not be played</string>
     <string name="detail_action_failed">The change could not be saved. Check the connection and try again.</string>
     <string name="load_error_title">This content could not be loaded</string>
+    <plurals name="load_retry_countdown">
+        <item quantity="one">Trying again in %1$d second</item>
+        <item quantity="other">Trying again in %1$d seconds</item>
+    </plurals>
     <string name="load_error_generic">The server returned an unexpected answer.</string>
     <string name="settings_quality_auto">Auto</string>
     <string name="settings_sponsor_auto_skip">Skip automatically</string>

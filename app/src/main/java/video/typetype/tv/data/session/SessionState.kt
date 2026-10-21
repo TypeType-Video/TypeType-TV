@@ -7,6 +7,7 @@ import video.typetype.tv.data.api.SabrApi
 import video.typetype.tv.data.api.TypeTypeApi
 import video.typetype.tv.data.dto.InstanceDto
 import video.typetype.tv.data.dto.UserProfileDto
+import video.typetype.tv.data.net.ServerWatch
 import okhttp3.HttpUrl
 import okhttp3.OkHttpClient
 
@@ -19,12 +20,15 @@ class Backend(
     val presence: PresenceApi,
     val sabr: SabrApi,
     val mediaHttp: OkHttpClient,
+    val watch: ServerWatch,
 )
 
 sealed interface SessionState {
     data object Starting : SessionState
 
     data object Unconfigured : SessionState
+
+    data class Reconnecting(val backend: Backend, val failedAttempts: Int) : SessionState
 
     data class SignedOut(val backend: Backend, val notice: SignOutReason? = null) : SessionState
 
@@ -33,5 +37,4 @@ sealed interface SessionState {
 
 enum class SignOutReason {
     Expired,
-    Unreachable,
 }
