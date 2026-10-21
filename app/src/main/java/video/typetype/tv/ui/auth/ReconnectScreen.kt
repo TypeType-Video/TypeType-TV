@@ -20,7 +20,9 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import video.typetype.tv.R
 import video.typetype.tv.data.session.SessionManager
+import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.PillButton
+import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
 @Composable
@@ -34,7 +36,11 @@ fun ReconnectScreen(session: SessionManager, host: String, failedAttempts: Int, 
         modifier = modifier,
     ) {
         Column {
-            MessageText(UiMessage(if (failedAttempts == 0) R.string.reconnect_checking else R.string.reconnect_waiting))
+            if (failedAttempts == 0) {
+                TextLabel(stringResource(R.string.reconnect_checking), Type.Body, maxLines = 2)
+            } else {
+                MessageText(UiMessage(R.string.reconnect_waiting))
+            }
             Spacer(Modifier.height(18.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 PillButton(
