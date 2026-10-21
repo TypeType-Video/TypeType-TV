@@ -1,0 +1,88 @@
+package video.typetype.tv.ui.player
+
+import android.os.SystemClock
+import androidx.compose.runtime.Stable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
+import androidx.media3.common.Player
+
+@Stable
+class PlayerSession(
+    private val player: Player,
+    private val state: PlayerUiState,
+    startWithControls: Boolean = true,
+) {
+    var controlsVisible by mutableStateOf(startWithControls)
+    var interaction by mutableLongStateOf(0L)
+    var panel by mutableStateOf<PlayerPanel?>(null)
+    val scrub = ScrubState()
+    val notice = SponsorNotice()
+    val upNext = UpNextState()
+
+    fun showControls() {
+        controlsVisible = true
+    }
+
+    fun togglePlay() {
+        if (player.isPlaying) player.pause() else player.play()
+    }
+
+    fun seekBy(deltaMillis: Long) {
+        player.seekTo(SeekMath.target(player.currentPosition, deltaMillis, state.durationMillis))
+    }
+
+    fun scrubBy(deltaMillis: Long) {
+        scrub.move(state.positionMillis, deltaMillis, state.durationMillis)
+        controlsVisible = true
+    }
+
+    fun commitScrub() {
+        scrub.commit()?.let(player::seekTo)
+    }
+
+    fun undoSkip(): Boolean {
+        val start = notice.undo() ?: return false
+        player.seekTo(start)
+        return true
+    }
+
+    fun onKey(event: KeyEvent, upNextVisible: Boolean, playNext: () -> Unit): Boolean {
+        if (panel != null) return false
+        if (event.key == Key.Back) return handleBack(event, upNextVisible)
+        if (event.type != KeyEventType.KeyDown) return false
+        interaction = SystemClock.elapsedRealtime()
+        val step = SeekMath.scrubStep(event.nativeKeyEvent.repeatCount, state.durationMillis)
+        val confirm = event.key == Key.DirectionCenter || event.key == Key.Enter
+        return when {
+            event.key == Key.MediaPlayPause -> { togglePlay(); showControls(); true }
+            scrub.active && confirm -> { commitScrub(); true }
+            scrub.active && event.key == Key.DirectionLeft -> { scrubBy(-step); true }
+            scrub.active && event.key == Key.DirectionRight -> { scrubBy(step); true }
+            controlsVisible || state.isEnded -> false
+            upNextVisible && confirm -> { playNext(); true }
+            confirm -> { togglePlay(); showControls(); true }
+            event.key == Key.DirectionLeft && notice.segment != null -> undoSkip()
+            event.key == Key.DirectionLeft || event.key == Key.MediaRewind -> { scrubBy(-step); true }
+            event.key == Key.DirectionRight || event.key == Key.MediaFastForward -> { scrubBy(step); true }
+            event.key == Key.DirectionUp || event.key == Key.DirectionDown -> { showControls(); true }
+            else -> false
+        }
+    }
+
+    private fun handleBack(event: KeyEvent, upNextVisible: Boolean): Boolean {
+        val released = event.type == KeyEventType.KeyUp
+        return when {
+            scrub.active -> { if (released) scrub.cancel(); true }
+            upNextVisible -> { if (released) upNext.dismiss(); true }
+            controlsVisible -> { if (released) controlsVisible = false; true }
+            else -> false
+        }
+    }
+}
