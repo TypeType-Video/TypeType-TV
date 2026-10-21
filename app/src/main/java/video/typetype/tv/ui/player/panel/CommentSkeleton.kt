@@ -18,8 +18,12 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
+import video.typetype.tv.ui.components.rememberShimmerBrush
 
 private val LINE = RoundedCornerShape(6.dp)
+
+@Composable
+fun rememberCommentShimmer(): Brush = rememberShimmerBrush(base = Palette.SurfaceRaised, highlight = Palette.Outline)
 
 @Composable
 fun CommentSkeleton(brush: Brush, reply: Boolean, modifier: Modifier = Modifier) {

@@ -30,8 +30,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.LiveRegionMode
 import androidx.compose.ui.semantics.contentDescription
@@ -39,13 +39,14 @@ import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import coil3.decode.BitmapFactoryDecoder
+import coil3.request.ImageRequest
 import video.typetype.tv.R
 import video.typetype.tv.data.Comment
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.Glyph
 import video.typetype.tv.ui.components.TextLabel
-import video.typetype.tv.ui.components.rememberShimmerBrush
 import video.typetype.tv.ui.detail.CommentsState
 import video.typetype.tv.ui.detail.commentDescription
 import video.typetype.tv.ui.detail.commentLikesLabel
@@ -68,7 +69,6 @@ fun CommentsPanel(state: CommentsState, onClose: () -> Unit) {
     LaunchedEffect(state) { if (!state.loaded) state.load() }
     LaunchedEffect(state.loaded, state.comments.isEmpty()) { entry.requestFocusWhenReady() }
     val rows = CommentRows.build(state.comments, state.replies, state.loadingMore)
-    val shimmer = rememberShimmerBrush(base = Palette.SurfaceRaised, highlight = Palette.Outline)
     LaunchedEffect(restoreId) {
         val id = restoreId ?: return@LaunchedEffect
         val index = rows.indexOfFirst { it is CommentRow.Top && it.comment.id == id }
@@ -80,7 +80,7 @@ fun CommentsPanel(state: CommentsState, onClose: () -> Unit) {
     }
     PlayerSheet(stringResource(R.string.menu_comments), onClose) {
         if (!state.loaded) {
-            FirstPageSkeleton(shimmer, stringResource(R.string.comments_loading), Modifier.focusRequester(entry))
+            FirstPageSkeleton(stringResource(R.string.comments_loading), Modifier.focusRequester(entry))
         } else if (state.comments.isEmpty()) {
             val message = stringResource(R.string.comments_empty)
             SheetSurface(onClick = onClose, spoken = message, current = false, modifier = Modifier.focusRequester(entry)) {
@@ -97,7 +97,7 @@ fun CommentsPanel(state: CommentsState, onClose: () -> Unit) {
                         row is CommentRow.Top && row.comment.id == restoreId -> Modifier.focusRequester(restore)
                         else -> Modifier
                     }
-                    RowContent(row, state, shimmer, focus) { restoreId = it }
+                    RowContent(row, state, focus) { restoreId = it }
                 }
             }
         }
@@ -105,7 +105,8 @@ fun CommentsPanel(state: CommentsState, onClose: () -> Unit) {
 }
 
 @Composable
-private fun FirstPageSkeleton(shimmer: Brush, spoken: String, modifier: Modifier) {
+private fun FirstPageSkeleton(spoken: String, modifier: Modifier) {
+    val shimmer = rememberCommentShimmer()
     Column(
         modifier.padding(SheetContentPadding).focusable().semantics { contentDescription = spoken },
         verticalArrangement = Arrangement.spacedBy(8.dp),
@@ -115,7 +116,8 @@ private fun FirstPageSkeleton(shimmer: Brush, spoken: String, modifier: Modifier
 }
 
 @Composable
-private fun Skeletons(shimmer: Brush, count: Int, reply: Boolean, spoken: String?, modifier: Modifier) {
+private fun Skeletons(count: Int, reply: Boolean, spoken: String?, modifier: Modifier) {
+    val shimmer = rememberCommentShimmer()
     val announced = if (spoken == null) {
         modifier
     } else {
@@ -130,14 +132,14 @@ private fun Skeletons(shimmer: Brush, count: Int, reply: Boolean, spoken: String
 }
 
 @Composable
-private fun RowContent(row: CommentRow, state: CommentsState, shimmer: Brush, modifier: Modifier, onHidden: (String) -> Unit) {
+private fun RowContent(row: CommentRow, state: CommentsState, modifier: Modifier, onHidden: (String) -> Unit) {
     when (row) {
         is CommentRow.Top -> CommentCard(row.comment, row.repliesOpen, modifier, reply = false) { state.toggleReplies(row.comment) }
         is CommentRow.Reply -> CommentCard(row.comment, false, modifier.padding(start = REPLY_INDENT), reply = true) {}
         is CommentRow.LoadingReplies ->
-            Skeletons(shimmer, count = 2, reply = true, stringResource(R.string.comments_replies_loading), modifier)
-        is CommentRow.LoadingMoreReplies -> Skeletons(shimmer, count = 1, reply = true, spoken = null, modifier)
-        CommentRow.LoadingMore -> Skeletons(shimmer, NEXT_PAGE_SKELETONS, reply = false, spoken = null, modifier)
+            Skeletons(count = 2, reply = true, stringResource(R.string.comments_replies_loading), modifier)
+        is CommentRow.LoadingMoreReplies -> Skeletons(count = 1, reply = true, spoken = null, modifier)
+        CommentRow.LoadingMore -> Skeletons(NEXT_PAGE_SKELETONS, reply = false, spoken = null, modifier)
         is CommentRow.FailedReplies -> StatusRow(stringResource(R.string.comments_replies_failed), modifier) {
             state.toggleReplies(row.parent)
             state.toggleReplies(row.parent)
@@ -188,7 +190,11 @@ private fun CommentCard(comment: Comment, repliesOpen: Boolean, modifier: Modifi
                 contentAlignment = Alignment.Center,
             ) {
                 TextLabel(comment.author.take(1).uppercase(), Type.Label, maxLines = 1)
-                comment.avatarUrl?.let { AsyncImage(it, null, Modifier.size(if (reply) 26.dp else 32.dp), contentScale = ContentScale.Crop) }
+                comment.avatarUrl?.let { url ->
+                    val context = LocalContext.current
+                    val still = remember(url) { ImageRequest.Builder(context).data(url).decoderFactory(BitmapFactoryDecoder.Factory()).build() }
+                    AsyncImage(still, null, Modifier.size(if (reply) 26.dp else 32.dp), contentScale = ContentScale.Crop)
+                }
             }
             TextLabel(comment.author, Type.Title, Modifier.weight(1f), maxLines = 1)
             if (comment.pinned) Glyph(Icons.Rounded.PushPin, Palette.AccentSoft, 18)
