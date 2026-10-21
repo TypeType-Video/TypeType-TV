@@ -2,7 +2,6 @@ package video.typetype.tv.ui.components
 
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
@@ -82,26 +81,34 @@ private fun Density.renderScrims(size: Size): ImageBitmap {
 }
 
 @Composable
-fun AccentGlow(modifier: Modifier = Modifier) {
+fun InkBackground(modifier: Modifier = Modifier) {
     Box(
         modifier = modifier
             .fillMaxSize()
             .drawWithCache {
-                val glow = Brush.radialGradient(
-                    colors = listOf(Palette.Accent.copy(alpha = GLOW_ALPHA), Color.Transparent),
-                    center = Offset(size.width * GLOW_CENTER_X, 0f),
-                    radius = size.width * GLOW_RADIUS,
-                )
-                onDrawBehind { drawRect(glow) }
+                val ink = renderInk(size)
+                val target = IntSize(size.width.roundToInt(), size.height.roundToInt())
+                onDrawBehind { drawImage(ink, dstSize = target, filterQuality = FilterQuality.Low) }
             },
     )
 }
 
-@Composable
-fun InkBackground(modifier: Modifier = Modifier) {
-    Box(modifier = modifier.fillMaxSize().background(Palette.Ink)) {
-        AccentGlow()
+// The glow is baked with the ink into one small opaque image: one pass per frame instead of a full-screen gradient.
+private fun Density.renderInk(size: Size): ImageBitmap {
+    val width = (size.width / SCRIM_DOWNSCALE).roundToInt().coerceAtLeast(1)
+    val height = (size.height / SCRIM_DOWNSCALE).roundToInt().coerceAtLeast(1)
+    val bitmap = ImageBitmap(width, height)
+    CanvasDrawScope().draw(this, LayoutDirection.Ltr, Canvas(bitmap), Size(width.toFloat(), height.toFloat())) {
+        drawRect(Palette.Ink)
+        drawRect(
+            Brush.radialGradient(
+                colors = listOf(Palette.Accent.copy(alpha = GLOW_ALPHA), Color.Transparent),
+                center = Offset(width * GLOW_CENTER_X, 0f),
+                radius = width * GLOW_RADIUS,
+            ),
+        )
     }
+    return bitmap
 }
 
 private const val TINT_ALPHA = 0.24f
