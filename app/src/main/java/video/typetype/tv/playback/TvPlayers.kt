@@ -3,6 +3,7 @@ package video.typetype.tv.playback
 import android.app.ActivityManager
 import android.content.Context
 import android.os.Looper
+import androidx.media3.common.util.ExperimentalApi
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.DefaultLoadControl
 import androidx.media3.exoplayer.DefaultRenderersFactory
@@ -38,6 +39,7 @@ object TvPlayers {
 
 @UnstableApi
 private class SideloadedTextRenderers(context: Context) : DefaultRenderersFactory(context) {
+    @androidx.annotation.OptIn(ExperimentalApi::class)
     override fun buildTextRenderers(
         context: Context,
         output: TextOutput,
