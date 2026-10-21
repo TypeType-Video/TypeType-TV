@@ -26,7 +26,7 @@ class SabrPlaybackProvider(
         val startPositionMs = request.startMs
         val videoId = VideoIds.parse(videoUrl) ?: failure("The video address is not supported")
         val trace = request.trace
-        val stream = backend.api.streamBootstrap(videoUrl)
+        val stream = request.stream?.takeIf(FormatSelector::hasSabrFormats) ?: backend.api.streamBootstrap(videoUrl)
         trace?.step("bootstrap")
         val deviceLimit = maxHeight()
         val limit = minOf(deviceLimit, request.maxHeight ?: deviceLimit)
@@ -49,11 +49,13 @@ class SabrPlaybackProvider(
             throw error
         }
         trace?.step("first window")
+        val playFromMs = KeyframeStart.of(firstWindow, startPositionMs)
         val player = TvPlayers.create(context)
+        trace?.step("player")
         val tracker = PositionTracker(player).also { it.start() }
         val media = TypeTypeMediaSource(
             mediaItem = MediaItem.Builder().setMediaId(videoId).build(),
-            initialPositionUs = startPositionMs * MICROS_PER_MILLI,
+            initialPositionUs = playFromMs * MICROS_PER_MILLI,
             initialWindow = firstWindow,
             playbackPositionUs = { tracker.currentMs() * MICROS_PER_MILLI },
             windowLoader = loader,
@@ -62,7 +64,7 @@ class SabrPlaybackProvider(
         )
         val captions = CaptionChoice.languages(request.subtitles)
         val source = SubtitleSources.attach(media, captions, OkHttpDataSource.Factory(subtitleHttp))
-        player.setMediaSource(source, startPositionMs)
+        player.setMediaSource(source, playFromMs)
         player.prepare()
         player.playWhenReady = true
         trace?.let {

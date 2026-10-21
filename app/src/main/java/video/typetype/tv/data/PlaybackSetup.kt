@@ -1,5 +1,7 @@
 package video.typetype.tv.data
 
+import video.typetype.tv.data.dto.StreamDto
+
 data class SubtitleTrack(
     val url: String,
     val mimeType: String,
@@ -42,4 +44,5 @@ data class PlaybackSetup(
     val sponsorSegments: List<SponsorSegment> = emptyList(),
     val liveManifest: String? = null,
     val storyboard: Storyboard? = null,
+    val stream: StreamDto? = null,
 )

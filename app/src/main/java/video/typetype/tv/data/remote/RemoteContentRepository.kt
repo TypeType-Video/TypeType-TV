@@ -182,6 +182,7 @@ class RemoteContentRepository(
             ),
             liveManifest = stream.liveManifest(),
             storyboard = stream.toStoryboard(),
+            stream = stream,
         )
     }
 

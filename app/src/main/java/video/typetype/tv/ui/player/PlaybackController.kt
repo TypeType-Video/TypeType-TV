@@ -179,6 +179,7 @@ class PlaybackController(
             audioTrackId = audioTrack,
             audioLanguage = loaded.preferences.audioLanguage,
             preferOriginalAudio = loaded.preferences.preferOriginalAudio,
+            stream = loaded.stream,
             trace = trace,
         )
         return provider.open(context, videoId, request).also { choices.initialize(it, loaded.preferences) }

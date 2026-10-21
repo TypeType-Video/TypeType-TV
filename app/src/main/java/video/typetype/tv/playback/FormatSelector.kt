@@ -24,6 +24,9 @@ object FormatSelector {
         return PlaybackTuple(video.itag, audio.itag, audio.audioTrackId, video.height)
     }
 
+    fun hasSabrFormats(stream: StreamDto): Boolean =
+        compatible(stream.videoOnlyStreams).isNotEmpty() && stream.audioStreams.any { it.deliveryMethod == SABR && isMp4Audio(it) }
+
     fun heights(stream: StreamDto, maxHeight: Int): List<Int> =
         compatible(stream.videoOnlyStreams).map { it.height }.filter { it <= maxHeight }.distinct().sortedDescending()
 

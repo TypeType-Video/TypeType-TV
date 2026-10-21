@@ -4,6 +4,7 @@ import android.content.Context
 import androidx.media3.common.C
 import androidx.media3.exoplayer.ExoPlayer
 import video.typetype.tv.data.SubtitleTrack
+import video.typetype.tv.data.dto.StreamDto
 
 data class PlaybackRequest(
     val startMs: Long = 0L,
@@ -13,6 +14,7 @@ data class PlaybackRequest(
     val audioTrackId: String? = null,
     val audioLanguage: String = "",
     val preferOriginalAudio: Boolean = false,
+    val stream: StreamDto? = null,
     val trace: StartupTrace? = null,
 )
 
