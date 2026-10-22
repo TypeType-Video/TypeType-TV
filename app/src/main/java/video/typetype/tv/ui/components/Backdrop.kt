@@ -18,6 +18,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.drawscope.CanvasDrawScope
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import coil3.compose.AsyncImage
@@ -86,29 +87,35 @@ fun InkBackground(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .drawWithCache {
-                val ink = renderInk(size)
-                val target = IntSize(size.width.roundToInt(), size.height.roundToInt())
-                onDrawBehind { drawImage(ink, dstSize = target, filterQuality = FilterQuality.Low) }
+                val glow = renderGlow(size)
+                onDrawBehind {
+                    drawRect(Palette.Ink)
+                    drawImage(glow.image, dstOffset = glow.offset, dstSize = glow.size, filterQuality = FilterQuality.Low)
+                }
             },
     )
 }
 
-// The glow is baked with the ink into one small opaque image: one pass per frame instead of a full-screen gradient.
-private fun Density.renderInk(size: Size): ImageBitmap {
-    val width = (size.width / SCRIM_DOWNSCALE).roundToInt().coerceAtLeast(1)
-    val height = (size.height / SCRIM_DOWNSCALE).roundToInt().coerceAtLeast(1)
+private class Glow(val image: ImageBitmap, val offset: IntOffset, val size: IntSize)
+
+// Outside its circle the glow is transparent, so only that corner is drawn over the solid ink, from a small image.
+private fun Density.renderGlow(size: Size): Glow {
+    val radius = size.width * GLOW_RADIUS
+    val left = (size.width * GLOW_CENTER_X - radius).coerceAtLeast(0f)
+    val area = IntSize((size.width - left).roundToInt().coerceAtLeast(1), radius.coerceAtMost(size.height).roundToInt().coerceAtLeast(1))
+    val width = (area.width / SCRIM_DOWNSCALE).roundToInt().coerceAtLeast(1)
+    val height = (area.height / SCRIM_DOWNSCALE).roundToInt().coerceAtLeast(1)
     val bitmap = ImageBitmap(width, height)
     CanvasDrawScope().draw(this, LayoutDirection.Ltr, Canvas(bitmap), Size(width.toFloat(), height.toFloat())) {
-        drawRect(Palette.Ink)
         drawRect(
             Brush.radialGradient(
                 colors = listOf(Palette.Accent.copy(alpha = GLOW_ALPHA), Color.Transparent),
-                center = Offset(width * GLOW_CENTER_X, 0f),
-                radius = width * GLOW_RADIUS,
+                center = Offset((size.width * GLOW_CENTER_X - left) / SCRIM_DOWNSCALE, 0f),
+                radius = radius / SCRIM_DOWNSCALE,
             ),
         )
     }
-    return bitmap
+    return Glow(bitmap, IntOffset(left.roundToInt(), 0), area)
 }
 
 private const val TINT_ALPHA = 0.24f
