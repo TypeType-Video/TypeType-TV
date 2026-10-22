@@ -32,7 +32,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.graphicsLayer
 import kotlinx.coroutines.delay
 import video.typetype.tv.R
 import video.typetype.tv.data.ContentRepository
@@ -187,13 +186,6 @@ fun SearchScreen(
 
 @Composable
 private fun QueryField(query: String) {
-    var caretShown by remember { mutableStateOf(true) }
-    LaunchedEffect(Unit) {
-        while (true) {
-            delay(CARET_BLINK_MILLIS)
-            caretShown = !caretShown
-        }
-    }
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -217,10 +209,7 @@ private fun QueryField(query: String) {
             Modifier
                 .width(2.dp)
                 .height(20.dp)
-                .graphicsLayer { alpha = if (caretShown) 1f else 0f }
                 .background(Palette.Accent),
         )
     }
 }
-
-private const val CARET_BLINK_MILLIS = 530L
