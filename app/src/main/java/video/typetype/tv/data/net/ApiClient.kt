@@ -17,7 +17,6 @@ import okhttp3.RequestBody.Companion.toRequestBody
 import okhttp3.Response
 import java.io.IOException
 import javax.net.ssl.SSLException
-import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 class ApiClient(
@@ -94,19 +93,21 @@ class ApiClient(
         } catch (failure: IOException) {
             throw ApiException(transportFailure(failure), failure)
         }
-        return withContext(Dispatchers.IO) {
-            response.use {
+        return try {
+            withContext(Dispatchers.IO) {
                 RawResponse(
-                    status = it.code,
+                    status = response.code,
                     body = try {
-                        it.body.string()
+                        response.body.string()
                     } catch (failure: IOException) {
                         throw ApiException(transportFailure(failure), failure)
                     },
-                    requestId = it.header(REQUEST_ID_HEADER),
-                    retryAfterMillis = it.header("Retry-After")?.toLongOrNull()?.times(1_000L),
+                    requestId = response.header(REQUEST_ID_HEADER),
+                    retryAfterMillis = response.header("Retry-After")?.toLongOrNull()?.times(1_000L),
                 )
             }
+        } finally {
+            response.close()
         }
     }
 
@@ -143,7 +144,7 @@ private suspend fun Call.await(): Response = suspendCancellableCoroutine { conti
         }
 
         override fun onResponse(call: Call, response: Response) {
-            if (continuation.isActive) continuation.resume(response) else response.close()
+            continuation.resume(response) { _, _, _ -> response.close() }
         }
     })
 }
