@@ -86,8 +86,9 @@ private fun HomeLoaded(
     val restoreAnchor = remember { session.anchor }
     var pendingRestore by remember { mutableStateOf(restoreAnchor != null) }
 
-    LaunchedEffect(content) {
-        while (true) {
+    val heroInView = focusedCard == null
+    LaunchedEffect(content, heroInView) {
+        while (heroInView) {
             delay(HERO_ROTATION_MILLIS)
             heroIndex = (heroIndex + 1) % content.featured.size
         }
