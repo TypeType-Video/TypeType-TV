@@ -51,6 +51,8 @@ import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.QualityBadge
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.util.formatMillis
+import video.typetype.tv.ui.components.LiveBadge
+import video.typetype.tv.ui.util.metaLine
 
 data class PlayerControlActions(
     val onTogglePlay: () -> Unit,
@@ -137,8 +139,9 @@ fun PlayerControls(
 private fun TitleBlock(video: Video, chapter: String?, modifier: Modifier = Modifier) {
     Column(modifier.padding(start = Dimens.SafeStart, top = Dimens.SafeTop + 8.dp, end = 160.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+            if (video.isLive) LiveBadge(stringResource(R.string.badge_live))
             if (video.quality.isNotBlank()) QualityBadge(video.quality)
-            TextLabel(video.channel.name.uppercase(), Type.Label, maxLines = 1)
+            TextLabel(metaLine(video.channel.name.uppercase(), video.views.takeIf { video.isLive }), Type.Label, maxLines = 1)
         }
         Spacer(Modifier.height(6.dp))
         TextLabel(video.title, Type.Headline, maxLines = 1)

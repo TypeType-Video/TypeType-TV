@@ -46,7 +46,10 @@ class MappersTest {
 
     @Test
     fun marksLiveStreams() {
-        assertTrue(item().copy(streamType = "live_stream").toVideo(now)?.isLive == true)
+        val live = item().copy(streamType = "live_stream").toVideo(now)
+        assertTrue(live?.isLive == true)
+        assertEquals("1.3M watching", live?.views)
+        assertEquals("1.3M views", item().toVideo(now)?.views)
     }
 
     @Test

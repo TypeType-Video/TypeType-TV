@@ -16,6 +16,13 @@ object Formatters {
         return if (compact.isEmpty()) "" else "$compact views"
     }
 
+    // On a live stream the server's view count is the audience connected right now.
+    fun audience(count: Long, live: Boolean): String {
+        if (!live) return views(count)
+        val compact = compactCount(count)
+        return if (compact.isEmpty()) "" else "$compact watching"
+    }
+
     fun age(nowMillis: Long, thenMillis: Long): String {
         if (thenMillis <= 0L || thenMillis > nowMillis) return ""
         val minutes = (nowMillis - thenMillis) / 60_000L
