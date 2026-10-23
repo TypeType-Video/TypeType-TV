@@ -20,8 +20,8 @@ import androidx.compose.ui.unit.dp
 import video.typetype.tv.R
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.theme.Type
-import video.typetype.tv.ui.auth.MessageText
-import video.typetype.tv.ui.auth.UiMessage
+import video.typetype.tv.ui.components.MessageText
+import video.typetype.tv.ui.util.UiMessage
 import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.util.requestFocusWhenReady

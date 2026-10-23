@@ -11,7 +11,7 @@ import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.PublicPlaylist
 import video.typetype.tv.data.Video
 import video.typetype.tv.data.net.ApiException
-import video.typetype.tv.ui.auth.UiMessage
+import video.typetype.tv.ui.util.UiMessage
 import video.typetype.tv.ui.util.describeLoadFailure
 import java.io.IOException
 

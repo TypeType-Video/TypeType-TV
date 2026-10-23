@@ -65,12 +65,3 @@ fun AuthScaffold(
         }
     }
 }
-
-@Composable
-fun MessageText(message: UiMessage?, modifier: Modifier = Modifier) {
-    if (message == null) return
-    Column(modifier) {
-        TextLabel(stringResource(message.textRes), Type.Body.copy(color = Palette.AccentSoft), maxLines = 3)
-        message.requestId?.let { TextLabel(stringResource(R.string.request_id, it), Type.Meta, maxLines = 1) }
-    }
-}

@@ -1,4 +1,4 @@
-package video.typetype.tv.playback
+package video.typetype.tv.data
 
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull

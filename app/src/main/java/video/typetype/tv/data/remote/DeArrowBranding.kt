@@ -11,7 +11,7 @@ import video.typetype.tv.data.ContentSource
 import video.typetype.tv.data.InstanceUrls
 import video.typetype.tv.data.Video
 import video.typetype.tv.data.api.TypeTypeApi
-import video.typetype.tv.playback.VideoIds
+import video.typetype.tv.data.VideoIds
 
 data class BrandingPreferences(
     val enabled: Boolean = false,

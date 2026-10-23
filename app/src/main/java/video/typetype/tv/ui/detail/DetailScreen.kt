@@ -28,7 +28,7 @@ import video.typetype.tv.data.Video
 import video.typetype.tv.data.withResume
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.ui.components.Backdrop
-import video.typetype.tv.ui.auth.UiMessage
+import video.typetype.tv.ui.util.UiMessage
 import video.typetype.tv.ui.components.ScreenFailure
 import video.typetype.tv.ui.components.ShelfRow
 import video.typetype.tv.ui.util.tryLoad

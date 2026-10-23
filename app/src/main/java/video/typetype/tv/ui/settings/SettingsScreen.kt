@@ -2,7 +2,7 @@ package video.typetype.tv.ui.settings
 
 import video.typetype.tv.ui.util.tryLoad
 import video.typetype.tv.ui.components.ScreenFailure
-import video.typetype.tv.ui.auth.UiMessage
+import video.typetype.tv.ui.util.UiMessage
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.animateColorAsState

@@ -2,7 +2,7 @@ package video.typetype.tv.ui.library
 
 import video.typetype.tv.ui.util.tryLoad
 import video.typetype.tv.ui.components.ScreenFailure
-import video.typetype.tv.ui.auth.UiMessage
+import video.typetype.tv.ui.util.UiMessage
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
@@ -42,7 +42,6 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.R
 import video.typetype.tv.data.ContentRepository
-import video.typetype.tv.data.LibrarySection
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Palette

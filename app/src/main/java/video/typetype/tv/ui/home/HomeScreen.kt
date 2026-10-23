@@ -20,12 +20,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import video.typetype.tv.data.ContentRepository
-import video.typetype.tv.ui.auth.UiMessage
+import video.typetype.tv.ui.util.UiMessage
 import video.typetype.tv.ui.components.ScreenFailure
 import video.typetype.tv.ui.util.tryLoad
 import video.typetype.tv.data.HomeContent

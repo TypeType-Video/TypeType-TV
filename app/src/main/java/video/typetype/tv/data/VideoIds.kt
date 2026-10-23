@@ -1,4 +1,4 @@
-package video.typetype.tv.playback
+package video.typetype.tv.data
 
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 

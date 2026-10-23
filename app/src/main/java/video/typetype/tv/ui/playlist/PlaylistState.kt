@@ -9,7 +9,7 @@ import kotlinx.coroutines.launch
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.PublicPlaylistPage
 import video.typetype.tv.data.Video
-import video.typetype.tv.ui.auth.UiMessage
+import video.typetype.tv.ui.util.UiMessage
 import video.typetype.tv.ui.util.describeLoadFailure
 import java.io.IOException
 

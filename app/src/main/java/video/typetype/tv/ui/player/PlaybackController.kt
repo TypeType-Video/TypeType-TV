@@ -27,7 +27,7 @@ import video.typetype.tv.playback.PlaybackProvider
 import video.typetype.tv.playback.PlaybackRequest
 import video.typetype.tv.playback.PlayerHandle
 import video.typetype.tv.playback.StartupTrace
-import video.typetype.tv.ui.auth.UiMessage
+import video.typetype.tv.ui.util.UiMessage
 
 sealed interface PlaybackPhase {
     data object Opening : PlaybackPhase
