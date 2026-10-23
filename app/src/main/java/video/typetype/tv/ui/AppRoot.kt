@@ -93,7 +93,7 @@ fun AppRoot(
                     repository = repository,
                     session = homeSession,
                     onOpen = openDetail,
-                    onPlay = { navigator.push(Route.Player(it.id)) },
+                    onPlay = { navigator.push(Route.Player(it.id, preview = it)) },
                 )
                 Route.Search -> SearchScreen(
                     repository = repository,
@@ -113,7 +113,7 @@ fun AppRoot(
                     preview = route.preview,
                     repository = repository,
                     onOpenChannel = { navigator.push(Route.Channel(it)) },
-                    onPlay = { navigator.push(Route.Player(it.id)) },
+                    onPlay = { navigator.push(Route.Player(it.id, preview = it)) },
                     onOpen = openDetail,
                 )
                 is Route.Playlist -> PlaylistScreen(
@@ -140,7 +140,8 @@ fun AppRoot(
                     playback = playback,
                     connectivity = connectivity,
                     startWithControls = !route.continued,
-                    onOpenNext = { navigator.replaceTop(Route.Player(it.id, continued = true)) },
+                    preview = route.preview,
+                    onOpenNext = { navigator.replaceTop(Route.Player(it.id, continued = true, preview = it)) },
                 )
             }
         }

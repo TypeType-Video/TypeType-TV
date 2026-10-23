@@ -1,8 +1,5 @@
 package video.typetype.tv.ui.player
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -11,9 +8,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import video.typetype.tv.data.BulletComment
 import video.typetype.tv.data.ContentRepository
@@ -31,6 +26,7 @@ fun PlayerScreen(
     onOpenNext: (Video) -> Unit,
     modifier: Modifier = Modifier,
     startWithControls: Boolean = true,
+    preview: Video? = null,
 ) {
     val context = LocalContext.current.applicationContext
     val scope = rememberCoroutineScope()
@@ -47,7 +43,7 @@ fun PlayerScreen(
     when (val phase = controller.phase) {
         is PlaybackPhase.Playing -> PlayerContent(
             handle = phase.handle,
-            video = controller.video,
+            video = controller.video ?: preview,
             queue = queue,
             startWithControls = startWithControls,
             setup = controller.setup,
@@ -63,8 +59,6 @@ fun PlayerScreen(
         )
         is PlaybackPhase.Reconnecting -> ReconnectingPanel(phase.attempt, phase.offline, modifier)
         is PlaybackPhase.Failed -> PlayerFailure(phase.message, onRetry = controller::retry, modifier = modifier)
-        PlaybackPhase.Opening -> Box(modifier.fillMaxSize().background(Color.Black)) {
-            BufferingSpinner(true, Modifier.align(Alignment.Center))
-        }
+        PlaybackPhase.Opening -> OpeningPoster(controller.video ?: preview, visible = true, modifier = modifier)
     }
 }

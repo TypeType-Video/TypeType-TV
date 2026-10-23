@@ -20,7 +20,7 @@ sealed interface Route {
     data class Channel(val url: String) : Route
     data class Playlist(val url: String) : Route
     data class Podcast(val url: String) : Route
-    data class Player(val videoId: String, val continued: Boolean = false) : Route
+    data class Player(val videoId: String, val continued: Boolean = false, val preview: Video? = null) : Route
 }
 
 enum class TopTab(

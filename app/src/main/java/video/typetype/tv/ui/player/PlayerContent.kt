@@ -167,7 +167,9 @@ fun PlayerContent(
         if (commentsOn && bulletComments.isNotEmpty()) {
             DanmakuOverlay(bulletComments, state, SPEED_CHOICES[speedIndex])
         }
-        BufferingSpinner(state.isBuffering && !state.isEnded, Modifier.align(Alignment.Center))
+        val opening = !state.hasFirstFrame && !state.isPlaying && !choices.audioOnly
+        OpeningPoster(video, opening)
+        BufferingSpinner(state.isBuffering && !state.isEnded && !opening, Modifier.align(Alignment.Center))
         val current = video
         if (current != null) {
             FadeVisibility(visible = session.controlsVisible) {

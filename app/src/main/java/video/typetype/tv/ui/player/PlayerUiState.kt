@@ -22,6 +22,7 @@ class PlayerUiState {
     var isPlaying by mutableStateOf(false)
     var isBuffering by mutableStateOf(true)
     var isEnded by mutableStateOf(false)
+    var hasFirstFrame by mutableStateOf(false)
     var isLive by mutableStateOf(false)
     var liveOffsetMillis by mutableLongStateOf(0L)
 }
@@ -47,6 +48,10 @@ fun rememberPlayerUiState(player: Player): PlayerUiState {
         val listener = object : Player.Listener {
             override fun onIsPlayingChanged(isPlaying: Boolean) {
                 state.isPlaying = isPlaying
+            }
+
+            override fun onRenderedFirstFrame() {
+                state.hasFirstFrame = true
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {
