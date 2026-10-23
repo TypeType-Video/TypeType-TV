@@ -18,8 +18,8 @@ import video.typetype.tv.data.session.Backend
 @UnstableApi
 class SabrPlaybackProvider(
     private val backend: Backend,
+    private val codecs: CodecSupport,
     private val online: () -> Boolean = { true },
-    private val maxHeight: () -> Int = { DeviceDecoders.maxAvcHeight() },
 ) : PlaybackProvider {
 
     override suspend fun open(context: Context, videoUrl: String, request: PlaybackRequest): PlayerHandle {
@@ -28,12 +28,11 @@ class SabrPlaybackProvider(
         val trace = request.trace
         val stream = request.stream?.takeIf(FormatSelector::hasSabrFormats) ?: backend.api.streamBootstrap(videoUrl)
         trace?.step("bootstrap")
-        val deviceLimit = maxHeight()
-        val limit = minOf(deviceLimit, request.maxHeight ?: deviceLimit)
+        val limit = request.maxHeight ?: Int.MAX_VALUE
         val tracks = FormatSelector.audioTracks(stream)
         val chosenTrack = request.audioTrackId?.takeIf { id -> tracks.any { it.id == id } }
             ?: FormatSelector.defaultAudioTrack(tracks, request.audioLanguage, request.preferOriginalAudio)
-        val tuple = FormatSelector.select(stream, limit, chosenTrack) ?: failure("No compatible video format")
+        val tuple = FormatSelector.select(stream, limit, codecs, chosenTrack) ?: failure("No compatible video format")
         val created = backend.sabr.createSession(
             videoId,
             SabrSessionRequest(tuple.videoItag, tuple.audioItag, tuple.audioTrackId, startPositionMs, startPositionMs),
@@ -73,7 +72,7 @@ class SabrPlaybackProvider(
         }
         return PlayerHandle(
             player = player,
-            heights = FormatSelector.heights(stream, deviceLimit),
+            heights = FormatSelector.heights(stream, Int.MAX_VALUE, codecs),
             audioTracks = tracks,
             audioTrackId = tuple.audioTrackId,
             captionLanguages = captions.map { CaptionLanguage(it.language, it.label) },

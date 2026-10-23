@@ -19,14 +19,13 @@ import video.typetype.tv.data.session.Backend
 @UnstableApi
 class StandardPlaybackProvider(
     private val backend: Backend,
+    private val codecs: CodecSupport,
     private val online: () -> Boolean = { true },
-    private val maxHeight: () -> Int = { DeviceDecoders.maxAvcHeight() },
 ) {
     suspend fun open(context: Context, videoUrl: String, request: PlaybackRequest): PlayerHandle {
         val source = ContentSource.of(videoUrl) ?: failure("unsupported_source", "This video source is not supported")
         val stream = backend.api.streamFor(videoUrl)
-        val deviceLimit = maxHeight()
-        val selection = StandardFormatSelector.select(stream, minOf(deviceLimit, request.maxHeight ?: deviceLimit))
+        val selection = StandardFormatSelector.select(stream, request.maxHeight ?: Int.MAX_VALUE, codecs)
             ?: failure("playback_unavailable", "No compatible video format")
         val factory = OkHttpDataSource.Factory(backend.mediaHttp)
         val hls = source == ContentSource.NicoNico

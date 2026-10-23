@@ -18,37 +18,21 @@ object FormatSelector {
     private const val SABR = "sabr"
     private const val PREFERRED_AUDIO_ITAG = 140
 
-    fun select(stream: StreamDto, maxHeight: Int, audioTrackId: String? = null): PlaybackTuple? {
-        val video = pickVideo(stream.videoOnlyStreams, maxHeight) ?: return null
+    fun select(stream: StreamDto, maxHeight: Int, support: CodecSupport, audioTrackId: String? = null): PlaybackTuple? {
+        val video = VideoRanking.pick(sabrVideo(stream.videoOnlyStreams), maxHeight, support) ?: return null
         val audio = pickAudio(stream.audioStreams, audioTrackId) ?: return null
         return PlaybackTuple(video.itag, audio.itag, audio.audioTrackId, video.height)
     }
 
     fun hasSabrFormats(stream: StreamDto): Boolean =
-        compatible(stream.videoOnlyStreams).isNotEmpty() && stream.audioStreams.any { it.deliveryMethod == SABR && isMp4Audio(it) }
+        sabrVideo(stream.videoOnlyStreams).isNotEmpty() && stream.audioStreams.any { it.deliveryMethod == SABR && isMp4Audio(it) }
 
-    fun heights(stream: StreamDto, maxHeight: Int): List<Int> =
-        compatible(stream.videoOnlyStreams).map { it.height }.filter { it <= maxHeight }.distinct().sortedDescending()
+    fun heights(stream: StreamDto, maxHeight: Int, support: CodecSupport): List<Int> =
+        VideoRanking.heights(sabrVideo(stream.videoOnlyStreams), maxHeight, support)
 
-    private fun compatible(streams: List<VideoStreamDto>): List<VideoStreamDto> =
-        streams.filter { it.deliveryMethod == SABR && it.height > 0 && (it.isAvc() || it.isVp9()) }
-
-    private fun pickVideo(streams: List<VideoStreamDto>, maxHeight: Int): VideoStreamDto? {
-        val candidates = compatible(streams)
-        val capped = candidates.filter { it.height <= maxHeight }.ifEmpty {
-            val lowest = candidates.minOfOrNull { it.height } ?: return null
-            candidates.filter { it.height == lowest }
-        }
-        val ordered = compareByDescending<VideoStreamDto> { it.height }
-            .thenBy { if (it.fps <= COMPATIBLE_FPS) 0 else 1 }
-            .thenByDescending { it.bitrate }
-        return capped.filter { it.isAvc() }.sortedWith(ordered).firstOrNull()
-            ?: capped.filter { it.isVp9() }.sortedWith(ordered).firstOrNull()
-    }
-
-    private fun VideoStreamDto.isAvc() = codec.startsWith("avc1")
-
-    private fun VideoStreamDto.isVp9() = codec.startsWith("vp9") || codec.startsWith("vp09")
+    // The server's SABR contract carries AVC, VP9 and AV1 video, the same set TypeType-Android accepts.
+    private fun sabrVideo(streams: List<VideoStreamDto>): List<VideoStreamDto> =
+        streams.filter { it.deliveryMethod == SABR && it.height > 0 && VideoCodecs.mimeType(it.codec) != null && !it.codec.startsWith("hvc") }
 
     fun audioTracks(stream: StreamDto): List<AudioTrackChoice> =
         stream.audioStreams
@@ -75,6 +59,4 @@ object FormatSelector {
             .sortedWith(compareByDescending<AudioStreamDto> { it.isOriginal }.thenBy { abs(it.itag - PREFERRED_AUDIO_ITAG) })
             .firstOrNull()
     }
-
-    private const val COMPATIBLE_FPS = 30
 }

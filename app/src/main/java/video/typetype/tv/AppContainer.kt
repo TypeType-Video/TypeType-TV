@@ -16,6 +16,8 @@ import video.typetype.tv.data.remote.RemoteSettings
 import video.typetype.tv.data.session.Backend
 import video.typetype.tv.data.session.DeviceProfileStore
 import video.typetype.tv.data.session.SessionManager
+import video.typetype.tv.playback.CodecSupport
+import video.typetype.tv.playback.DeviceCodecSupport
 import video.typetype.tv.playback.PlaybackProvider
 import video.typetype.tv.playback.RoutingPlaybackProvider
 
@@ -56,7 +58,13 @@ class AppContainer(context: Context) {
         watch = backend.watch,
     )
 
+    private val codecs: CodecSupport by lazy { deviceCodecs() }
+
     @OptIn(UnstableApi::class)
     @androidx.annotation.OptIn(UnstableApi::class)
-    fun playback(backend: Backend): PlaybackProvider = RoutingPlaybackProvider(backend) { connectivity.online.value }
+    fun playback(backend: Backend): PlaybackProvider = RoutingPlaybackProvider(backend, codecs) { connectivity.online.value }
+
+    @OptIn(UnstableApi::class)
+    @androidx.annotation.OptIn(UnstableApi::class)
+    private fun deviceCodecs(): CodecSupport = DeviceCodecSupport(appContext)
 }
