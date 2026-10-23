@@ -11,6 +11,7 @@ import org.junit.Rule
 import org.junit.Test
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.SettingItem
+import video.typetype.tv.ui.settings.ChoiceRequest
 import video.typetype.tv.ui.settings.SettingChange
 import video.typetype.tv.ui.settings.SettingRow
 import video.typetype.tv.ui.settings.SettingsSession
@@ -43,15 +44,15 @@ class SettingRowsTest {
     }
 
     @Test
-    fun choiceCyclesThroughTheWireValues() {
+    fun aChoiceOpensItsPickerInsteadOfChangingAlone() {
         val session = SettingsSession()
         val changes = mutableListOf<SettingChange>()
-        show(choice, session, changes)
+        val requests = mutableListOf<ChoiceRequest>()
+        rule.setContent { SettingRow(choice, session, onAction = {}, onChange = { changes += it }, onChoose = { requests += it }) }
         rule.onNodeWithText(context.getString(R.string.settings_default_quality)).performClick()
         rule.waitForIdle()
-        assertEquals("1080p", changes.single().value)
-        assertEquals(1, session.choiceIndex(choice))
-        changes.single().revert()
+        assertEquals(choice, requests.single().item)
+        assertTrue(changes.isEmpty())
         assertEquals(0, session.choiceIndex(choice))
     }
 }
