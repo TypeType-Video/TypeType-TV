@@ -1,6 +1,8 @@
 package video.typetype.tv.data
 
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.emptyFlow
 
 class MockContentRepository(
     private val latencyMillis: Long = DEFAULT_LATENCY_MILLIS,
@@ -67,6 +69,8 @@ class MockContentRepository(
     }
 
     override suspend fun prewarm(videoId: String) = Unit
+
+    override fun liveChat(videoUrl: String): Flow<LiveChatEvent> = emptyFlow()
 
     override suspend fun related(id: String): List<Video> {
         delay(latencyMillis / 2)

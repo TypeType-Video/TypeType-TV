@@ -1,5 +1,7 @@
 package video.typetype.tv.data
 
+import kotlinx.coroutines.flow.Flow
+
 interface ContentRepository : VideoActivityRepository, PresenceSink {
     suspend fun home(): HomeContent
 
@@ -41,6 +43,8 @@ interface ContentRepository : VideoActivityRepository, PresenceSink {
     suspend fun unblockChannel(url: String)
 
     suspend fun bulletComments(videoUrl: String): List<BulletComment>
+
+    fun liveChat(videoUrl: String): Flow<LiveChatEvent>
 
     suspend fun channel(url: String, page: String? = null): ChannelPage
 

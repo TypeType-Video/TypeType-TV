@@ -7,6 +7,8 @@ import video.typetype.tv.data.LibrarySection
 import video.typetype.tv.data.SettingsGroup
 import video.typetype.tv.data.Video
 import video.typetype.tv.data.BulletComment
+import video.typetype.tv.data.LiveChatEvent
+import kotlinx.coroutines.flow.Flow
 import video.typetype.tv.data.Channel
 import okhttp3.HttpUrl
 import video.typetype.tv.data.ChannelPage
@@ -41,6 +43,7 @@ class RemoteContentRepository(
     private val clock: () -> Long = System::currentTimeMillis,
 ) : ContentRepository {
     private val streams = StreamStore(api::streamFor, clock)
+    private val liveChat = LiveChatSource(api.liveChat)
     private val homeCache = TtlCache<String, HomeContent>(HOME_TTL_MILLIS, 1, clock)
     private val firstComments = TtlCache<String, CommentsPage>(STREAM_TTL_MILLIS, COMMENT_ENTRIES, clock)
     private val userSettings = RemoteUserSettings(api, clock)
@@ -167,6 +170,8 @@ class RemoteContentRepository(
     override suspend fun channel(url: String, page: String?): ChannelPage = watch.watch {
         api.channelPage(url, page).toChannelPage(url, clock()).let { it.copy(videos = branding.apply(filter.allowed(it.videos))) }
     }
+
+    override fun liveChat(videoUrl: String): Flow<LiveChatEvent> = liveChat.events(videoUrl)
 
     override suspend fun bulletComments(videoUrl: String): List<BulletComment> {
         if (ContentSource.of(videoUrl) == ContentSource.YouTube) return emptyList()
