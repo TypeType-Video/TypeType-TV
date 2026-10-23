@@ -50,8 +50,13 @@ kotlinx-coroutines-android = { group = "org.jetbrains.kotlinx", name = "kotlinx-
 google-tink-android = { group = "com.google.crypto.tink", name = "tink-android", version.ref = "tink" }
 androidx-test-junit = { group = "androidx.test.ext", name = "junit", version.ref = "extJunit" }
 
+android-gradlePlugin = { group = "com.android.tools.build", name = "gradle", version.ref = "gradle" }
+compose-gradlePlugin = { group = "org.jetbrains.kotlin", name = "compose-compiler-gradle-plugin", version.ref = "kotlin" }
+
 [plugins]
 androidLibrary = { id = "com.android.library", version.ref = "gradle" }
 androidApplication = { id = "com.android.application", version.ref = "gradle" }
 kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref = "kotlin" }
 compose-compiler = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
+typetype-android-library = { id = "typetype.android.library" }
+typetype-android-compose = { id = "typetype.android.compose" }
