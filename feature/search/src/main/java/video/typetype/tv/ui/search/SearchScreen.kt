@@ -46,6 +46,9 @@ import video.typetype.tv.data.SearchKind
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.ui.components.InkBackground
+import video.typetype.tv.ui.components.SearchInput
+import video.typetype.tv.ui.components.SearchKeyboard
+import video.typetype.tv.ui.components.VoiceKey
 import video.typetype.tv.ui.util.requestFocusWhenReady
 import video.typetype.tv.ui.util.trapFocusDown
 

@@ -1,11 +1,6 @@
-package video.typetype.tv.ui.search
+package video.typetype.tv.ui.components
 
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import video.typetype.tv.data.ContentSource
-import video.typetype.tv.data.SearchKind
-import androidx.compose.runtime.setValue
-
+// The rules for typing a search, shared by every on-screen keyboard.
 object SearchInput {
     const val KEYS = "abcdefghijklmnopqrstuvwxyz0123456789"
     const val KEYS_PER_ROW = 9
@@ -34,14 +29,4 @@ object SearchInput {
             else -> null
         }
     }
-}
-
-class SearchSession {
-    var query by mutableStateOf("")
-    var source by mutableStateOf(ContentSource.YouTube)
-    var kind by mutableStateOf(SearchKind.Videos)
-    var restoreVideoId by mutableStateOf<String?>(null)
-
-    // Set by the remote's search key from any screen; the search screen starts listening and clears it.
-    var voiceRequested by mutableStateOf(false)
 }

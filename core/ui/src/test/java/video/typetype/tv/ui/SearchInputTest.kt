@@ -3,7 +3,7 @@ package video.typetype.tv.ui
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import video.typetype.tv.ui.search.SearchInput
+import video.typetype.tv.ui.components.SearchInput
 
 class SearchInputTest {
     @Test

@@ -1,4 +1,4 @@
-package video.typetype.tv.ui.search
+package video.typetype.tv.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
@@ -35,8 +35,6 @@ import video.typetype.tv.resources.R
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
-import video.typetype.tv.ui.components.FocusSurface
-import video.typetype.tv.ui.components.Glyph
 
 @Composable
 fun SearchKeyboard(
