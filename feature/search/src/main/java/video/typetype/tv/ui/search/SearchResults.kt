@@ -51,6 +51,7 @@ import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.SkeletonBox
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.components.VideoThumbnail
+import video.typetype.tv.ui.components.rememberVideoMenuTarget
 import video.typetype.tv.ui.util.LoadMoreNearEnd
 import video.typetype.tv.ui.util.metaLine
 import video.typetype.tv.ui.util.requestFocusWhenReady
@@ -113,10 +114,12 @@ fun ResultList(
 private fun ResultRow(video: Video, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val description = stringResource(R.string.card_description, video.title, video.channel.name)
     val prewarm = LocalStreamPrewarm.current
+    val menu = rememberVideoMenuTarget(video)
     FocusSurface(
         onClick = onClick,
         onFocused = { prewarm?.focus(video) },
-        modifier = modifier.fillMaxWidth().semantics { contentDescription = description },
+        onLongClick = menu.open,
+        modifier = modifier.fillMaxWidth().then(menu.modifier()).semantics { contentDescription = description },
         shape = Shapes.Panel,
         focusedScale = 1.02f,
     ) { focused ->

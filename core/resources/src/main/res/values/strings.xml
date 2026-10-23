@@ -20,6 +20,16 @@
     <string name="home_progress_left">%1$s left</string>
 
     <string name="detail_play">Play</string>
+    <string name="video_menu_open">Video options</string>
+    <string name="video_menu_channel">Open channel</string>
+    <string name="video_menu_watch_later_add">Add to Watch later</string>
+    <string name="video_menu_watch_later_remove">Remove from Watch later</string>
+    <string name="video_menu_favorite_add">Add to Favorites</string>
+    <string name="video_menu_favorite_remove">Remove from Favorites</string>
+    <string name="video_menu_block_video">Block this video</string>
+    <string name="video_menu_unblock_video">Unblock this video</string>
+    <string name="video_menu_block_channel">Block this channel</string>
+    <string name="video_menu_unblock_channel">Unblock this channel</string>
     <string name="detail_watch_live">Watch live</string>
     <string name="detail_resume">Resume</string>
     <string name="detail_watch_later">Watch later</string>

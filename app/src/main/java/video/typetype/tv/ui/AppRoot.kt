@@ -50,6 +50,10 @@ import video.typetype.tv.ui.settings.SettingsScreen
 import video.typetype.tv.ui.settings.SettingsSession
 import video.typetype.tv.ui.components.LocalStreamPrewarm
 import video.typetype.tv.ui.components.LocalVideoPreviews
+import video.typetype.tv.ui.detail.VideoMenuPanel
+import video.typetype.tv.ui.detail.VideoMenuActions
+import video.typetype.tv.ui.components.VideoMenu
+import video.typetype.tv.ui.components.LocalVideoMenu
 import video.typetype.tv.ui.components.VideoPreviews
 import video.typetype.tv.ui.player.MutedPreview
 import video.typetype.tv.ui.components.StreamPrewarm
@@ -94,7 +98,25 @@ fun AppRoot(
     val previews = remember(playback) {
         VideoPreviews { video, onPlaying, modifier -> MutedPreview(video, playback, onPlaying, modifier) }
     }
-    CompositionLocalProvider(LocalStreamPrewarm provides prewarm, LocalVideoPreviews provides previews) {
+    var menuRequest by remember { mutableStateOf<MenuRequest?>(null) }
+    val videoMenu = remember { VideoMenu { video, onClosed -> menuRequest = MenuRequest(video, onClosed) } }
+    val menuActions = remember(navigator) {
+        VideoMenuActions(
+            onPlay = {
+                menuRequest = null
+                navigator.push(Route.Player(it.id, preview = it))
+            },
+            onOpenChannel = {
+                menuRequest = null
+                navigator.push(Route.Channel(it))
+            },
+        )
+    }
+    CompositionLocalProvider(
+        LocalStreamPrewarm provides prewarm,
+        LocalVideoPreviews provides previews,
+        LocalVideoMenu provides videoMenu,
+    ) {
         Box(Modifier.fillMaxSize()) {
             AnimatedContent(
                 targetState = navigator.current,
@@ -184,6 +206,19 @@ fun AppRoot(
                     )
                 }
             }
+            menuRequest?.let { request ->
+                VideoMenuPanel(
+                    video = request.video,
+                    repository = repository,
+                    actions = menuActions,
+                    onClose = {
+                        menuRequest = null
+                        request.onClosed()
+                    },
+                )
+            }
         }
     }
 }
+
+private class MenuRequest(val video: Video, val onClosed: () -> Unit)

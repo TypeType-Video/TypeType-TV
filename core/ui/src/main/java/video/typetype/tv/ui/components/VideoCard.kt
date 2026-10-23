@@ -49,18 +49,21 @@ fun VideoCard(
     )
     val description = stringResource(R.string.card_description, video.title, video.channel.name)
     val prewarm = LocalStreamPrewarm.current
+    val menu = rememberVideoMenuTarget(video)
     Column(modifier = modifier) {
         FocusSurface(
             onClick = onClick,
             modifier = Modifier
                 .fillMaxWidth()
                 .aspectRatio(16f / 9f)
+                .then(menu.modifier())
                 .semantics { contentDescription = description },
             interactionSource = source,
             onFocused = {
                 prewarm?.focus(video)
                 onFocused?.invoke()
             },
+            onLongClick = menu.open,
         ) {
             VideoThumbnail(video)
         }

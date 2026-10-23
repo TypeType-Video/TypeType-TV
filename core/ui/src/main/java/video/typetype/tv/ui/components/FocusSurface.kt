@@ -5,7 +5,7 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Box
@@ -41,6 +41,7 @@ fun FocusSurface(
     interactionSource: MutableInteractionSource = remember { MutableInteractionSource() },
     onFocused: (() -> Unit)? = null,
     focusLift: Dp = 22.dp,
+    onLongClick: (() -> Unit)? = null,
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
     val focused by interactionSource.collectIsFocusedAsState()
@@ -73,9 +74,10 @@ fun FocusSurface(
                 this.shape = shape
                 clip = true
             }
-            .clickable(
+            .combinedClickable(
                 interactionSource = interactionSource,
                 indication = null,
+                onLongClick = onLongClick,
                 onClick = onClick,
             )
             .focusRing(shape, ringColor) { ring.value },

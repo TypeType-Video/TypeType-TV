@@ -22,12 +22,17 @@ class VideoActivityController(
     var failed by mutableStateOf(false)
         private set
 
+    // False until the library state is known, so a toggle never acts on a guess.
+    var loaded by mutableStateOf(false)
+        private set
+
     suspend fun load(video: Video) {
         activity = try {
             repository.activity(video)
         } catch (failure: ApiException) {
             VideoActivity()
         }
+        loaded = true
     }
 
     fun setWatchLater(video: Video, enabled: Boolean) =
