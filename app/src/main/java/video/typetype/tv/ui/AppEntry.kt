@@ -11,6 +11,11 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.Modifier
+import kotlinx.coroutines.CoroutineScope
 import androidx.compose.ui.platform.LocalContext
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
@@ -21,6 +26,7 @@ import video.typetype.tv.ui.auth.LoginScreen
 import video.typetype.tv.ui.auth.ReconnectScreen
 import video.typetype.tv.ui.auth.SetupScreen
 import video.typetype.tv.ui.components.InkBackground
+import video.typetype.tv.ui.splash.StartupSplash
 
 @OptIn(UnstableApi::class)
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -30,6 +36,18 @@ fun AppEntry(container: AppContainer) {
     val scope = rememberCoroutineScope()
     val state by session.state.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { session.restore() }
+    var splash by rememberSaveable { mutableStateOf(true) }
+    Box(Modifier.fillMaxSize()) {
+        AppState(container, state, scope)
+        if (splash) StartupSplash(onFinished = { splash = false })
+    }
+}
+
+@OptIn(UnstableApi::class)
+@androidx.annotation.OptIn(UnstableApi::class)
+@Composable
+private fun AppState(container: AppContainer, state: SessionState, scope: CoroutineScope) {
+    val session = container.session
     when (val current = state) {
         SessionState.Starting -> InkBackground()
         SessionState.Unconfigured -> SetupScreen(session)
