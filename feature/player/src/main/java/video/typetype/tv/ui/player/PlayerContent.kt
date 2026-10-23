@@ -1,6 +1,7 @@
 package video.typetype.tv.ui.player
 
 import androidx.activity.compose.BackHandler
+import androidx.compose.foundation.background
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,6 +23,7 @@ import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.input.key.onPreviewKeyEvent
@@ -163,8 +165,11 @@ fun PlayerContent(
 
     BackHandler(enabled = session.handlesBack(upNextVisible)) { session.back(upNextVisible) }
     Box(
+        // The window has no background of its own; with the chat column the picture is letterboxed, and the
+        // strips around it would otherwise keep whatever was drawn there before (the hidden controls).
         modifier = modifier
             .fillMaxSize()
+            .background(Color.Black)
             .focusRequester(root)
             .onPreviewKeyEvent { event -> session.onKey(event, upNextVisible) { next?.let(onOpenNext) } }
             .focusable(),
