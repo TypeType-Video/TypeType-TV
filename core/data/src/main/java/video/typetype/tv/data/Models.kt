@@ -103,6 +103,7 @@ sealed interface SettingItem {
         val options: List<String>,
         val defaultIndex: Int,
         val wireValues: List<String> = options,
+        @StringRes val summaryRes: Int? = null,
     ) : SettingItem
 
     data class Info(

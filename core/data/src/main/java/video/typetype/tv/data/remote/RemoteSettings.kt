@@ -31,11 +31,13 @@ class RemoteSettings(
         val account = runCatching { api.account() }.getOrNull()
         val settings = runCatching { api.settings() }.getOrNull()
         val unread = runCatching { api.unreadNotifications() }.getOrNull()?.takeIf { it.available }?.unreadCount
+        // The groups used every day come first; the account and the server are visited rarely.
         return listOf(
+            playbackGroup(settings),
+            ContentSettings.group(settings, texts),
+            blockedGroup(runCatching { api.blockedChannels() }.getOrNull()),
             accountGroup(profile?.role, account?.name ?: profile?.publicUsername, account?.email, unread),
             instanceGroup(),
-            playbackGroup(settings),
-            blockedGroup(runCatching { api.blockedChannels() }.getOrNull()),
             SettingsGroup(
                 id = "about",
                 titleRes = R.string.settings_group_about,
@@ -84,7 +86,7 @@ class RemoteSettings(
 
     suspend fun update(api: TypeTypeApi, id: String, value: String) {
         val patch = buildJsonObject {
-            when (id) {
+            if (!ContentSettings.write(this, id, value)) when (id) {
                 "quality" -> put("defaultQuality", value)
                 "speed" -> put("defaultPlaybackSpeed", value.toDouble())
                 "autoplay" -> put("autoplay", value.toBoolean())
@@ -115,9 +117,16 @@ class RemoteSettings(
             SettingItem.Choice(
                 id = "quality",
                 titleRes = R.string.settings_default_quality,
-                options = qualities.map { if (it == "auto") texts.text(R.string.settings_quality_auto) else it },
+                options = qualities.map {
+                    when (it) {
+                        "auto" -> texts.text(R.string.settings_quality_auto)
+                        "2160p" -> texts.text(R.string.settings_quality_4k)
+                        else -> it
+                    }
+                },
                 defaultIndex = qualities.indexOf(quality),
                 wireValues = qualities,
+                summaryRes = R.string.settings_default_quality_summary,
             ),
             SettingItem.Choice(
                 id = "speed",
@@ -125,6 +134,7 @@ class RemoteSettings(
                 options = SPEED_VALUES.map { "${it}x".replace(".0x", "x") },
                 defaultIndex = SPEED_VALUES.indices.minByOrNull { abs(SPEED_VALUES[it] - speed) } ?: 1,
                 wireValues = SPEED_VALUES.map { it.toString() },
+                summaryRes = R.string.settings_playback_speed_summary,
             ),
             SettingItem.Toggle("autoplay", R.string.settings_autoplay, R.string.settings_autoplay_summary, flag("autoplay", true)),
             SettingItem.Toggle("captions", R.string.settings_captions, R.string.settings_captions_summary, flag("subtitlesEnabled", false)),
@@ -135,6 +145,7 @@ class RemoteSettings(
                     .map { texts.text(it) },
                 defaultIndex = SPONSOR_VALUES.indexOf(sponsorMode).coerceAtLeast(0),
                 wireValues = SPONSOR_VALUES,
+                summaryRes = R.string.settings_sponsorblock_summary,
             ),
             SettingItem.Toggle("watch-history", R.string.settings_watch_history, R.string.settings_watch_history_summary, !flag("disableWatchHistory", false)),
         )
@@ -142,7 +153,7 @@ class RemoteSettings(
     }
 
     private companion object {
-        val QUALITY_VALUES = listOf("auto", "1080p", "720p", "480p", "360p")
+        val QUALITY_VALUES = listOf("auto", "2160p", "1440p", "1080p", "720p", "480p", "360p")
         val SPEED_VALUES = listOf(0.75, 1.0, 1.25, 1.5, 2.0)
         val SPONSOR_VALUES = listOf("auto_skip", "mark_only", "disabled")
         const val CERT_PREVIEW = 23
