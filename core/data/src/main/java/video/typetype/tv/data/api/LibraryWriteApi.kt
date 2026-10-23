@@ -3,6 +3,7 @@ package video.typetype.tv.data.api
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.encodeToString
 import video.typetype.tv.data.dto.BlockChannelRequest
+import video.typetype.tv.data.dto.BlockVideoRequest
 import video.typetype.tv.data.dto.HistoryRequest
 import video.typetype.tv.data.dto.PlaylistVideoRequest
 import video.typetype.tv.data.dto.ProgressDto
@@ -65,6 +66,14 @@ class LibraryWriteApi(private val client: ApiClient) {
 
     suspend fun unblockChannel(channelUrl: String) {
         client.send("DELETE", client.urlWithSegment("blocked/channels", channelUrl), null)
+    }
+
+    suspend fun blockVideo(request: BlockVideoRequest) {
+        client.send("POST", "blocked/videos", client.json.encodeToString(request))
+    }
+
+    suspend fun unblockVideo(videoUrl: String) {
+        client.send("DELETE", client.urlWithSegment("blocked/videos", videoUrl), null)
     }
 
     suspend fun addHistory(request: HistoryRequest) {

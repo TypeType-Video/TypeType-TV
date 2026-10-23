@@ -141,6 +141,12 @@ class MockContentRepository(
 
     override suspend fun unblockChannel(url: String) = Unit
 
+    override suspend fun isVideoBlocked(url: String): Boolean = false
+
+    override suspend fun blockVideo(video: Video) = Unit
+
+    override suspend fun unblockVideo(url: String) = Unit
+
     override suspend fun bulletComments(videoUrl: String): List<BulletComment> = emptyList()
 
     override suspend fun comments(videoUrl: String, page: String?): CommentsPage = CommentsPage(emptyList(), null, false)

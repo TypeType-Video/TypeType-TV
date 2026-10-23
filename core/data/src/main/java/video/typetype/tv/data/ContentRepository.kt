@@ -42,6 +42,12 @@ interface ContentRepository : VideoActivityRepository, PresenceSink {
 
     suspend fun unblockChannel(url: String)
 
+    suspend fun isVideoBlocked(url: String): Boolean
+
+    suspend fun blockVideo(video: Video)
+
+    suspend fun unblockVideo(url: String)
+
     suspend fun bulletComments(videoUrl: String): List<BulletComment>
 
     fun liveChat(videoUrl: String): Flow<LiveChatEvent>

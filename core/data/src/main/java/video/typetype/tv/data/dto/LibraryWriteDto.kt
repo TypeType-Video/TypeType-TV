@@ -61,6 +61,10 @@ data class PlaylistVideoRequest(
 @Serializable
 data class SavePlaylistRequest(val url: String)
 
+// The web sends only the address; `global` is for moderators and stays off.
+@Serializable
+data class BlockVideoRequest(val url: String)
+
 @Serializable
 data class BlockChannelRequest(
     val url: String,

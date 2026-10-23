@@ -28,6 +28,7 @@ import video.typetype.tv.data.VideoActivity
 import video.typetype.tv.data.api.LibraryWriteApi
 import video.typetype.tv.data.api.TypeTypeApi
 import video.typetype.tv.data.dto.BlockChannelRequest
+import video.typetype.tv.data.dto.BlockVideoRequest
 import video.typetype.tv.data.dto.StreamDto
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.net.ServerWatch
@@ -135,6 +136,18 @@ class RemoteContentRepository(
 
     override suspend fun unblockChannel(url: String) {
         library.unblockChannel(url)
+        afterBlockedChange()
+    }
+
+    override suspend fun isVideoBlocked(url: String): Boolean = url in filter.blocked().videos
+
+    override suspend fun blockVideo(video: Video) {
+        library.blockVideo(BlockVideoRequest(video.id))
+        afterBlockedChange()
+    }
+
+    override suspend fun unblockVideo(url: String) {
+        library.unblockVideo(url)
         afterBlockedChange()
     }
 
