@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -52,7 +54,8 @@ import video.typetype.tv.ui.util.requestFocusWhenReady
 private const val CONTROLS_TIMEOUT_MILLIS = 4_500L
 private const val SCRUB_COMMIT_MILLIS = 800L
 private const val NOTICE_VISIBLE_MILLIS = 5_000L
-private val CHAT_TOP = 112.dp
+// Keeps the chat below the title block when no statistics sit above it.
+private val CHAT_CLEARANCE = 62.dp
 private val CHAT_BOTTOM = 150.dp
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -172,13 +175,7 @@ fun PlayerContent(
             DanmakuOverlay(bulletComments, state, SPEED_CHOICES[speedIndex])
         }
         val chatAvailable = handle.isLive && video?.source == ContentSource.YouTube
-        if (commentsOn && chatAvailable && video != null) {
-            LiveChatLayer(
-                video.id,
-                repository,
-                Modifier.align(Alignment.TopEnd).padding(top = CHAT_TOP, end = Dimens.SafeEnd, bottom = CHAT_BOTTOM).fillMaxHeight(),
-            )
-        }
+        val chatUrl = video?.id?.takeIf { commentsOn && chatAvailable && !state.isEnded }
         val heights = if (handle.isLive) state.trackHeights else handle.heights
         val opening = !state.hasFirstFrame && !state.isPlaying && !choices.audioOnly
         OpeningPoster(video, opening)
@@ -228,8 +225,12 @@ fun PlayerContent(
                 )
             }
         }
+        // Statistics, the sponsor label and the live chat share the right edge, stacked so none covers another.
         Column(
-            modifier = Modifier.align(Alignment.TopEnd).padding(end = Dimens.SafeEnd, top = Dimens.SafeTop + 12.dp),
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(end = Dimens.SafeEnd, top = Dimens.SafeTop + 12.dp)
+                .then(if (chatUrl != null) Modifier.fillMaxHeight().padding(bottom = CHAT_BOTTOM) else Modifier),
             horizontalAlignment = Alignment.End,
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
@@ -237,6 +238,10 @@ fun PlayerContent(
             SponsorLabelBadge(
                 sponsorLabel.takeIf { preferences.showCurrentSegment && session.panel == null },
             )
+            if (chatUrl != null) {
+                if (!choices.statsOn) Spacer(Modifier.height(CHAT_CLEARANCE))
+                LiveChatLayer(chatUrl, repository, Modifier.weight(1f))
+            }
         }
         SponsorSkipNotice(
             segment = session.notice.segment.takeIf { noticeVisible },
