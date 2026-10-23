@@ -285,6 +285,11 @@
     <string name="channel_sort_popular">Popular</string>
     <string name="channel_sort_oldest">Oldest</string>
     <string name="settings_group_blocked">Blocked channels</string>
+    <string name="settings_group_performance">Performance</string>
+    <string name="settings_animated_avatar">Animated profile picture</string>
+    <string name="settings_animated_avatar_summary">Plays an animated picture in the top bar. Turn it off on a slow box.</string>
+    <string name="settings_video_previews">Video previews</string>
+    <string name="settings_video_previews_summary">Plays a muted preview behind the home page. Turn it off on a slow box.</string>
     <string name="settings_blocked_count">Blocked channels</string>
     <string name="settings_blocked_unblock">Select to unblock this channel</string>
     <string name="channel_block">Block channel</string>

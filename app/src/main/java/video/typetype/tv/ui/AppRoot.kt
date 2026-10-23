@@ -65,6 +65,8 @@ import video.typetype.tv.ui.components.VideoMenu
 import video.typetype.tv.ui.components.LocalVideoMenu
 import video.typetype.tv.ui.components.PlaylistContext
 import video.typetype.tv.ui.components.VideoPreviews
+import video.typetype.tv.ui.util.LocalPerformance
+import video.typetype.tv.data.device.Performance
 import video.typetype.tv.ui.player.MutedPreview
 import video.typetype.tv.ui.components.StreamPrewarm
 
@@ -75,6 +77,7 @@ fun AppRoot(
     connectivity: Connectivity,
     account: AccountBadge,
     onSettingsAction: (String) -> Unit,
+    performance: Performance = Performance(),
 ) {
     val navigator = remember { MockNavigator() }
     val homeSession = remember { HomeSession() }
@@ -134,7 +137,7 @@ fun AppRoot(
 
     val previews = remember(playback) {
         VideoPreviews { video, onPlaying, modifier -> MutedPreview(video, playback, onPlaying, modifier) }
-    }
+    }.takeIf { performance.videoPreviews }
     var menuRequest by remember { mutableStateOf<MenuRequest?>(null) }
     // The menu keeps the focus while it is shown, so the card gets it back only once the menu is gone.
     var menuClosed by remember { mutableStateOf<MenuRequest?>(null) }
@@ -169,6 +172,7 @@ fun AppRoot(
     CompositionLocalProvider(
         LocalStreamPrewarm provides prewarm,
         LocalVideoPreviews provides previews,
+        LocalPerformance provides performance,
         LocalVideoMenu provides videoMenu,
     ) {
         Box(Modifier.fillMaxSize().then(appKeys)) {

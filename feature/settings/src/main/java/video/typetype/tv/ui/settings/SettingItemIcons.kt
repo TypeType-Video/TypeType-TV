@@ -2,6 +2,7 @@ package video.typetype.tv.ui.settings
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AlternateEmail
+import androidx.compose.material.icons.rounded.Animation
 import androidx.compose.material.icons.rounded.AutoAwesome
 import androidx.compose.material.icons.rounded.Autorenew
 import androidx.compose.material.icons.rounded.Badge
@@ -24,6 +25,7 @@ import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PersonOff
 import androidx.compose.material.icons.rounded.Replay
+import androidx.compose.material.icons.rounded.SmartDisplay
 import androidx.compose.material.icons.rounded.Smartphone
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.SwapHoriz
@@ -51,6 +53,8 @@ internal fun SettingItem.icon(): ImageVector = when {
         "show-comments" -> Icons.Rounded.ChatBubbleOutline
         "show-shorts" -> Icons.Rounded.Smartphone
         "blocked-count" -> Icons.Rounded.Block
+        "animated-avatar" -> Icons.Rounded.Animation
+        "video-previews" -> Icons.Rounded.SmartDisplay
         "guest", "name" -> Icons.Rounded.Person
         "email" -> Icons.Rounded.AlternateEmail
         "role" -> Icons.Rounded.Badge

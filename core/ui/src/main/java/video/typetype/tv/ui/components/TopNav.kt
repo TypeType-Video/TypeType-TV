@@ -20,9 +20,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
@@ -57,6 +55,7 @@ import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
+import video.typetype.tv.ui.util.LocalPerformance
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -93,16 +92,12 @@ fun TopNav(
         BrandLogo(Modifier.align(Alignment.CenterStart))
         val ownEntry = remember { FocusRequester() }
         val selectedRequester = navEntry ?: ownEntry
-        var navFocused by remember { mutableStateOf(false) }
         Row(
             modifier = Modifier
                 .align(Alignment.Center)
                 .focusProperties { enter = { selectedRequester } }
                 .focusGroup()
-                .onFocusChanged {
-                    navFocused = it.hasFocus
-                    onNavFocusChange(it.hasFocus)
-                },
+                .onFocusChanged { onNavFocusChange(it.hasFocus) },
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -116,7 +111,7 @@ fun TopNav(
                 )
             }
         }
-        Avatar(account, animated = navFocused, Modifier.align(Alignment.CenterEnd))
+        Avatar(account, animated = LocalPerformance.current.animatedAvatar, Modifier.align(Alignment.CenterEnd))
     }
 }
 

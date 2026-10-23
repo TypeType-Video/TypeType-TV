@@ -35,6 +35,7 @@ import video.typetype.tv.data.dto.BlockChannelRequest
 import video.typetype.tv.data.dto.BlockVideoRequest
 import video.typetype.tv.data.dto.StreamDto
 import video.typetype.tv.data.net.ApiException
+import video.typetype.tv.data.device.PerformanceSettings
 import video.typetype.tv.data.net.ServerWatch
 import video.typetype.tv.data.session.StreamAccess
 
@@ -48,6 +49,7 @@ class RemoteContentRepository(
     private val watch: ServerWatch,
     private val userSettings: RemoteUserSettings,
     access: StreamAccess,
+    private val performance: PerformanceSettings,
     private val clock: () -> Long = System::currentTimeMillis,
 ) : ContentRepository {
     private val streams = StreamStore({ url -> access.anonymousFirst { api.streamFor(url, it) } }, clock)
@@ -127,7 +129,7 @@ class RemoteContentRepository(
             .distinct()
             .take(IDEA_LIMIT)
 
-    override suspend fun settings(): List<SettingsGroup> = watch.watch { settingsSource.groups(api) }
+    override suspend fun settings(): List<SettingsGroup> = performance.addTo(watch.watch { settingsSource.groups(api) })
 
     override suspend fun startupPreferences(): StartupPreferences = userSettings.startupPreferences()
 
@@ -168,6 +170,7 @@ class RemoteContentRepository(
     }
 
     override suspend fun updateSetting(id: String, value: String) {
+        if (performance.update(id, value)) return
         settingsSource.update(api, id, value)
         userSettings.invalidate()
     }

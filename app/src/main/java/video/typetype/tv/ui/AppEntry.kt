@@ -17,6 +17,7 @@ import video.typetype.tv.data.InstanceUrls
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -97,6 +98,7 @@ private fun AppState(container: AppContainer, state: SessionState, scope: Corout
             val services = remember(current.backend, current.profile.id) { container.services(current.backend, current.profile) }
             val repository = services.repository
             val playback = services.playback
+            val performance by container.performance.current.collectAsState()
             val guest = current.profile.id.startsWith("guest")
             var accountName by remember(current.profile.id) { mutableStateOf(current.profile.publicUsername) }
             LaunchedEffect(current.profile.id) {
@@ -121,6 +123,7 @@ private fun AppState(container: AppContainer, state: SessionState, scope: Corout
                         }
                     }
                 },
+                performance = performance,
             )
         }
     }
