@@ -140,6 +140,14 @@ fun PlayerContent(
     }
 
     BackHandler(enabled = session.handlesBack(upNextVisible)) { session.back(upNextVisible) }
+    val remoteKeys = RemoteKeyActions(
+        play = player::play,
+        pause = player::pause,
+        next = { next?.let(onOpenNext) },
+        startOver = { player.seekTo(0L) },
+        toggleCaptions = { choices.captionIndex = (captionIndex + 1) % (handle.captionLanguages.size + 1) },
+        openPanel = { session.openPanel(it, fromMenu = it == PlayerPanel.Menu) },
+    )
     Box(
         // The window has no background of its own; with the chat column the picture is letterboxed, and the
         // strips around it would otherwise keep whatever was drawn there before (the hidden controls).
@@ -147,7 +155,9 @@ fun PlayerContent(
             .fillMaxSize()
             .background(Color.Black)
             .focusRequester(root)
-            .onPreviewKeyEvent { event -> session.onKey(event, upNextVisible) { next?.let(onOpenNext) } }
+            .onPreviewKeyEvent { event ->
+                handleRemoteKey(event, session.panel != null, remoteKeys) || session.onKey(event, upNextVisible) { next?.let(onOpenNext) }
+            }
             .focusable(),
     ) {
         val chatAvailable = handle.isLive && video?.source == ContentSource.YouTube
