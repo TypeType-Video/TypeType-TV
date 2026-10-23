@@ -1,10 +1,19 @@
 package video.typetype.tv.ui.components
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.fadeOut
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.BiasAlignment
 import androidx.compose.ui.draw.drawWithCache
@@ -23,6 +32,8 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.LayoutDirection
 import coil3.compose.AsyncImage
 import kotlin.math.roundToInt
+import kotlinx.coroutines.delay
+import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Palette
 
 @Composable
@@ -30,24 +41,52 @@ fun Backdrop(
     artwork: String?,
     modifier: Modifier = Modifier,
     focusY: Float = 0.5f,
+    preview: Video? = null,
+    onPreviewPlaying: (Boolean) -> Unit = {},
 ) {
+    val previews = LocalVideoPreviews.current
+    val candidate = preview?.takeIf { previews != null && !it.isLive && !it.isShort }
+    var playing by remember(candidate?.id) { mutableStateOf(false) }
+    var started by remember(candidate?.id) { mutableStateOf(false) }
+    var surfaceShown by remember { mutableStateOf(false) }
+    LaunchedEffect(candidate?.id) {
+        if (candidate == null) return@LaunchedEffect
+        delay(PREVIEW_DELAY_MILLIS)
+        started = true
+        surfaceShown = true
+    }
+    val currentOnPlaying by rememberUpdatedState(onPreviewPlaying)
+    LaunchedEffect(playing) { currentOnPlaying(playing) }
     Box(modifier = modifier.fillMaxSize()) {
-        Crossfade(
-            targetState = artwork to focusY,
-            animationSpec = tween(durationMillis = BACKDROP_FADE_MILLIS),
-            label = "backdrop-image",
-        ) { (resource, bias) ->
-            AsyncImage(
-                model = resource,
-                contentDescription = null,
-                contentScale = ContentScale.Crop,
-                alignment = BiasAlignment(0f, bias * 2f - 1f),
-                modifier = Modifier.fillMaxSize(),
-            )
+        // The preview's SurfaceView sits under the window; the artwork stays drawn above it until the first
+        // frame, then fades away, so the screen never shows an empty black surface.
+        if (surfaceShown && previews != null) {
+            previews.Show(candidate?.takeIf { started }, onPlaying = { playing = it }, modifier = Modifier.fillMaxSize())
+        }
+        AnimatedVisibility(
+            visible = !playing,
+            enter = fadeIn(tween(BACKDROP_FADE_MILLIS)),
+            exit = fadeOut(tween(BACKDROP_FADE_MILLIS)),
+        ) {
+            Crossfade(
+                targetState = artwork to focusY,
+                animationSpec = tween(durationMillis = BACKDROP_FADE_MILLIS),
+                label = "backdrop-image",
+            ) { (resource, bias) ->
+                AsyncImage(
+                    model = resource,
+                    contentDescription = null,
+                    contentScale = ContentScale.Crop,
+                    alignment = BiasAlignment(0f, bias * 2f - 1f),
+                    modifier = Modifier.fillMaxSize(),
+                )
+            }
         }
         BackdropScrims()
     }
 }
+
+private const val PREVIEW_DELAY_MILLIS = 2_000L
 
 @Composable
 private fun BackdropScrims(modifier: Modifier = Modifier) {

@@ -88,7 +88,8 @@ private fun HomeLoaded(
     val restoreAnchor = remember { session.anchor }
     var pendingRestore by remember { mutableStateOf(restoreAnchor != null) }
 
-    val heroInView = focusedCard == null
+    var previewPlaying by remember { mutableStateOf(false) }
+    val heroInView = focusedCard == null && !previewPlaying
     LaunchedEffect(content, heroInView) {
         while (heroInView) {
             delay(HERO_ROTATION_MILLIS)
@@ -121,7 +122,7 @@ private fun HomeLoaded(
         shown = target
     }
     Box(Modifier.fillMaxSize()) {
-        Backdrop(shown.thumbnailUrl, focusY = shown.focusY)
+        Backdrop(shown.thumbnailUrl, focusY = shown.focusY, preview = shown, onPreviewPlaying = { previewPlaying = it })
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),

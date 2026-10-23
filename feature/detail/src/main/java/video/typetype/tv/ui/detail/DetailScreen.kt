@@ -101,7 +101,7 @@ private fun DetailContent(
     LaunchedEffect(video.id) { playRequester.requestFocusWhenReady() }
     val relatedTitle = stringResource(R.string.detail_related)
     Box(Modifier.fillMaxSize()) {
-        Backdrop(video.thumbnailUrl, focusY = video.focusY)
+        Backdrop(video.thumbnailUrl, focusY = video.focusY, preview = video.takeUnless { pending })
         LazyColumn(
             state = listState,
             modifier = Modifier.fillMaxSize(),

@@ -49,6 +49,9 @@ import video.typetype.tv.ui.search.SearchSession
 import video.typetype.tv.ui.settings.SettingsScreen
 import video.typetype.tv.ui.settings.SettingsSession
 import video.typetype.tv.ui.components.LocalStreamPrewarm
+import video.typetype.tv.ui.components.LocalVideoPreviews
+import video.typetype.tv.ui.components.VideoPreviews
+import video.typetype.tv.ui.player.MutedPreview
 import video.typetype.tv.ui.components.StreamPrewarm
 
 @Composable
@@ -88,7 +91,10 @@ fun AppRoot(
     val scope = rememberCoroutineScope()
     val prewarm = remember(repository) { StreamPrewarm(repository::prewarm, scope) }
 
-    CompositionLocalProvider(LocalStreamPrewarm provides prewarm) {
+    val previews = remember(playback) {
+        VideoPreviews { video, onPlaying, modifier -> MutedPreview(video, playback, onPlaying, modifier) }
+    }
+    CompositionLocalProvider(LocalStreamPrewarm provides prewarm, LocalVideoPreviews provides previews) {
         Box(Modifier.fillMaxSize()) {
             AnimatedContent(
                 targetState = navigator.current,
