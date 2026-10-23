@@ -44,6 +44,7 @@ fun LoginScreen(
     backend: Backend,
     session: SessionManager,
     notice: SignOutReason?,
+    onChangeInstance: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var email by rememberSaveable { mutableStateOf("") }
@@ -151,7 +152,7 @@ fun LoginScreen(
                 PillButton(
                     label = stringResource(R.string.login_change_instance),
                     icon = Icons.Rounded.SwapHoriz,
-                    onClick = { scope.launch { session.changeInstance() } },
+                    onClick = onChangeInstance,
                 )
             }
             MessageText(message)

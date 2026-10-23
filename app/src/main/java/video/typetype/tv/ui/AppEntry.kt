@@ -1,6 +1,12 @@
+@file:OptIn(androidx.compose.ui.ExperimentalComposeUiApi::class)
+
 package video.typetype.tv.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.runtime.withFrameNanos
+import androidx.compose.foundation.focusGroup
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.input.key.onPreviewKeyEvent
 import video.typetype.tv.ui.util.LocalIntroPlaying
@@ -40,9 +46,37 @@ fun AppEntry(container: AppContainer) {
     val state by session.state.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { session.restore() }
     var splash by rememberSaveable { mutableStateOf(true) }
+    // Changing the server opens the setup screen over the app, which stays as it was below: Back returns to it
+    // and gives the focus back to what had it, such as the Change instance row of the settings.
+    val appFocus = remember { FocusRequester() }
+    var restoreFocus by remember { mutableStateOf(false) }
+    val changeInstance = {
+        appFocus.saveFocusedChild()
+        session.startInstanceChange()
+    }
+    val changing = state as? SessionState.ChangingInstance
+    LaunchedEffect(changing == null, restoreFocus) {
+        if (changing != null || !restoreFocus) return@LaunchedEffect
+        withFrameNanos { }
+        appFocus.restoreFocusedChild()
+        restoreFocus = false
+    }
     // Keys are held back while the intro plays, so the remote cannot move focus into a field behind it.
     Box(Modifier.fillMaxSize().onPreviewKeyEvent { splash }) {
-        CompositionLocalProvider(LocalIntroPlaying provides splash) { AppState(container, state, scope) }
+        CompositionLocalProvider(LocalIntroPlaying provides splash) {
+            Box(Modifier.fillMaxSize().focusRequester(appFocus).focusGroup()) {
+                AppState(container, changing?.previous ?: state, scope, changeInstance)
+            }
+            if (changing != null) {
+                SetupScreen(
+                    session,
+                    onCancel = {
+                        restoreFocus = true
+                        session.cancelInstanceChange()
+                    },
+                )
+            }
+        }
         if (splash) StartupSplash(onFinished = { splash = false })
     }
 }
@@ -50,13 +84,15 @@ fun AppEntry(container: AppContainer) {
 @OptIn(UnstableApi::class)
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-private fun AppState(container: AppContainer, state: SessionState, scope: CoroutineScope) {
+private fun AppState(container: AppContainer, state: SessionState, scope: CoroutineScope, onChangeInstance: () -> Unit) {
     val session = container.session
     when (val current = state) {
         SessionState.Starting -> InkBackground()
         SessionState.Unconfigured -> SetupScreen(session)
-        is SessionState.Reconnecting -> ReconnectScreen(session, current.backend.apiBase.host, current.failedAttempts)
-        is SessionState.SignedOut -> LoginScreen(current.backend, session, current.notice)
+        is SessionState.ChangingInstance -> InkBackground()
+        is SessionState.Reconnecting ->
+            ReconnectScreen(session, current.backend.apiBase.host, current.failedAttempts, onChangeInstance)
+        is SessionState.SignedOut -> LoginScreen(current.backend, session, current.notice, onChangeInstance)
         is SessionState.SignedIn -> {
             val repository = remember(current.backend, current.profile.id) {
                 container.repository(current.backend, current.profile)
@@ -80,7 +116,7 @@ private fun AppState(container: AppContainer, state: SessionState, scope: Corout
                     scope.launch {
                         when (action) {
                             "sign-out" -> session.signOut()
-                            "change-instance" -> session.changeInstance()
+                            "change-instance" -> onChangeInstance()
                             "forget-certificate" -> session.forgetCertificate()
                             "mark-notifications-read" -> tryLoad({}) { repository.markNotificationsRead() }
                         }

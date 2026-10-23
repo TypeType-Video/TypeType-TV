@@ -28,7 +28,13 @@ import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
 @Composable
-fun ReconnectScreen(session: SessionManager, host: String, failedAttempts: Int, modifier: Modifier = Modifier) {
+fun ReconnectScreen(
+    session: SessionManager,
+    host: String,
+    failedAttempts: Int,
+    onChangeInstance: () -> Unit,
+    modifier: Modifier = Modifier,
+) {
     val scope = rememberCoroutineScope()
     val retry = remember { FocusRequester() }
     LaunchedEffect(Unit) { retry.requestFocusWhenReady() }
@@ -55,7 +61,7 @@ fun ReconnectScreen(session: SessionManager, host: String, failedAttempts: Int, 
                 PillButton(
                     label = stringResource(R.string.settings_change_instance),
                     icon = Icons.Rounded.SwapHoriz,
-                    onClick = { scope.launch { session.changeInstance() } },
+                    onClick = onChangeInstance,
                 )
             }
         }

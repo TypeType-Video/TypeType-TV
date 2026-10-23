@@ -28,6 +28,9 @@ sealed interface SessionState {
 
     data object Unconfigured : SessionState
 
+    // The setup screen is open over a working session: nothing is forgotten until another server is connected.
+    data class ChangingInstance(val previous: SessionState) : SessionState
+
     data class Reconnecting(val backend: Backend, val failedAttempts: Int) : SessionState
 
     data class SignedOut(val backend: Backend, val notice: SignOutReason? = null) : SessionState

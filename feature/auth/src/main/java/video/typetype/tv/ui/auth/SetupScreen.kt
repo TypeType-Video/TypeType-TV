@@ -1,5 +1,6 @@
 package video.typetype.tv.ui.auth
 
+import androidx.activity.compose.BackHandler
 import video.typetype.tv.ui.components.MessageText
 import video.typetype.tv.ui.util.UiMessage
 import androidx.compose.foundation.layout.Column
@@ -31,7 +32,9 @@ import video.typetype.tv.ui.util.LocalIntroPlaying
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
 @Composable
-fun SetupScreen(session: SessionManager, modifier: Modifier = Modifier) {
+fun SetupScreen(session: SessionManager, modifier: Modifier = Modifier, onCancel: (() -> Unit)? = null) {
+    // Opened over a working session: Back returns to it unchanged.
+    BackHandler(enabled = onCancel != null) { onCancel?.invoke() }
     var address by rememberSaveable { mutableStateOf("") }
     var busy by remember { mutableStateOf(false) }
     var message by remember { mutableStateOf<UiMessage?>(null) }

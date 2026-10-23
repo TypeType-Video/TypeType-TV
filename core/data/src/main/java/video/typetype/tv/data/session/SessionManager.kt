@@ -123,6 +123,11 @@ class SessionManager(private val store: SecretStore) : AccessTokens, TokenRefres
 
     suspend fun configure(origin: String): DiscoveryResult {
         val result = discovery.discover(origin)
+        val changing = mutableState.value as? SessionState.ChangingInstance
+        if (result is DiscoveryResult.Compatible && changing != null && store.get(KEY_API_BASE) == result.apiBase.toString()) {
+            mutableState.value = changing.previous
+            return result
+        }
         if (result is DiscoveryResult.Compatible) {
             if (store.get(KEY_API_BASE) != result.apiBase.toString()) clearCredentials()
             store.put(KEY_API_BASE, result.apiBase.toString())
@@ -173,6 +178,17 @@ class SessionManager(private val store: SecretStore) : AccessTokens, TokenRefres
         }
         clearCredentials()
         mutableState.value = SessionState.SignedOut(current)
+    }
+
+    // Opens the setup screen without forgetting the current server: cancelling returns to it as it was.
+    fun startInstanceChange() {
+        val current = mutableState.value
+        if (current !is SessionState.ChangingInstance) mutableState.value = SessionState.ChangingInstance(current)
+    }
+
+    fun cancelInstanceChange() {
+        val changing = mutableState.value as? SessionState.ChangingInstance ?: return
+        mutableState.value = changing.previous
     }
 
     suspend fun changeInstance() {
