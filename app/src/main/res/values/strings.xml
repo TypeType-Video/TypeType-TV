@@ -21,6 +21,7 @@
     <string name="home_progress_left">%1$s left</string>
 
     <string name="detail_play">Play</string>
+    <string name="detail_watch_live">Watch live</string>
     <string name="detail_resume">Resume</string>
     <string name="detail_watch_later">Watch later</string>
     <string name="detail_saved">Saved</string>

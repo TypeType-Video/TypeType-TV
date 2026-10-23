@@ -41,6 +41,7 @@ import video.typetype.tv.data.VideoActivity
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Type
+import video.typetype.tv.ui.components.LiveBadge
 import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.ProgressLine
 import video.typetype.tv.ui.components.QualityBadge
@@ -77,6 +78,7 @@ fun DetailHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            if (video.isLive) LiveBadge(stringResource(R.string.badge_live))
             if (video.quality.isNotBlank()) QualityBadge(video.quality)
             TextLabel(
                 metaLine(video.views, video.age, knownDuration(video.durationSeconds)),
@@ -103,7 +105,13 @@ fun DetailHeader(
         Spacer(Modifier.height(18.dp))
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             PillButton(
-                label = stringResource(if (video.resumeFraction != null) R.string.detail_resume else R.string.detail_play),
+                label = stringResource(
+                    when {
+                        video.isLive -> R.string.detail_watch_live
+                        video.resumeFraction != null -> R.string.detail_resume
+                        else -> R.string.detail_play
+                    },
+                ),
                 icon = Icons.Rounded.PlayArrow,
                 onClick = onPlay,
                 emphasized = true,
