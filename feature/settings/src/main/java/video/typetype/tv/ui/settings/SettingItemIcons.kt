@@ -8,9 +8,10 @@ import androidx.compose.material.icons.rounded.Badge
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.ChatBubbleOutline
 import androidx.compose.material.icons.rounded.ClosedCaption
-import androidx.compose.material.icons.rounded.Code
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.FastForward
+import androidx.compose.material.icons.rounded.WatchLater
+import androidx.compose.material.icons.rounded.Favorite
 import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
@@ -59,10 +60,20 @@ internal fun SettingItem.icon(): ImageVector = when {
         "instance-name" -> Icons.Rounded.Dns
         "instance-address" -> Icons.Rounded.Link
         "instance-version", "version" -> Icons.Rounded.Info
-        "instance-api" -> Icons.Rounded.Code
         "certificate" -> Icons.Rounded.VerifiedUser
         "forget-certificate" -> Icons.Rounded.LockReset
         "change-instance" -> Icons.Rounded.SwapHoriz
         else -> Icons.Rounded.Tune
     }
+}
+
+// A choice whose picture follows its value: the start page shows the place the app will open on.
+internal fun SettingItem.Choice.iconFor(value: String): ImageVector = when (id) {
+    "landing" -> when (value) {
+        "history" -> Icons.Rounded.History
+        "favorites" -> Icons.Rounded.Favorite
+        "watch-later" -> Icons.Rounded.WatchLater
+        else -> Icons.Rounded.Home
+    }
+    else -> icon()
 }

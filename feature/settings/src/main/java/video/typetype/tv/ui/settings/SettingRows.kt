@@ -4,6 +4,10 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.background
+import androidx.compose.runtime.getValue
+import androidx.compose.foundation.interaction.collectIsFocusedAsState
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -22,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
@@ -95,10 +100,9 @@ private fun ChoiceRow(item: SettingItem.Choice, session: SettingsSession, onChoo
             stateDescription = value
         },
     ) {
-        val service = item.takeIf { it.id == "service" }?.let { choice ->
-            ContentSource.entries.firstOrNull { it.serviceId.toString() == choice.wireValues[session.choiceIndex(choice)] }
-        }
-        RowIcon(item, service)
+        val wire = item.wireValues[session.choiceIndex(item)]
+        val service = ContentSource.entries.firstOrNull { it.serviceId.toString() == wire }.takeIf { item.id == "service" }
+        RowIcon(item, service, item.iconFor(wire))
         Column(Modifier.weight(1f)) {
             TextLabel(stringResource(item.titleRes), Type.Title, maxLines = 1)
             item.summaryRes?.let { TextLabel(stringResource(it), Type.Meta, maxLines = 2) }
@@ -139,12 +143,18 @@ private fun BlockedRow(item: SettingItem.Blocked, onAction: (String) -> Unit) {
 }
 
 @Composable
+// Read-only, but it takes the focus like every other row: Up and Down walk through the whole group, and a group
+// made only of information can still be reached and scrolled.
 private fun InfoRow(item: SettingItem.Info) {
+    val source = remember { MutableInteractionSource() }
+    val focused by source.collectIsFocusedAsState()
     Row(
         modifier = Modifier
             .fillMaxWidth()
             .clip(Shapes.Panel)
-            .background(Palette.Surface.copy(alpha = 0.55f))
+            .background(if (focused) Palette.SurfaceRaised else Palette.Surface.copy(alpha = 0.55f))
+            .focusable(interactionSource = source)
+            .semantics(mergeDescendants = true) {}
             .padding(horizontal = 18.dp, vertical = 16.dp),
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -188,12 +198,12 @@ private fun InteractiveRow(
 
 // The row's picture in a round tile; the search service row shows the mark of the service it is set to.
 @Composable
-private fun RowIcon(item: SettingItem, service: ContentSource? = null) {
+private fun RowIcon(item: SettingItem, service: ContentSource? = null, icon: ImageVector = item.icon()) {
     Box(
         Modifier.size(40.dp).clip(CircleShape).background(Palette.SurfaceRaised),
         contentAlignment = Alignment.Center,
     ) {
-        if (service != null) ServiceMark(service, 22) else Glyph(item.icon(), Palette.TextHigh, 22)
+        if (service != null) ServiceMark(service, 22) else Glyph(icon, Palette.TextHigh, 22)
     }
 }
 

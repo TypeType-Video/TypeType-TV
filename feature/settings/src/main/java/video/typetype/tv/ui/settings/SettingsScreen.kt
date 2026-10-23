@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.foundation.focusGroup
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -34,10 +35,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -60,6 +64,7 @@ import video.typetype.tv.ui.components.Glyph
 import video.typetype.tv.ui.util.requestFocusWhenReady
 import video.typetype.tv.ui.util.trapFocusDown
 
+@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsScreen(
     repository: ContentRepository,
@@ -105,6 +110,15 @@ fun SettingsScreen(
     val firstRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { firstRequester.requestFocusWhenReady() }
     var choosing by remember { mutableStateOf<ChoiceRequest?>(null) }
+    // The picker keeps the focus while it is shown, so the row gets it back only once the picker is gone.
+    var returning by remember { mutableStateOf<ChoiceRequest?>(null) }
+    LaunchedEffect(choosing, returning) {
+        val request = returning ?: return@LaunchedEffect
+        if (choosing != null) return@LaunchedEffect
+        withFrameNanos { }
+        request.restoreFocus()
+        returning = null
+    }
     Box(modifier.fillMaxSize()) {
         InkBackground()
         Row(
@@ -120,7 +134,12 @@ fun SettingsScreen(
             Column(Modifier.width(232.dp).trapFocusDown()) {
                 TextLabel(stringResource(R.string.settings_title), Type.Headline)
                 Spacer(Modifier.height(20.dp))
-                Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                // Coming back from a group's rows always lands on that group, never on the nearest tab: landing on
+                // a tab opens it, so the nearest one would switch groups behind the viewer's back.
+                Column(
+                    modifier = Modifier.focusProperties { enter = { firstRequester } }.focusGroup(),
+                    verticalArrangement = Arrangement.spacedBy(6.dp),
+                ) {
                     groups.forEachIndexed { index, group ->
                         GroupItem(
                             group = group,
@@ -149,12 +168,12 @@ fun SettingsScreen(
                     val previous = session.choiceIndex(item)
                     session.setChoice(item, index)
                     if (index != previous) onChange(SettingChange(item.id, item.wireValues[index]) { session.setChoice(item, previous) })
+                    returning = request
                     choosing = null
-                    request.restoreFocus()
                 },
                 onClose = {
+                    returning = request
                     choosing = null
-                    request.restoreFocus()
                 },
             )
         }

@@ -36,6 +36,16 @@ object MockSettings {
             ),
         ),
         SettingsGroup(
+            id = "instance",
+            titleRes = R.string.settings_group_instance,
+            items = listOf(
+                SettingItem.Info("instance-name", R.string.settings_instance_name, "TypeType"),
+                SettingItem.Info("instance-address", R.string.settings_instance_address, "typetype.example"),
+                SettingItem.Info("instance-version", R.string.settings_instance_version, "1.0.0"),
+                SettingItem.Action("change-instance", R.string.settings_change_instance, R.string.settings_change_instance_summary),
+            ),
+        ),
+        SettingsGroup(
             id = "about",
             titleRes = R.string.settings_group_about,
             items = listOf(

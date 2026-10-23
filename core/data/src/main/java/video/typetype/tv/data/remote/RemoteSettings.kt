@@ -78,7 +78,6 @@ class RemoteSettings(
             SettingItem.Info("instance-name", R.string.settings_instance_name, instance.name),
             SettingItem.Info("instance-address", R.string.settings_instance_address, apiBase.host),
             SettingItem.Info("instance-version", R.string.settings_instance_version, instance.version),
-            SettingItem.Info("instance-api", R.string.settings_instance_api, instance.apiVersion.toString()),
             *certificateItems(),
             SettingItem.Action("change-instance", R.string.settings_change_instance, R.string.settings_change_instance_summary),
         ),

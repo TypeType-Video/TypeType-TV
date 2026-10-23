@@ -142,7 +142,6 @@
     <string name="settings_instance_name">Name</string>
     <string name="settings_instance_address">Address</string>
     <string name="settings_instance_version">Server version</string>
-    <string name="settings_instance_api">API version</string>
     <string name="settings_account_email">Email</string>
     <string name="settings_account_role">Role</string>
     <string name="settings_guest">Guest session</string>
