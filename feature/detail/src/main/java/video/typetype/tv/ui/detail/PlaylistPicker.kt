@@ -1,14 +1,11 @@
 package video.typetype.tv.ui.detail
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -44,17 +41,17 @@ import video.typetype.tv.ui.components.FocusSurface
 import video.typetype.tv.ui.components.Glyph
 import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.TextLabel
+import video.typetype.tv.ui.components.TvOverlay
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun PlaylistPicker(state: PlaylistPickerState, onClose: () -> Unit, modifier: Modifier = Modifier) {
-    BackHandler(onBack = onClose)
     LaunchedEffect(state) { state.load() }
     val done = remember { FocusRequester() }
-    Box(modifier.fillMaxSize().background(Palette.Scrim), contentAlignment = Alignment.Center) {
+    TvOverlay(onClose) {
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .width(560.dp)
                 .clip(Shapes.Panel)
                 .background(Palette.Surface)

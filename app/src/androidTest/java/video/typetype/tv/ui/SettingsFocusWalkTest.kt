@@ -6,7 +6,6 @@ import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.test.SemanticsMatcher
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.junit4.createComposeRule
-import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
@@ -24,10 +23,13 @@ class SettingsFocusWalkTest {
     @get:Rule
     val rule = createComposeRule()
 
-    private fun focusedId(): Int = rule.onNode(isFocused()).fetchSemanticsNode().id
+    // A picker opens in its own window; the focused node of the topmost window is the one that receives keys.
+    private fun focused() = rule.onAllNodes(isFocused()).let { it[it.fetchSemanticsNodes().size - 1] }
+
+    private fun focusedId(): Int = focused().fetchSemanticsNode().id
 
     private fun press(key: Key) {
-        rule.onRoot().performKeyInput { pressKey(key) }
+        focused().performKeyInput { pressKey(key) }
         rule.waitForIdle()
     }
 

@@ -1,14 +1,11 @@
 package video.typetype.tv.ui.components
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
@@ -18,7 +15,6 @@ import androidx.compose.material.icons.rounded.Close
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -43,12 +39,11 @@ fun ConfirmDialog(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    BackHandler(onBack = onDismiss)
     val cancel = remember { FocusRequester() }
     LaunchedEffect(Unit) { cancel.requestFocusWhenReady() }
-    Box(modifier.fillMaxSize().background(Palette.Scrim), contentAlignment = Alignment.Center) {
+    TvOverlay(onDismiss) {
         Column(
-            modifier = Modifier
+            modifier = modifier
                 .width(520.dp)
                 .clip(Shapes.Panel)
                 .background(Palette.Surface)

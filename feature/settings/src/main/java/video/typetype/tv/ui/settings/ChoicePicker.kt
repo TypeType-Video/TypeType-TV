@@ -1,14 +1,11 @@
 package video.typetype.tv.ui.settings
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -40,16 +37,16 @@ import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.FocusSurface
 import video.typetype.tv.ui.components.Glyph
 import video.typetype.tv.ui.components.TextLabel
+import video.typetype.tv.ui.components.TvOverlay
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
 // Every option of a setting at once, the current one checked and focused: one press picks, Back keeps it.
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
 internal fun ChoicePicker(item: SettingItem.Choice, current: Int, onPick: (Int) -> Unit, onClose: () -> Unit) {
-    BackHandler(onBack = onClose)
     val focus = remember { FocusRequester() }
     LaunchedEffect(item.id) { focus.requestFocusWhenReady() }
-    Box(Modifier.fillMaxSize().background(Palette.Scrim), contentAlignment = Alignment.Center) {
+    TvOverlay(onClose) {
         Column(
             modifier = Modifier
                 .width(440.dp)
