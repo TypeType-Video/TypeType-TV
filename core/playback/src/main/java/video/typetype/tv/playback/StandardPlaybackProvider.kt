@@ -33,7 +33,7 @@ class StandardPlaybackProvider(
             mediaSource(selection.video.url, hls, factory),
             mediaSource(selection.audio.url, hls, factory),
         )
-        val player = TvPlayers.create(context)
+        val player = TvPlayers.create(context, request.preview)
         player.setMediaSource(merged, request.startMs)
         player.prepare()
         player.playWhenReady = true

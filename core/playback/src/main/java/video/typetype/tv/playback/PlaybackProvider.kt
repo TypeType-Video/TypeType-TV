@@ -16,6 +16,7 @@ data class PlaybackRequest(
     val preferOriginalAudio: Boolean = false,
     val stream: StreamDto? = null,
     val trace: StartupTrace? = null,
+    val preview: Boolean = false,
 )
 
 class PlayerHandle(

@@ -22,8 +22,8 @@ import androidx.media3.exoplayer.text.TextRenderer
  */
 @UnstableApi
 object TvPlayers {
-    fun create(context: Context): ExoPlayer {
-        val budget = BufferBudget.forDevice(context)
+    fun create(context: Context, preview: Boolean = false): ExoPlayer {
+        val budget = if (preview) BufferBudget.PREVIEW else BufferBudget.forDevice(context)
         val loadControl = DefaultLoadControl.Builder()
             .setBufferDurationsMs(budget.minBufferMs, budget.maxBufferMs, budget.startMs, budget.afterStallMs)
             .setTargetBufferBytes(budget.targetBytes)
@@ -34,6 +34,9 @@ object TvPlayers {
             .setLoadControl(loadControl)
             .setSeekParameters(SeekParameters.CLOSEST_SYNC)
             .build()
+            // A preview stays silent through the volume: the SABR source needs its audio track selected to
+            // keep loading windows, so the track cannot simply be disabled.
+            .also { if (preview) it.volume = 0f }
     }
 }
 
@@ -64,6 +67,15 @@ data class BufferBudget(
         private const val MEBIBYTE = 1024 * 1024
         private const val SMALL_HEAP_MB = 128
         private const val MEDIUM_HEAP_MB = 192
+
+        // A muted preview behind the browse screens only needs a few seconds ahead and nothing behind; it can
+        // briefly live next to the real player while a screen transition runs, on a 128 MB heap.
+        val PREVIEW = BufferBudget(
+            minBufferMs = 4_000,
+            maxBufferMs = 8_000,
+            backBufferMs = 0,
+            targetBytes = 6 * MEBIBYTE,
+        )
 
         fun forMemory(memoryClassMb: Int, lowRam: Boolean): BufferBudget = BufferBudget(
             targetBytes = when {

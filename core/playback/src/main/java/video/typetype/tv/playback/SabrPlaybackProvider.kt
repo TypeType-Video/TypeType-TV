@@ -50,7 +50,7 @@ class SabrPlaybackProvider(
         }
         trace?.step("first window")
         val playFromMs = KeyframeStart.of(firstWindow, startPositionMs)
-        val player = TvPlayers.create(context)
+        val player = TvPlayers.create(context, request.preview)
         trace?.step("player")
         val tracker = PositionTracker(player).also { it.start() }
         val media = TypeTypeMediaSource(

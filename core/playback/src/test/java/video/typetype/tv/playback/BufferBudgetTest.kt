@@ -20,4 +20,11 @@ class BufferBudgetTest {
         assertEquals(20_000, budget.maxBufferMs)
         assertEquals(10_000, budget.backBufferMs)
     }
+
+    @Test
+    fun previewsKeepAFewSecondsAndNothingBehind() {
+        assertEquals(0, BufferBudget.PREVIEW.backBufferMs)
+        assertEquals(6 * 1024 * 1024, BufferBudget.PREVIEW.targetBytes)
+        assertEquals(8_000, BufferBudget.PREVIEW.maxBufferMs)
+    }
 }
