@@ -19,3 +19,7 @@ fun formatTimeLeft(durationSeconds: Int, watchedFraction: Float): String {
 }
 
 fun formatMillis(millis: Long): String = formatDuration((millis / 1000L).toInt())
+
+fun metaLine(vararg parts: String?): String = parts.filterNot { it.isNullOrBlank() }.joinToString("  ·  ")
+
+fun knownDuration(totalSeconds: Int): String? = totalSeconds.takeIf { it > 0 }?.let(::formatDuration)

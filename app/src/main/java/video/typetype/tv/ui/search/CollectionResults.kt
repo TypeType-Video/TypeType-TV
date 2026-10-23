@@ -40,6 +40,7 @@ import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.FocusSurface
 import video.typetype.tv.ui.components.TextLabel
+import video.typetype.tv.ui.util.metaLine
 
 @Composable
 fun PlaylistResults(
@@ -63,7 +64,7 @@ fun PlaylistResults(
                 TextLabel(playlist.title, Type.Title, maxLines = 2)
                 Spacer(Modifier.height(4.dp))
                 TextLabel(
-                    "${playlist.uploader}  ·  ${stringResource(R.string.playlist_video_count, playlist.count.toString())}",
+                    metaLine(playlist.uploader, stringResource(R.string.playlist_video_count, playlist.count.toString())),
                     Type.Meta,
                     maxLines = 1,
                 )

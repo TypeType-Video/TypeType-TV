@@ -38,8 +38,9 @@ import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.ProgressLine
 import video.typetype.tv.ui.components.QualityBadge
 import video.typetype.tv.ui.components.TextLabel
-import video.typetype.tv.ui.util.formatDuration
+import video.typetype.tv.ui.util.knownDuration
 import video.typetype.tv.ui.util.formatTimeLeft
+import video.typetype.tv.ui.util.metaLine
 
 private val HERO_TEXT_HEIGHT = 212.dp
 
@@ -84,9 +85,7 @@ fun HeroBlock(
                     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                         if (current.quality.isNotBlank()) QualityBadge(current.quality)
                         TextLabel(
-                            listOf(current.genre, current.channel.name, formatDuration(current.durationSeconds))
-                                .filter { it.isNotBlank() }
-                                .joinToString("  ·  "),
+                            metaLine(current.genre, current.channel.name, knownDuration(current.durationSeconds)),
                             Type.Meta,
                             maxLines = 1,
                         )

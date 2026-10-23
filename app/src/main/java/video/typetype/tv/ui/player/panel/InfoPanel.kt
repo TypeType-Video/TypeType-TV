@@ -51,8 +51,9 @@ import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.TextLabel
-import video.typetype.tv.ui.util.formatDuration
+import video.typetype.tv.ui.util.knownDuration
 import video.typetype.tv.ui.util.requestFocusWhenReady
+import video.typetype.tv.ui.util.metaLine
 
 private const val PAGE_FRACTION = 0.7f
 
@@ -63,9 +64,9 @@ fun InfoPanel(video: Video, onClose: () -> Unit) {
     val scroll = rememberScrollState()
     val scope = rememberCoroutineScope()
     var viewport by remember { mutableIntStateOf(0) }
-    val meta = listOf(video.views, video.age, formatDuration(video.durationSeconds)).filter { it.isNotBlank() }.joinToString("  ·  ")
+    val meta = metaLine(video.views, video.age, knownDuration(video.durationSeconds))
     val subscribers = video.channel.subscribers.takeIf { it.isNotBlank() }?.let { stringResource(R.string.detail_subscribers, it) }
-    val channel = listOfNotNull(video.channel.name, subscribers).joinToString("  ·  ")
+    val channel = metaLine(video.channel.name, subscribers)
     val paragraphs = DescriptionBlocks.build(video.description).ifEmpty { listOf(stringResource(R.string.info_no_description)) }
     val spoken = (listOf(video.title, channel, meta) + paragraphs).filter { it.isNotBlank() }.joinToString(". ")
     PlayerSheet(stringResource(R.string.menu_description), onClose) {

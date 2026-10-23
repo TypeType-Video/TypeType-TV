@@ -45,6 +45,7 @@ import video.typetype.tv.ui.components.ScreenFailure
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.components.VideoCard
 import video.typetype.tv.ui.util.requestFocusWhenReady
+import video.typetype.tv.ui.util.metaLine
 
 private const val GRID_COLUMNS = 3
 private const val PREFETCH_ROWS = 2
@@ -105,7 +106,7 @@ private fun PlaylistHeader(state: PlaylistState, save: FocusRequester, savable: 
             TextLabel(page.playlist.title, Type.Display, maxLines = 2)
             Spacer(Modifier.height(6.dp))
             TextLabel(
-                "${page.playlist.uploader}  ·  ${stringResource(R.string.playlist_video_count, page.playlist.count.toString())}",
+                metaLine(page.playlist.uploader, stringResource(R.string.playlist_video_count, page.playlist.count.toString())),
                 Type.Meta,
                 maxLines = 1,
             )

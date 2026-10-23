@@ -30,6 +30,7 @@ import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.util.formatDuration
+import video.typetype.tv.ui.util.metaLine
 
 @Composable
 fun VideoCard(
@@ -61,7 +62,7 @@ fun VideoCard(
         Spacer(Modifier.height(10.dp))
         TextLabel(video.title, Type.Title.copy(color = titleColor), maxLines = 1)
         Spacer(Modifier.height(2.dp))
-        TextLabel("${video.channel.name}  ·  ${video.views}", Type.Meta, maxLines = 1)
+        TextLabel(metaLine(video.channel.name, video.views), Type.Meta, maxLines = 1)
     }
 }
 
@@ -84,7 +85,7 @@ fun VideoThumbnail(
                 stringResource(R.string.badge_live),
                 Modifier.align(Alignment.TopStart).padding(8.dp),
             )
-        } else {
+        } else if (video.durationSeconds > 0) {
             DurationBadge(
                 formatDuration(video.durationSeconds),
                 Modifier.align(Alignment.BottomEnd).padding(8.dp),

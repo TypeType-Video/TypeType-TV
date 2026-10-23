@@ -27,8 +27,9 @@ import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.TextLabel
-import video.typetype.tv.ui.util.formatDuration
+import video.typetype.tv.ui.util.knownDuration
 import video.typetype.tv.ui.util.requestFocusWhenReady
+import video.typetype.tv.ui.util.metaLine
 
 private val THUMBNAIL_WIDTH = 120.dp
 
@@ -52,7 +53,7 @@ fun QueuePanel(queue: List<Video>, onSelect: (Video) -> Unit, onClose: () -> Uni
                     Column(Modifier.weight(1f)) {
                         TextLabel(video.title, Type.Title.copy(color = if (focused) Palette.Ink else Palette.TextHigh), maxLines = 2)
                         TextLabel(
-                            listOf(video.channel.name, formatDuration(video.durationSeconds)).filter { it.isNotBlank() }.joinToString("  ·  "),
+                            metaLine(video.channel.name, knownDuration(video.durationSeconds)),
                             Type.Meta.copy(color = if (focused) Palette.Ink else Palette.TextMid),
                             maxLines = 1,
                         )
