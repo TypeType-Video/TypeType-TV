@@ -1,7 +1,6 @@
 package video.typetype.tv.ui.splash
 
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Rect
 import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -10,9 +9,10 @@ import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.StrokeJoin
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import video.typetype.tv.ui.brand.WordmarkLettering
 
-// TYPETYPE lettered in the stroke of the mark (heavy, round caps, a curved Y) and written in one gesture: a pen
-// point inks each stroke, glides to the next one and ends as the text cursor. Units: cap height 10, y down.
+// The lettered wordmark (WordmarkLettering) written in one gesture: a pen point inks each stroke, glides to the
+// next one and ends as the text cursor. Units: cap height 10, y down.
 internal class SplashWordmark {
     private sealed interface Piece {
         val length: Float
@@ -37,18 +37,9 @@ internal class SplashWordmark {
     val width: Float
 
     init {
-        var x = 0f
-        val inks = mutableListOf<Ink>()
-        WORD.forEachIndexed { index, letter ->
-            if (index > 0) x += GAP
-            letterStrokes(letter).forEach { stroke ->
-                stroke.translate(Offset(x, 0f))
-                inks += Ink(stroke)
-            }
-            x += letterWidth(letter)
-        }
-        width = x
-        cursorAt = Offset(x + GAP, CAP / 2)
+        val inks = WordmarkLettering.strokes().map(::Ink)
+        width = WordmarkLettering.width
+        cursorAt = Offset(width + WordmarkLettering.CURSOR_GAP, CAP / 2)
         pieces = buildList {
             inks.forEachIndexed { index, ink ->
                 if (index > 0) add(Glide(inks[index - 1].end, ink.start))
@@ -85,57 +76,10 @@ internal class SplashWordmark {
         }
     }
 
-    private fun letterWidth(letter: Char): Float = when (letter) {
-        'P' -> 6.4f
-        'E' -> 7f
-        else -> 8f
-    }
-
-    // Strokes in pen order, each drawn the way a hand would.
-    private fun letterStrokes(letter: Char): List<Path> = when (letter) {
-        'T' -> listOf(line(0f, 0f, 8f, 0f), line(4f, 0f, 4f, CAP))
-        'Y' -> listOf(
-            Path().apply {
-                moveTo(0f, 0f)
-                cubicTo(0f, 3.6f, 1.6f, 5.2f, 4f, 5.2f)
-                cubicTo(6.4f, 5.2f, 8f, 3.6f, 8f, 0f)
-            },
-            line(4f, 5.2f, 4f, CAP),
-        )
-        'P' -> listOf(
-            Path().apply {
-                moveTo(0f, CAP)
-                lineTo(0f, 0f)
-                lineTo(3.4f, 0f)
-                arcTo(Rect(0.4f, 0f, 6.4f, 6f), 270f, 180f, false)
-                lineTo(0f, 6f)
-            },
-        )
-        'E' -> listOf(
-            Path().apply {
-                moveTo(7f, 0f)
-                lineTo(2.6f, 0f)
-                arcTo(Rect(0f, 0f, 5.2f, 5.2f), 270f, -90f, false)
-                lineTo(0f, 7.4f)
-                arcTo(Rect(0f, 4.8f, 5.2f, 10f), 180f, -90f, false)
-                lineTo(7f, CAP)
-            },
-            line(0f, 5f, 5.4f, 5f),
-        )
-        else -> error("No lettering for $letter")
-    }
-
-    private fun line(x0: Float, y0: Float, x1: Float, y1: Float) = Path().apply {
-        moveTo(x0, y0)
-        lineTo(x1, y1)
-    }
-
     companion object {
-        const val CAP = 10f
-        private const val WORD = "TYPETYPE"
-        private const val GAP = 3.4f
+        const val CAP = WordmarkLettering.CAP
         private const val GLIDE_WEIGHT = 0.45f
         private const val PEN_RADIUS = 1.5f
-        private val LINE = Stroke(width = 2.5f, cap = StrokeCap.Round, join = StrokeJoin.Round)
+        private val LINE = Stroke(width = WordmarkLettering.STROKE, cap = StrokeCap.Round, join = StrokeJoin.Round)
     }
 }

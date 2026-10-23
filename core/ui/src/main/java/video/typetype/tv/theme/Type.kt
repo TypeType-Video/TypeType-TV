@@ -8,14 +8,6 @@ import androidx.compose.ui.unit.sp
 object Type {
     private val family = FontFamily.SansSerif
 
-    val Wordmark = TextStyle(
-        fontFamily = family,
-        fontWeight = FontWeight.Light,
-        fontSize = 20.sp,
-        letterSpacing = 3.sp,
-        color = Palette.TextHigh,
-    )
-
     val Display = TextStyle(
         fontFamily = family,
         fontWeight = FontWeight.SemiBold,

@@ -3,7 +3,6 @@ package video.typetype.tv.ui.components
 import android.content.Context
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.focusGroup
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -11,7 +10,6 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -39,7 +37,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
@@ -53,6 +50,7 @@ import coil3.gif.repeatCount
 import coil3.request.ImageRequest
 import coil3.request.crossfade
 import video.typetype.tv.resources.R
+import video.typetype.tv.ui.brand.BrandLogo
 import video.typetype.tv.data.AccountBadge
 import video.typetype.tv.navigation.TopTab
 import video.typetype.tv.theme.Dimens
@@ -90,18 +88,7 @@ fun TopNav(
             .padding(start = Dimens.SafeStart, end = Dimens.SafeEnd, top = Dimens.SafeTop)
             .height(Dimens.TopNavHeight),
     ) {
-        Row(
-            modifier = Modifier.align(Alignment.CenterStart),
-            verticalAlignment = Alignment.CenterVertically,
-        ) {
-            Image(
-                painter = painterResource(R.drawable.ic_typetype_mark),
-                contentDescription = stringResource(R.string.logo_description),
-                modifier = Modifier.size(30.dp),
-            )
-            Spacer(Modifier.width(10.dp))
-            BasicText(stringResource(R.string.wordmark), style = Type.Wordmark)
-        }
+        BrandLogo(Modifier.align(Alignment.CenterStart))
         val selectedRequester = remember { FocusRequester() }
         var navFocused by remember { mutableStateOf(false) }
         Row(

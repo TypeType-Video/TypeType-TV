@@ -1,6 +1,5 @@
 <resources>
     <string name="app_name">TypeType</string>
-    <string name="wordmark">TYPETYPE</string>
     <string name="logo_description">TypeType</string>
     <string name="profile_description">Profile, %1$s</string>
     <string name="profile_description_anonymous">Profile</string>
