@@ -39,6 +39,7 @@ import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Type
+import video.typetype.tv.ui.components.Backdrop
 import video.typetype.tv.ui.components.InkBackground
 import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.ScreenFailure
@@ -79,6 +80,8 @@ fun PlaylistScreen(
     }
     LaunchedEffect(nearEnd, state.videos.size) { if (nearEnd) state.loadMore() }
     Box(modifier.fillMaxSize().background(Palette.Ink)) {
+        // The playlist's own picture fills the background, as a video does on its page.
+        Backdrop(page.playlist.thumbnailUrl ?: state.videos.firstOrNull()?.thumbnailUrl)
         LazyVerticalGrid(
             state = gridState,
             columns = GridCells.Fixed(GRID_COLUMNS),
