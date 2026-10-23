@@ -5,7 +5,7 @@ import android.media.AudioAttributes
 import android.media.MediaPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import java.io.IOException
 
 object StartupChime {

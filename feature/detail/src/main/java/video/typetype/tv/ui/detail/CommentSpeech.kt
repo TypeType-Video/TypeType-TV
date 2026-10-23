@@ -3,7 +3,7 @@ package video.typetype.tv.ui.detail
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.Comment
 
 @Composable

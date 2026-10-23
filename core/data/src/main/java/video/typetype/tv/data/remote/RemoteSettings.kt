@@ -8,7 +8,7 @@ import kotlinx.serialization.json.doubleOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import okhttp3.HttpUrl
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.BlockedChannel
 import video.typetype.tv.data.SettingActions
 import video.typetype.tv.data.SettingItem

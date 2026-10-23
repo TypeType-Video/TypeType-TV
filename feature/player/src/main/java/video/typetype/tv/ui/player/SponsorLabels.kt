@@ -1,7 +1,7 @@
 package video.typetype.tv.ui.player
 
 import androidx.annotation.StringRes
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.SponsorSegment
 
 object SponsorLabels {

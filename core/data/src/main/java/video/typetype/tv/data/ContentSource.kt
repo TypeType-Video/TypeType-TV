@@ -2,7 +2,7 @@ package video.typetype.tv.data
 
 import androidx.annotation.StringRes
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 
 enum class ContentSource(val serviceId: Int, @StringRes val labelRes: Int, val badge: String?) {
     YouTube(0, R.string.source_youtube, null),

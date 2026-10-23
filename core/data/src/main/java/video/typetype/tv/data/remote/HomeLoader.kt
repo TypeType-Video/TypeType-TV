@@ -4,7 +4,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentSource
 import video.typetype.tv.data.HomeContent
 import video.typetype.tv.data.Shelf

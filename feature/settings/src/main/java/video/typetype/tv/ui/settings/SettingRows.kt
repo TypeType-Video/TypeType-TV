@@ -27,7 +27,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.SettingItem
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes

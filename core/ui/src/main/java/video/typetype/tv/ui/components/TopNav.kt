@@ -52,7 +52,7 @@ import coil3.decode.BitmapFactoryDecoder
 import coil3.gif.repeatCount
 import coil3.request.ImageRequest
 import coil3.request.crossfade
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.AccountBadge
 import video.typetype.tv.navigation.TopTab
 import video.typetype.tv.theme.Dimens

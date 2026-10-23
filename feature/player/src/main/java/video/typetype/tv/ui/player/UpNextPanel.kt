@@ -22,7 +22,7 @@ import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes

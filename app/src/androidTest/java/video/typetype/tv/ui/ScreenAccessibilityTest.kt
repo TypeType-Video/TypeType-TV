@@ -7,7 +7,7 @@ import androidx.compose.ui.test.tryPerformAccessibilityChecks
 import org.junit.Before
 import org.junit.Rule
 import org.junit.Test
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.Channel
 import video.typetype.tv.ui.search.SearchScope
 import video.typetype.tv.ui.search.PlaylistResults

@@ -21,7 +21,7 @@ import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.util.UiMessage
 import video.typetype.tv.ui.util.requestFocusWhenReady

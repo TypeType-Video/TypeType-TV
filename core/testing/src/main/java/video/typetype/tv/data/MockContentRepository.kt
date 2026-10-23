@@ -156,7 +156,7 @@ class MockContentRepository(
         MockCatalog.all.filter { it.resumeFraction != null }
 }
 
-internal fun List<Video>.search(query: String): List<Video> {
+fun List<Video>.search(query: String): List<Video> {
     val needle = query.trim().lowercase()
     if (needle.isEmpty()) return emptyList()
     val scored = mapNotNull { video ->

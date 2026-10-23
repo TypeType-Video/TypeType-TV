@@ -4,7 +4,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.net.ApiFailure
 import video.typetype.tv.data.net.FailureCategory

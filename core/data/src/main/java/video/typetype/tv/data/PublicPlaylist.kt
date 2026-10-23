@@ -1,7 +1,7 @@
 package video.typetype.tv.data
 
 import androidx.annotation.StringRes
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 
 data class PublicPlaylist(
     val url: String,

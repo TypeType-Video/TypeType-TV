@@ -8,7 +8,7 @@ import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.VideoLibrary
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.Video
 
 sealed interface Route {

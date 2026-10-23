@@ -4,7 +4,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.util.UiMessage

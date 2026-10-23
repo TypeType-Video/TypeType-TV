@@ -11,7 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.ui.player.SeekBar
 
 class SeekBarKeysTest {

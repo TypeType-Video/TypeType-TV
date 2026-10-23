@@ -34,7 +34,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.ChannelSummary
 import video.typetype.tv.data.PublicPlaylist
 import video.typetype.tv.theme.Palette

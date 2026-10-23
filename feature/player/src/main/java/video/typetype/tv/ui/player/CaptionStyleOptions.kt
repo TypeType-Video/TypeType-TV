@@ -1,7 +1,7 @@
 package video.typetype.tv.ui.player
 
 import androidx.annotation.StringRes
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.CaptionStyles
 
 enum class CaptionColor(val hex: String, @StringRes val labelRes: Int) {

@@ -24,7 +24,7 @@ import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.LibrarySection
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes

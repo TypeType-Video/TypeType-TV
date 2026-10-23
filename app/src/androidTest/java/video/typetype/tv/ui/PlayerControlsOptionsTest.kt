@@ -7,7 +7,7 @@ import androidx.compose.ui.test.onNodeWithText
 import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Rule
 import org.junit.Test
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.Channel
 import video.typetype.tv.data.Video
 import video.typetype.tv.ui.player.PlayerControlActions

@@ -1,6 +1,6 @@
 package video.typetype.tv.ui.util
 
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.net.FailureCategory
 import java.io.IOException

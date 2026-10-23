@@ -16,7 +16,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeoutOrNull
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.PlaybackSetup
 import video.typetype.tv.data.Video

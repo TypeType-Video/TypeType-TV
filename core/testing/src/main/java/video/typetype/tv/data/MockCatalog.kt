@@ -1,6 +1,6 @@
 package video.typetype.tv.data
 
-internal object MockCatalog {
+object MockCatalog {
     private val reel = MockChannels.ReelSociety
     private val atlas = MockChannels.AtlasField
     private val orbit = MockChannels.LowOrbit

@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.TextLabel
 

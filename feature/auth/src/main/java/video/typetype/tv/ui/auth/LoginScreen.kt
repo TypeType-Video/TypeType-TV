@@ -30,7 +30,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.session.Backend
 import video.typetype.tv.data.session.SessionManager

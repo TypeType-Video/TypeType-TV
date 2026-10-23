@@ -26,7 +26,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.CaptionStyles
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.ui.player.CaptionRenderer

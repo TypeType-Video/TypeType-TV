@@ -9,7 +9,7 @@ import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.SettingItem
 import video.typetype.tv.ui.settings.SettingChange
 import video.typetype.tv.ui.settings.SettingRow

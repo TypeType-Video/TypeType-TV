@@ -41,7 +41,7 @@ import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import coil3.decode.BitmapFactoryDecoder
 import coil3.request.ImageRequest
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.Comment
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Type

@@ -13,7 +13,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.LibrarySection
 
 class LibrarySession {

@@ -1,8 +1,8 @@
 package video.typetype.tv.data
 
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 
-internal object MockSettings {
+object MockSettings {
     val groups: List<SettingsGroup> = listOf(
         SettingsGroup(
             id = "account",

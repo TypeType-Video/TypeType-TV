@@ -41,10 +41,6 @@ android {
         unitTests.isReturnDefaultValues = true
     }
 
-    sourceSets {
-        getByName("test").kotlin.srcDir("src/sharedTest/java")
-        getByName("androidTest").kotlin.srcDir("src/sharedTest/java")
-    }
 }
 
 dependencies {
@@ -57,7 +53,18 @@ dependencies {
     implementation(libs.androidx.concurrent.futures)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    implementation(project(":player"))
+    implementation(project(":core:resources"))
+    implementation(project(":core:data"))
+    implementation(project(":core:playback"))
+    implementation(project(":core:ui"))
+    implementation(project(":feature:auth"))
+    implementation(project(":feature:home"))
+    implementation(project(":feature:search"))
+    implementation(project(":feature:library"))
+    implementation(project(":feature:settings"))
+    implementation(project(":feature:collections"))
+    implementation(project(":feature:detail"))
+    implementation(project(":feature:player"))
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.hls)
     implementation(libs.androidx.media3.datasource.okhttp)
@@ -77,6 +84,7 @@ dependencies {
     testImplementation(libs.okhttp.mockwebserver)
     testImplementation(libs.okhttp.tls)
 
+    androidTestImplementation(project(":core:testing"))
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.compose.ui.test.accessibility)

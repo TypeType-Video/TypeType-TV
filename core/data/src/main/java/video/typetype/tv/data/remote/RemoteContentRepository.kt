@@ -1,6 +1,6 @@
 package video.typetype.tv.data.remote
 
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.HomeContent
 import video.typetype.tv.data.LibrarySection

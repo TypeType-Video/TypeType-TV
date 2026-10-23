@@ -1,6 +1,6 @@
 package video.typetype.tv.data
 
-internal object MockChannels {
+object MockChannels {
     val ReelSociety = Channel("reel-society", "Reel Society", "@reelsociety", "2.4M")
     val AtlasField = Channel("atlas-field", "Atlas Field Notes", "@atlasfield", "842K")
     val LowOrbit = Channel("low-orbit", "Low Orbit", "@loworbit", "560K")

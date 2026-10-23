@@ -3,7 +3,7 @@ package video.typetype.tv.ui.player
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertNull
 import org.junit.Test
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.Chapter
 import video.typetype.tv.data.SponsorSegment
 
