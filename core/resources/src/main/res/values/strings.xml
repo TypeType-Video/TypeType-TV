@@ -272,6 +272,12 @@
     <string name="channel_more">More options</string>
     <string name="channel_sort">Sort: %1$s</string>
     <string name="channel_tab_empty">Nothing to show here yet.</string>
+    <string name="channel_search">Search</string>
+    <string name="channel_search_title">Search %1$s</string>
+    <string name="channel_search_query">“%1$s”</string>
+    <string name="channel_search_change">Searching for %1$s. OK changes the search.</string>
+    <string name="channel_search_clear">Clear the search</string>
+    <string name="channel_search_empty">No video of this channel matches “%1$s”.</string>
     <string name="channel_tab_videos">Videos</string>
     <string name="channel_tab_live">Live</string>
     <string name="channel_tab_playlists">Playlists</string>

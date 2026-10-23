@@ -30,9 +30,11 @@ class ChannelStateTest {
         var failWrites: Boolean = false,
     ) : ContentRepository by MockContentRepository(0) {
         val requests = mutableListOf<Pair<ChannelTab, ChannelSort?>>()
+        val queries = mutableListOf<String?>()
 
-        override suspend fun channel(url: String, page: String?, tab: ChannelTab, sort: ChannelSort?): ChannelPage {
+        override suspend fun channel(url: String, page: String?, tab: ChannelTab, sort: ChannelSort?, query: String?): ChannelPage {
             requests += tab to sort
+            queries += query
             return this.page
         }
 
@@ -119,5 +121,29 @@ class ChannelStateTest {
             repository.requests,
         )
         assertEquals(listOf("Best of"), state.playlists.map { it.title })
+    }
+
+    @Test
+    fun aSearchShowsTheMatchingVideosUntilItIsCleared() = runBlocking {
+        val repository = repository()
+        val state = ChannelState(url, repository, scope).also { it.load() }
+        state.search("  sintel ")
+        state.settle()
+        assertEquals("sintel", state.query)
+        state.search("")
+        state.settle()
+        assertEquals(null, state.query)
+        assertEquals(listOf(null, "sintel", null), repository.queries)
+    }
+
+    @Test
+    fun anotherTabLeavesTheSearch() = runBlocking {
+        val state = ChannelState(url, repository(), scope).also { it.load() }
+        state.search("sintel")
+        state.settle()
+        state.select(ChannelTab.Live)
+        state.settle()
+        assertEquals(null, state.query)
+        assertFalse(ChannelState("https://www.bilibili.com/space/1", repository(), scope).searchable)
     }
 }

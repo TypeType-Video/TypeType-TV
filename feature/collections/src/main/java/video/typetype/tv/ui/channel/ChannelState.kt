@@ -8,6 +8,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import video.typetype.tv.data.ChannelPage
+import video.typetype.tv.data.ChannelSearch
 import video.typetype.tv.data.ChannelSort
 import video.typetype.tv.data.ChannelTab
 import video.typetype.tv.data.ContentRepository
@@ -54,6 +55,12 @@ class ChannelState(
     var tab by mutableStateOf(ChannelTab.Videos)
         private set
 
+    val searchable: Boolean = ChannelSearch.available(url)
+
+    // Set while the Videos tab shows the channel's videos matching a search instead of all of them.
+    var query by mutableStateOf<String?>(null)
+        private set
+
     var sort by mutableStateOf(sorts.firstOrNull())
         private set
 
@@ -89,6 +96,16 @@ class ChannelState(
     fun select(next: ChannelTab) {
         if (next == tab) return
         tab = next
+        query = null
+        reloadTab()
+    }
+
+    // A blank search shows the channel's videos again.
+    fun search(text: String) {
+        val next = text.trim().ifEmpty { null }
+        if (next == query && tab == ChannelTab.Videos) return
+        query = next
+        tab = ChannelTab.Videos
         reloadTab()
     }
 
@@ -113,7 +130,7 @@ class ChannelState(
                         nextPage = loaded.nextPage
                     }
                     else -> {
-                        val loaded = repository.channel(url, tab = tab, sort = sort.takeIf { tab == ChannelTab.Videos })
+                        val loaded = repository.channel(url, tab = tab, sort = sort.takeIf { tab == ChannelTab.Videos }, query = query)
                         videos = loaded.videos.distinctBy { it.id }
                         nextPage = loaded.nextPage
                     }
@@ -133,6 +150,7 @@ class ChannelState(
         if (loadingMore || tabLoading) return
         loadingMore = true
         val loadingTab = tab
+        val loadingQuery = query
         tabJob = scope.launch {
             try {
                 if (loadingTab == ChannelTab.Playlists) {
@@ -141,7 +159,7 @@ class ChannelState(
                     playlists = playlists + more.playlists.filter { known.add(it.url) }
                     nextPage = more.nextPage.takeIf { more.playlists.isNotEmpty() }
                 } else {
-                    val more = repository.channel(url, cursor, loadingTab, sort.takeIf { loadingTab == ChannelTab.Videos })
+                    val more = repository.channel(url, cursor, loadingTab, sort.takeIf { loadingTab == ChannelTab.Videos }, loadingQuery)
                     val known = videos.mapTo(HashSet()) { it.id }
                     videos = videos + more.videos.filter { known.add(it.id) }
                     nextPage = more.nextPage.takeIf { more.videos.isNotEmpty() }

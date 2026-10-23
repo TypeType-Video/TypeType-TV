@@ -25,10 +25,12 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Block
+import androidx.compose.material.icons.rounded.Close
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.LiveTv
 import androidx.compose.material.icons.rounded.NewReleases
 import androidx.compose.material.icons.rounded.PlaylistPlay
+import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.VideoLibrary
 import androidx.compose.material.icons.rounded.Whatshot
 import androidx.compose.runtime.Composable
@@ -56,6 +58,7 @@ import video.typetype.tv.resources.R
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
+import video.typetype.tv.ui.components.CircleButton
 import video.typetype.tv.ui.components.FocusSurface
 import video.typetype.tv.ui.components.OptionWheel
 import video.typetype.tv.ui.components.PillButton
@@ -70,9 +73,15 @@ import video.typetype.tv.ui.util.requestFocusWhenReady
 
 // A tab opens with OK, not as the focus passes: the sort wheel sits after the tabs, and crossing them to reach it
 // keeps the videos open. Coming back up from the grid lands on the open tab. Videos of YouTube channels can be
-// sorted with the wheel.
+// sorted with the wheel, and searched: the search button shows the query while one is set, with a button to clear it.
 @Composable
-internal fun ChannelTabsRow(state: ChannelState, openTab: FocusRequester) {
+internal fun ChannelTabsRow(
+    state: ChannelState,
+    openTab: FocusRequester,
+    searchButton: FocusRequester,
+    onSearch: () -> Unit,
+    onClearSearch: () -> Unit,
+) {
     // The red mark follows the focus along the tabs and settles back under the open one when the focus leaves
     // them. It slides in the layer phase only, so following the focus never recomposes the row.
     var focusedTab by remember { mutableStateOf<ChannelTab?>(null) }
@@ -124,7 +133,7 @@ internal fun ChannelTabsRow(state: ChannelState, openTab: FocusRequester) {
             )
         }
         val sort = state.sort
-        if (state.tab == ChannelTab.Videos && sort != null) {
+        if (state.tab == ChannelTab.Videos && sort != null && state.query == null) {
             Spacer(Modifier.width(24.dp))
             OptionWheel(
                 options = state.sorts.map { WheelOption(stringResource(it.labelRes), it.icon()) },
@@ -132,6 +141,23 @@ internal fun ChannelTabsRow(state: ChannelState, openTab: FocusRequester) {
                 onSelect = { state.sortBy(state.sorts[it]) },
                 description = stringResource(R.string.channel_sort, stringResource(sort.labelRes)),
             )
+        }
+        if (state.searchable) {
+            val query = state.query
+            Spacer(Modifier.width(24.dp))
+            PillButton(
+                label = query?.let { stringResource(R.string.channel_search_query, it) } ?: stringResource(R.string.channel_search),
+                icon = Icons.Rounded.Search,
+                onClick = onSearch,
+                emphasized = query != null,
+                description = query?.let { stringResource(R.string.channel_search_change, it) },
+                maxLabelWidth = 280.dp,
+                modifier = Modifier.focusRequester(searchButton),
+            )
+            if (query != null) {
+                Spacer(Modifier.width(10.dp))
+                CircleButton(Icons.Rounded.Close, stringResource(R.string.channel_search_clear), onClearSearch)
+            }
         }
     }
 }
@@ -182,9 +208,10 @@ internal fun ChannelCardSkeleton() {
 }
 
 @Composable
-internal fun ChannelTabEmpty() {
+internal fun ChannelTabEmpty(query: String?) {
+    val message = query?.let { stringResource(R.string.channel_search_empty, it) } ?: stringResource(R.string.channel_tab_empty)
     Box(Modifier.fillMaxWidth().height(160.dp), contentAlignment = Alignment.CenterStart) {
-        TextLabel(stringResource(R.string.channel_tab_empty), Type.Body, maxLines = 2)
+        TextLabel(message, Type.Body, maxLines = 2)
     }
 }
 

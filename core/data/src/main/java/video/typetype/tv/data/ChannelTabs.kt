@@ -29,4 +29,9 @@ enum class ChannelSort(val wire: String, @StringRes val labelRes: Int) {
     }
 }
 
+// Searching inside a channel, which the server offers for YouTube channels, as the web does.
+object ChannelSearch {
+    fun available(channelUrl: String): Boolean = ContentSource.of(channelUrl) == ContentSource.YouTube
+}
+
 data class ChannelPlaylists(val playlists: List<PublicPlaylist>, val nextPage: String?)

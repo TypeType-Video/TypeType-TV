@@ -72,19 +72,24 @@ fun ChannelScreen(
     val more = remember { FocusRequester() }
     val openTab = remember { FocusRequester() }
     val firstItem = remember { FocusRequester() }
+    val searchButton = remember { FocusRequester() }
     var menuOpen by remember(url) { mutableStateOf(false) }
     var confirmingBlock by remember(url) { mutableStateOf(false) }
-    // The menu and the question keep the focus while shown; "…" gets it back once they are gone.
-    var returnToMore by remember(url) { mutableStateOf(false) }
-    LaunchedEffect(menuOpen, confirmingBlock, returnToMore) {
-        if (!returnToMore || menuOpen || confirmingBlock) return@LaunchedEffect
+    var searching by remember(url) { mutableStateOf(false) }
+    // The menu, the question and the search keep the focus while shown; the button that opened them gets it back
+    // once they are gone.
+    var returnFocus by remember(url) { mutableStateOf<FocusRequester?>(null) }
+    LaunchedEffect(menuOpen, confirmingBlock, searching, returnFocus) {
+        val target = returnFocus ?: return@LaunchedEffect
+        if (menuOpen || confirmingBlock || searching) return@LaunchedEffect
         withFrameNanos { }
-        more.requestFocusWhenReady()
-        returnToMore = false
+        target.requestFocusWhenReady()
+        returnFocus = null
     }
+    val hasTabsRow = state.tabs.size > 1 || state.sorts.isNotEmpty() || state.searchable
     // Arriving on the open tab keeps the whole header in view; Down goes on into the videos.
     LaunchedEffect(url) {
-        val landed = if (state.tabs.size > 1 || state.sorts.isNotEmpty()) openTab.requestFocusWhenReady() else firstItem.requestFocusWhenReady()
+        val landed = if (hasTabsRow) openTab.requestFocusWhenReady() else firstItem.requestFocusWhenReady()
         if (!landed) subscribe.requestFocusWhenReady()
     }
     val gridState = rememberLazyGridState()
@@ -117,11 +122,20 @@ fun ChannelScreen(
                     PodcastRow(state.podcasts, onOpenPodcast)
                 }
             }
-            if (state.tabs.size > 1 || state.sorts.isNotEmpty()) {
+            if (hasTabsRow) {
                 item(key = "tabs", span = { GridItemSpan(maxLineSpan) }) {
                     Column {
                         Spacer(Modifier.height(4.dp))
-                        ChannelTabsRow(state, openTab)
+                        ChannelTabsRow(
+                            state = state,
+                            openTab = openTab,
+                            searchButton = searchButton,
+                            onSearch = { searching = true },
+                            onClearSearch = {
+                                state.search("")
+                                returnFocus = searchButton
+                            },
+                        )
                     }
                 }
             }
@@ -134,15 +148,30 @@ fun ChannelScreen(
                     menuOpen = false
                     if (state.blocked) {
                         state.requestBlocked(false)
-                        returnToMore = true
+                        returnFocus = more
                     } else {
                         confirmingBlock = true
                     }
                 },
                 onClose = {
                     menuOpen = false
-                    returnToMore = true
+                    returnFocus = more
                 },
+            )
+        }
+        if (searching) {
+            val closeSearch = {
+                searching = false
+                returnFocus = searchButton
+            }
+            ChannelSearchPanel(
+                channelName = page.channel.name,
+                initial = state.query.orEmpty(),
+                onSearch = {
+                    closeSearch()
+                    state.search(it)
+                },
+                onClose = closeSearch,
             )
         }
         if (confirmingBlock) {
@@ -152,12 +181,12 @@ fun ChannelScreen(
                 confirmLabel = stringResource(R.string.channel_block),
                 onConfirm = {
                     confirmingBlock = false
-                    returnToMore = true
+                    returnFocus = more
                     state.requestBlocked(true)
                 },
                 onDismiss = {
                     confirmingBlock = false
-                    returnToMore = true
+                    returnFocus = more
                 },
             )
         }
@@ -178,7 +207,7 @@ private fun LazyGridScope.tabContent(
         }
         state.tab == ChannelTab.Playlists && state.playlists.isEmpty() ||
             state.tab != ChannelTab.Playlists && state.videos.isEmpty() ->
-            item(key = "empty", span = { GridItemSpan(maxLineSpan) }) { ChannelTabEmpty() }
+            item(key = "empty", span = { GridItemSpan(maxLineSpan) }) { ChannelTabEmpty(state.query) }
         state.tab == ChannelTab.Playlists -> itemsIndexed(state.playlists, key = { _, playlist -> playlist.url }) { index, playlist ->
             ChannelPlaylistCard(
                 playlist = playlist,

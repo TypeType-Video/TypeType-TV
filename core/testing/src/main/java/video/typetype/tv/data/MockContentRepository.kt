@@ -153,10 +153,14 @@ class MockContentRepository(
 
     override suspend fun commentReplies(videoUrl: String, repliesPage: String): CommentsPage = CommentsPage(emptyList(), null, false)
 
-    override suspend fun channel(url: String, page: String?, tab: ChannelTab, sort: ChannelSort?): ChannelPage {
+    override suspend fun channel(url: String, page: String?, tab: ChannelTab, sort: ChannelSort?, query: String?): ChannelPage {
         val videos = MockCatalog.all.filter { it.channel.url == url || it.channel.id == url }
         val channel = videos.firstOrNull()?.channel ?: Channel(url, "Channel", "", "", url)
-        val shown = if (tab == ChannelTab.Live) videos.filter { it.isLive } else videos
+        val shown = when {
+            tab == ChannelTab.Live -> videos.filter { it.isLive }
+            query != null -> videos.filter { it.title.contains(query, ignoreCase = true) }
+            else -> videos
+        }
         return ChannelPage(channel, "", null, false, if (sort == ChannelSort.Oldest) shown.reversed() else shown, null)
     }
 

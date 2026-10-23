@@ -11,6 +11,7 @@ import video.typetype.tv.data.LiveChatEvent
 import kotlinx.coroutines.flow.Flow
 import video.typetype.tv.data.Channel
 import okhttp3.HttpUrl
+import java.net.URLEncoder
 import video.typetype.tv.data.ChannelPage
 import video.typetype.tv.data.ChannelTab
 import video.typetype.tv.data.ChannelSort
@@ -185,9 +186,19 @@ class RemoteContentRepository(
         return api.commentReplies(videoUrl, repliesPage).toCommentsPage(clock())
     }
 
-    override suspend fun channel(url: String, page: String?, tab: ChannelTab, sort: ChannelSort?): ChannelPage = watch.watch {
-        val target = if (tab == ChannelTab.Live) liveTabUrl(url) else url
-        api.channelPage(target, page, sort?.wire).toChannelPage(url, clock())
+    override suspend fun channel(
+        url: String,
+        page: String?,
+        tab: ChannelTab,
+        sort: ChannelSort?,
+        query: String?,
+    ): ChannelPage = watch.watch {
+        val target = when {
+            tab == ChannelTab.Live -> liveTabUrl(url)
+            query != null -> searchUrl(url, query)
+            else -> url
+        }
+        api.channelPage(target, page, sort?.wire.takeIf { query == null }).toChannelPage(url, clock())
             .let { it.copy(videos = branding.apply(filter.allowed(it.videos))) }
     }
 
@@ -197,6 +208,10 @@ class RemoteContentRepository(
 
     // The live tab is the channel's address with /streams, as the web asks for it.
     private fun liveTabUrl(url: String): String = url.substringBefore('?').substringBefore('#').trimEnd('/') + "/streams"
+
+    // A search inside the channel is the channel's address with /search and the query, as the web asks for it.
+    private fun searchUrl(url: String, query: String): String =
+        url.substringBefore('?').substringBefore('#').trimEnd('/') + "/search?query=" + URLEncoder.encode(query, Charsets.UTF_8.name())
 
     override fun liveChat(videoUrl: String): Flow<LiveChatEvent> = liveChat.events(videoUrl)
 
