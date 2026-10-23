@@ -12,7 +12,8 @@ import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.junit4.accessibility.enableAccessibilityChecks
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performKeyInput
@@ -40,7 +41,7 @@ import video.typetype.tv.ui.player.panel.QueuePanel
 @OptIn(ExperimentalTestApi::class)
 class PlayerPanelsTest {
     @get:Rule
-    val rule = createComposeRule()
+    val rule = createAndroidComposeRule<ComponentActivity>()
 
     private val chapters = listOf(Chapter("Intro", 0), Chapter("Part one", 60), Chapter("Part two", 300))
 
@@ -159,7 +160,7 @@ class PlayerPanelsTest {
         var closed = 0
         rule.setContent { InfoPanel(video, onClose = { closed++ }) }
         rule.waitForIdle()
-        rule.onAllNodes(isFocused()).onFirst().performKeyInput { pressKey(Key.Back) }
+        rule.runOnUiThread { rule.activity.onBackPressedDispatcher.onBackPressed() }
         rule.waitForIdle()
         assertEquals(1, closed)
     }

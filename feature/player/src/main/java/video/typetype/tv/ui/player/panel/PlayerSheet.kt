@@ -19,11 +19,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clipToBounds
-import androidx.compose.ui.input.key.Key
-import androidx.compose.ui.input.key.KeyEventType
-import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.onPreviewKeyEvent
-import androidx.compose.ui.input.key.type
 import androidx.compose.ui.semantics.paneTitle
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
@@ -44,7 +39,7 @@ fun PlayerSheet(
     content: @Composable BoxScope.() -> Unit,
 ) {
     BackHandler(onBack = onClose)
-    Box(modifier.fillMaxSize().closeOnBack(onClose)) {
+    Box(modifier.fillMaxSize()) {
         Column(
             modifier = Modifier
                 .align(Alignment.CenterEnd)
@@ -61,14 +56,5 @@ fun PlayerSheet(
                 content()
             }
         }
-    }
-}
-
-fun Modifier.closeOnBack(onClose: () -> Unit): Modifier = onPreviewKeyEvent { event ->
-    if (event.key == Key.Back) {
-        if (event.type == KeyEventType.KeyUp) onClose()
-        true
-    } else {
-        false
     }
 }

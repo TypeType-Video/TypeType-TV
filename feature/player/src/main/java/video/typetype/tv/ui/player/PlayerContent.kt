@@ -1,5 +1,6 @@
 package video.typetype.tv.ui.player
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
@@ -162,6 +163,7 @@ fun PlayerContent(
         if (currentAutoAdvance) next?.let(onOpenNext)
     }
 
+    BackHandler(enabled = session.handlesBack(upNextVisible)) { session.back(upNextVisible) }
     Box(
         modifier = modifier
             .fillMaxSize()

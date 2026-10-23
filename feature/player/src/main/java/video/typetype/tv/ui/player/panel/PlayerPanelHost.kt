@@ -1,9 +1,7 @@
 package video.typetype.tv.ui.player.panel
 
-import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Modifier
 import kotlinx.coroutines.CoroutineScope
 import video.typetype.tv.data.CaptionStyles
 import video.typetype.tv.data.ContentRepository
@@ -101,11 +99,9 @@ fun PlayerPanelHost(panel: PlayerPanel?, onPanel: (PlayerPanel?) -> Unit, scene:
         )
         PlayerPanel.Queue -> QueuePanel(scene.queue, onSelect = scene.onOpenVideo, onClose = backToMenu)
         PlayerPanel.CaptionStyle -> CaptionStylePanel(scene.captionStyles, scene.onCaptionStyles, onClose = backToMenu)
-        PlayerPanel.Playlists -> Box(Modifier.closeOnBack(backToMenu)) {
-            PlaylistPicker(
-                state = remember(video.id) { PlaylistPickerState(video, scene.repository, scene.scope) },
-                onClose = backToMenu,
-            )
-        }
+        PlayerPanel.Playlists -> PlaylistPicker(
+            state = remember(video.id) { PlaylistPickerState(video, scene.repository, scene.scope) },
+            onClose = backToMenu,
+        )
     }
 }

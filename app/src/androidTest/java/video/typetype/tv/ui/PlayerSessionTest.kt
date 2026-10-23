@@ -80,26 +80,23 @@ class PlayerSessionTest {
         assertFalse(session.scrub.active)
         onUi { session.controlsVisible = false }
         press(AndroidKeyEvent.KEYCODE_DPAD_LEFT)
-        assertTrue(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_DOWN))
-        assertTrue(session.scrub.active)
-        assertTrue(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_UP))
+        assertTrue(session.handlesBack(upNextVisible = false))
+        onUi { session.back(upNextVisible = false) }
         assertFalse(session.scrub.active)
     }
 
     @Test
     fun backHidesVisibleControlsBeforeLeaving() {
-        assertTrue(session.controlsVisible)
-        assertTrue(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_DOWN))
-        assertTrue(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_UP))
+        assertTrue(session.handlesBack(upNextVisible = false))
+        onUi { session.back(upNextVisible = false) }
         assertFalse(session.controlsVisible)
-        assertFalse(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_DOWN))
+        assertFalse(session.handlesBack(upNextVisible = false))
     }
 
     @Test
     fun backWithNothingToCancelIsLeftToTheScreen() {
         onUi { session.controlsVisible = false }
-        assertFalse(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_DOWN))
-        assertFalse(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_UP))
+        assertFalse(session.handlesBack(upNextVisible = false))
     }
 
     @Test
@@ -107,7 +104,8 @@ class PlayerSessionTest {
         onUi { session.controlsVisible = false }
         assertTrue(press(AndroidKeyEvent.KEYCODE_DPAD_CENTER, visible = true))
         assertEquals(1, playedNext)
-        assertTrue(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_UP, visible = true))
+        assertTrue(session.handlesBack(upNextVisible = true))
+        onUi { session.back(upNextVisible = true) }
         assertTrue(session.upNext.dismissed)
     }
 

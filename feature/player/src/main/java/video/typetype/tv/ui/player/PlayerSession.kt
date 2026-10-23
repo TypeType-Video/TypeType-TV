@@ -55,7 +55,6 @@ class PlayerSession(
 
     fun onKey(event: KeyEvent, upNextVisible: Boolean, playNext: () -> Unit): Boolean {
         if (panel != null) return false
-        if (event.key == Key.Back) return handleBack(event, upNextVisible)
         if (event.type != KeyEventType.KeyDown) return false
         interaction = SystemClock.elapsedRealtime()
         val step = SeekMath.scrubStep(event.nativeKeyEvent.repeatCount, state.durationMillis)
@@ -76,13 +75,16 @@ class PlayerSession(
         }
     }
 
-    private fun handleBack(event: KeyEvent, upNextVisible: Boolean): Boolean {
-        val released = event.type == KeyEventType.KeyUp
-        return when {
-            scrub.active -> { if (released) scrub.cancel(); true }
-            upNextVisible -> { if (released) upNext.dismiss(); true }
-            controlsVisible -> { if (released) controlsVisible = false; true }
-            else -> false
+    // Back goes through the activity's back dispatcher, not key events: from Android 16 (predictive back)
+    // the Back key never reaches the views, so a key handler would let Back leave the player at once.
+    fun handlesBack(upNextVisible: Boolean): Boolean =
+        panel == null && (scrub.active || upNextVisible || controlsVisible)
+
+    fun back(upNextVisible: Boolean) {
+        when {
+            scrub.active -> scrub.cancel()
+            upNextVisible -> upNext.dismiss()
+            controlsVisible -> controlsVisible = false
         }
     }
 }
