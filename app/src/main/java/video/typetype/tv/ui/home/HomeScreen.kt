@@ -1,5 +1,6 @@
 package video.typetype.tv.ui.home
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
@@ -98,6 +99,15 @@ private fun HomeLoaded(
             playRequester.requestFocusWhenReady()
         } else {
             listState.scrollToItem(restoreAnchor.shelfIndex + 1)
+        }
+    }
+
+    // Back from a row returns to the top first, as on other TV apps; only Back from the top leaves.
+    BackHandler(enabled = focusedCard != null) {
+        focusedCard = null
+        scope.launch {
+            listState.scrollToItem(0)
+            playRequester.requestFocusWhenReady()
         }
     }
 
