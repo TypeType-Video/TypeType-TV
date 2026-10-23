@@ -153,11 +153,20 @@ class MockContentRepository(
 
     override suspend fun commentReplies(videoUrl: String, repliesPage: String): CommentsPage = CommentsPage(emptyList(), null, false)
 
-    override suspend fun channel(url: String, page: String?): ChannelPage {
+    override suspend fun channel(url: String, page: String?, tab: ChannelTab, sort: ChannelSort?): ChannelPage {
         val videos = MockCatalog.all.filter { it.channel.url == url || it.channel.id == url }
         val channel = videos.firstOrNull()?.channel ?: Channel(url, "Channel", "", "", url)
-        return ChannelPage(channel, "", null, false, videos, null)
+        val shown = if (tab == ChannelTab.Live) videos.filter { it.isLive } else videos
+        return ChannelPage(channel, "", null, false, if (sort == ChannelSort.Oldest) shown.reversed() else shown, null)
     }
+
+    override suspend fun channelPlaylists(url: String, page: String?): ChannelPlaylists =
+        ChannelPlaylists(
+            MockCatalog.all.take(4).mapIndexed { index, video ->
+                PublicPlaylist("$url/playlist-$index", "Collection ${index + 1}", video.channel.name, 8L + index, video.thumbnailUrl)
+            },
+            null,
+        )
 
     private fun outdoors(): List<Video> =
         MockCatalog.all.filter { it.genre == "Landscape" || it.genre == "Travel" }

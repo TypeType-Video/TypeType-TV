@@ -5,8 +5,11 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.launch
 import video.typetype.tv.data.ChannelPage
+import video.typetype.tv.data.ChannelSort
+import video.typetype.tv.data.ChannelTab
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.PublicPlaylist
 import video.typetype.tv.data.Video
@@ -45,13 +48,33 @@ class ChannelState(
     var blockFailed by mutableStateOf(false)
         private set
 
+    val tabs: List<ChannelTab> = ChannelTab.available(url)
+    val sorts: List<ChannelSort> = ChannelSort.available(url)
+
+    var tab by mutableStateOf(ChannelTab.Videos)
+        private set
+
+    var sort by mutableStateOf(sorts.firstOrNull())
+        private set
+
+    var playlists by mutableStateOf<List<PublicPlaylist>>(emptyList())
+        private set
+
+    // True while the open tab loads its first page: the grid shows skeletons, not the previous tab.
+    var tabLoading by mutableStateOf(false)
+        private set
+
+    var tabFailure by mutableStateOf<UiMessage?>(null)
+        private set
+
     private var nextPage: String? = null
     private var loadingMore = false
+    private var tabJob: Job? = null
 
     suspend fun load() {
         failure = null
         try {
-            val loaded = repository.channel(url)
+            val loaded = repository.channel(url, sort = sort)
             page = loaded
             videos = loaded.videos.distinctBy { it.id }
             nextPage = loaded.nextPage
@@ -63,16 +86,66 @@ class ChannelState(
         }
     }
 
+    fun select(next: ChannelTab) {
+        if (next == tab) return
+        tab = next
+        reloadTab()
+    }
+
+    fun sortBy(next: ChannelSort) {
+        if (next == sort) return
+        sort = next
+        reloadTab()
+    }
+
+    private fun reloadTab() {
+        tabJob?.cancel()
+        loadingMore = false
+        nextPage = null
+        tabFailure = null
+        tabLoading = true
+        tabJob = scope.launch {
+            try {
+                when (tab) {
+                    ChannelTab.Playlists -> {
+                        val loaded = repository.channelPlaylists(url)
+                        playlists = loaded.playlists.distinctBy { it.url }
+                        nextPage = loaded.nextPage
+                    }
+                    else -> {
+                        val loaded = repository.channel(url, tab = tab, sort = sort.takeIf { tab == ChannelTab.Videos })
+                        videos = loaded.videos.distinctBy { it.id }
+                        nextPage = loaded.nextPage
+                    }
+                }
+            } catch (error: IOException) {
+                tabFailure = describeLoadFailure(error)
+            } finally {
+                tabLoading = false
+            }
+        }
+    }
+
+    fun retryTab() = reloadTab()
+
     fun loadMore() {
         val cursor = nextPage ?: return
-        if (loadingMore) return
+        if (loadingMore || tabLoading) return
         loadingMore = true
-        scope.launch {
+        val loadingTab = tab
+        tabJob = scope.launch {
             try {
-                val more = repository.channel(url, cursor)
-                val known = videos.mapTo(HashSet()) { it.id }
-                videos = videos + more.videos.filter { known.add(it.id) }
-                nextPage = more.nextPage.takeIf { more.videos.isNotEmpty() }
+                if (loadingTab == ChannelTab.Playlists) {
+                    val more = repository.channelPlaylists(url, cursor)
+                    val known = playlists.mapTo(HashSet()) { it.url }
+                    playlists = playlists + more.playlists.filter { known.add(it.url) }
+                    nextPage = more.nextPage.takeIf { more.playlists.isNotEmpty() }
+                } else {
+                    val more = repository.channel(url, cursor, loadingTab, sort.takeIf { loadingTab == ChannelTab.Videos })
+                    val known = videos.mapTo(HashSet()) { it.id }
+                    videos = videos + more.videos.filter { known.add(it.id) }
+                    nextPage = more.nextPage.takeIf { more.videos.isNotEmpty() }
+                }
             } catch (error: IOException) {
                 nextPage = cursor
             } finally {

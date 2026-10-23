@@ -83,6 +83,7 @@ data class PlaylistDto(
 data class ChannelPageRequest(
     val url: String,
     val nextpage: String? = null,
+    val sort: String? = null,
 )
 
 @Serializable
@@ -184,6 +185,12 @@ data class SavedPlaylistDto(
     val thumbnailUrl: String = "",
     val uploaderName: String = "",
     val streamCount: Long = 0,
+)
+
+@Serializable
+data class ChannelPlaylistsDto(
+    val playlists: List<PlaylistItemDto> = emptyList(),
+    val nextpage: String? = null,
 )
 
 @Serializable

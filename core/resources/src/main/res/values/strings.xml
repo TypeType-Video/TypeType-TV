@@ -268,6 +268,16 @@
     <string name="search_kind_music_songs">Music: songs</string>
     <string name="search_kind_music_videos">Music: videos</string>
     <string name="channel_podcasts">Podcasts</string>
+    <string name="channel_verified">Verified channel</string>
+    <string name="channel_more">More options</string>
+    <string name="channel_sort">Sort: %1$s</string>
+    <string name="channel_tab_empty">Nothing to show here yet.</string>
+    <string name="channel_tab_videos">Videos</string>
+    <string name="channel_tab_live">Live</string>
+    <string name="channel_tab_playlists">Playlists</string>
+    <string name="channel_sort_latest">Newest</string>
+    <string name="channel_sort_popular">Popular</string>
+    <string name="channel_sort_oldest">Oldest</string>
     <string name="settings_group_blocked">Blocked channels</string>
     <string name="settings_blocked_count">Blocked channels</string>
     <string name="settings_blocked_unblock">Select to unblock this channel</string>

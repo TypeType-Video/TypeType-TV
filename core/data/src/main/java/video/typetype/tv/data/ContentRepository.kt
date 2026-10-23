@@ -52,7 +52,15 @@ interface ContentRepository : VideoActivityRepository, PresenceSink {
 
     fun liveChat(videoUrl: String): Flow<LiveChatEvent>
 
-    suspend fun channel(url: String, page: String? = null): ChannelPage
+    // Videos or Live; the Playlists tab has its own call below.
+    suspend fun channel(
+        url: String,
+        page: String? = null,
+        tab: ChannelTab = ChannelTab.Videos,
+        sort: ChannelSort? = null,
+    ): ChannelPage
+
+    suspend fun channelPlaylists(url: String, page: String? = null): ChannelPlaylists
 
     suspend fun publicPlaylist(url: String, page: String? = null): PublicPlaylistPage
 

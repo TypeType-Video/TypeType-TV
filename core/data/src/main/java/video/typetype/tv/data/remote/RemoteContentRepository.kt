@@ -12,6 +12,9 @@ import kotlinx.coroutines.flow.Flow
 import video.typetype.tv.data.Channel
 import okhttp3.HttpUrl
 import video.typetype.tv.data.ChannelPage
+import video.typetype.tv.data.ChannelTab
+import video.typetype.tv.data.ChannelSort
+import video.typetype.tv.data.ChannelPlaylists
 import video.typetype.tv.data.CommentsPage
 import video.typetype.tv.data.PlaylistChoice
 import video.typetype.tv.data.PublicPlaylist
@@ -180,9 +183,18 @@ class RemoteContentRepository(
         return api.commentReplies(videoUrl, repliesPage).toCommentsPage(clock())
     }
 
-    override suspend fun channel(url: String, page: String?): ChannelPage = watch.watch {
-        api.channelPage(url, page).toChannelPage(url, clock()).let { it.copy(videos = branding.apply(filter.allowed(it.videos))) }
+    override suspend fun channel(url: String, page: String?, tab: ChannelTab, sort: ChannelSort?): ChannelPage = watch.watch {
+        val target = if (tab == ChannelTab.Live) liveTabUrl(url) else url
+        api.channelPage(target, page, sort?.wire).toChannelPage(url, clock())
+            .let { it.copy(videos = branding.apply(filter.allowed(it.videos))) }
     }
+
+    override suspend fun channelPlaylists(url: String, page: String?): ChannelPlaylists = watch.watch {
+        playlists.channelPlaylists(url, page)
+    }
+
+    // The live tab is the channel's address with /streams, as the web asks for it.
+    private fun liveTabUrl(url: String): String = url.substringBefore('?').substringBefore('#').trimEnd('/') + "/streams"
 
     override fun liveChat(videoUrl: String): Flow<LiveChatEvent> = liveChat.events(videoUrl)
 

@@ -1,6 +1,7 @@
 package video.typetype.tv.data.remote
 
 import video.typetype.tv.data.ChannelSummary
+import video.typetype.tv.data.ChannelPlaylists
 import video.typetype.tv.data.ContentSource
 import video.typetype.tv.data.PublicPlaylist
 import video.typetype.tv.data.PublicPlaylistPage
@@ -39,6 +40,11 @@ class PublicPlaylistSource(
         val playlist = dto.playlist.toPlaylist() ?: PublicPlaylist(url, "", "", dto.videos.size.toLong(), null)
         val videos = branding.apply(filter.allowed(dto.videos.mapNotNull { it.toVideo(now) }))
         return PublicPlaylistPage(playlist, videos, dto.nextpage)
+    }
+
+    suspend fun channelPlaylists(channelUrl: String, cursor: String?): ChannelPlaylists {
+        val dto = api.channelPlaylists(channelUrl, cursor)
+        return ChannelPlaylists(dto.playlists.mapNotNull { it.toPlaylist() }, dto.nextpage)
     }
 
     suspend fun podcasts(channelUrl: String): List<PublicPlaylist> =

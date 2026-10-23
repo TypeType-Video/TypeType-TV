@@ -8,6 +8,7 @@ import video.typetype.tv.data.dto.AccountDto
 import video.typetype.tv.data.dto.BlockedItemDto
 import video.typetype.tv.data.dto.BulletCommentsDto
 import video.typetype.tv.data.dto.ChannelPageDto
+import video.typetype.tv.data.dto.ChannelPlaylistsDto
 import video.typetype.tv.data.dto.ChannelPageRequest
 import video.typetype.tv.data.dto.CommentsPageDto
 import video.typetype.tv.data.dto.ChannelPodcastsDto
@@ -109,8 +110,11 @@ class TypeTypeApi(private val client: ApiClient) {
         client.send("PUT", "settings", patch.toString())
     }
 
-    suspend fun channelPage(url: String, nextPage: String? = null): ChannelPageDto =
-        client.post("channel/page", client.json.encodeToString(ChannelPageRequest(url, nextPage)), ChannelPageDto.serializer())
+    suspend fun channelPage(url: String, nextPage: String? = null, sort: String? = null): ChannelPageDto =
+        client.post("channel/page", client.json.encodeToString(ChannelPageRequest(url, nextPage, sort)), ChannelPageDto.serializer())
+
+    suspend fun channelPlaylists(url: String, nextPage: String? = null): ChannelPlaylistsDto =
+        client.get("channel/playlists", ChannelPlaylistsDto.serializer(), mapOf("url" to url, "nextpage" to nextPage))
 
     suspend fun notifications(): NotificationsDto = client.get("notifications", NotificationsDto.serializer())
 

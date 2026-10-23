@@ -9,6 +9,9 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 import video.typetype.tv.data.Channel
 import video.typetype.tv.data.ChannelPage
+import video.typetype.tv.data.ChannelPlaylists
+import video.typetype.tv.data.ChannelSort
+import video.typetype.tv.data.ChannelTab
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.MockContentRepository
 import video.typetype.tv.data.PublicPlaylist
@@ -26,7 +29,15 @@ class ChannelStateTest {
         val page: ChannelPage,
         var failWrites: Boolean = false,
     ) : ContentRepository by MockContentRepository(0) {
-        override suspend fun channel(url: String, page: String?) = this.page
+        val requests = mutableListOf<Pair<ChannelTab, ChannelSort?>>()
+
+        override suspend fun channel(url: String, page: String?, tab: ChannelTab, sort: ChannelSort?): ChannelPage {
+            requests += tab to sort
+            return this.page
+        }
+
+        override suspend fun channelPlaylists(url: String, page: String?) =
+            ChannelPlaylists(listOf(PublicPlaylist("$url/list", "Best of", "Chan", 4, null)), null)
 
         override suspend fun channelPodcasts(channelUrl: String) = listOf(PublicPlaylist("p", "Show", "Host", 3, null))
 
@@ -73,5 +84,40 @@ class ChannelStateTest {
         state.requestBlocked(true)
         assertFalse(state.blocked)
         assertTrue(state.blockFailed)
+    }
+
+    private suspend fun ChannelState.settle() {
+        while (tabLoading) kotlinx.coroutines.delay(20)
+    }
+
+    @Test
+    fun aYoutubeChannelOffersItsTabsAndSorts() = runBlocking {
+        val state = ChannelState(url, repository(), scope).also { it.load() }
+        assertEquals(ChannelTab.entries, state.tabs)
+        assertEquals(ChannelSort.Latest, state.sort)
+    }
+
+    @Test
+    fun otherServicesOnlyListVideos() {
+        val state = ChannelState("https://www.bilibili.com/space/1", repository(), scope)
+        assertEquals(listOf(ChannelTab.Videos), state.tabs)
+        assertTrue(state.sorts.isEmpty())
+    }
+
+    @Test
+    fun theTabsAndTheSortReachTheServer() = runBlocking {
+        val repository = repository()
+        val state = ChannelState(url, repository, scope).also { it.load() }
+        state.sortBy(ChannelSort.Popular)
+        state.settle()
+        state.select(ChannelTab.Live)
+        state.settle()
+        state.select(ChannelTab.Playlists)
+        state.settle()
+        assertEquals(
+            listOf(ChannelTab.Videos to ChannelSort.Latest, ChannelTab.Videos to ChannelSort.Popular, ChannelTab.Live to null),
+            repository.requests,
+        )
+        assertEquals(listOf("Best of"), state.playlists.map { it.title })
     }
 }
