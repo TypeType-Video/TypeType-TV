@@ -41,4 +41,7 @@ class SearchSession {
     var source by mutableStateOf(ContentSource.YouTube)
     var kind by mutableStateOf(SearchKind.Videos)
     var restoreVideoId by mutableStateOf<String?>(null)
+
+    // Set by the remote's search key from any screen; the search screen starts listening and clears it.
+    var voiceRequested by mutableStateOf(false)
 }

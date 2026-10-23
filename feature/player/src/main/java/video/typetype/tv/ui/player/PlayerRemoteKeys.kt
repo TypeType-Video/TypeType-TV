@@ -12,6 +12,7 @@ class RemoteKeyActions(
     val startOver: () -> Unit,
     val toggleCaptions: () -> Unit,
     val openPanel: (PlayerPanel) -> Unit,
+    val seekToFraction: (Float) -> Unit,
 )
 
 // The dedicated keys many remotes carry: they reach their target in one press wherever the focus is.
@@ -25,7 +26,12 @@ fun handleRemoteKey(event: KeyEvent, panelOpen: Boolean, actions: RemoteKeyActio
         AndroidKeyEvent.KEYCODE_CAPTIONS -> actions.toggleCaptions()
         AndroidKeyEvent.KEYCODE_MENU -> actions.openPanel(PlayerPanel.Menu)
         AndroidKeyEvent.KEYCODE_INFO -> actions.openPanel(PlayerPanel.Info)
+        // As on YouTube: 0 to 9 jump to 0 % to 90 % of the video.
+        in AndroidKeyEvent.KEYCODE_0..AndroidKeyEvent.KEYCODE_9 ->
+            actions.seekToFraction((event.nativeKeyEvent.keyCode - AndroidKeyEvent.KEYCODE_0) / DIGITS)
         else -> return false
     }
     return true
 }
+
+private const val DIGITS = 10f

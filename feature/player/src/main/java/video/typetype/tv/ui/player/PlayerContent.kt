@@ -147,6 +147,12 @@ fun PlayerContent(
         startOver = { player.seekTo(0L) },
         toggleCaptions = { choices.captionIndex = (captionIndex + 1) % (handle.captionLanguages.size + 1) },
         openPanel = { session.openPanel(it, fromMenu = it == PlayerPanel.Menu) },
+        seekToFraction = { fraction ->
+            if (!state.isLive && state.durationMillis > 0) {
+                player.seekTo((state.durationMillis * fraction).toLong())
+                session.showControls()
+            }
+        },
     )
     Box(
         // The window has no background of its own; with the chat column the picture is letterboxed, and the

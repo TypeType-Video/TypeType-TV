@@ -103,6 +103,11 @@ fun SearchScreen(
             else -> askMicrophone.launch(Manifest.permission.RECORD_AUDIO)
         }
     }
+    LaunchedEffect(session.voiceRequested) {
+        if (!session.voiceRequested) return@LaunchedEffect
+        session.voiceRequested = false
+        if (voice.available && !voice.listening) onVoice()
+    }
     LaunchedEffect(session.query, session.source, session.kind, searchAttempt) {
         val query = session.query
         if (query.isBlank()) {
@@ -134,7 +139,6 @@ fun SearchScreen(
                 when {
                     typed != null -> session.query = SearchInput.append(session.query, typed)
                     event.key == Key.Backspace -> session.query = SearchInput.delete(session.query)
-                    event.key == Key.Search && voice.available -> onVoice()
                     else -> return@onPreviewKeyEvent false
                 }
                 true

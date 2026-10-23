@@ -1,6 +1,13 @@
 package video.typetype.tv.ui
 
 import androidx.activity.compose.BackHandler
+import android.view.KeyEvent as AndroidKeyEvent
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.animation.AnimatedContent
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -17,6 +24,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -91,6 +99,33 @@ fun AppRoot(
         }
     }
     BackHandler(enabled = navigator.canPop()) { navigator.pop() }
+    // On a tab, the first Back takes the focus up to the tabs, as on YouTube's TV app; only the next one leaves.
+    val navEntry = remember { FocusRequester() }
+    var navFocused by remember { mutableStateOf(false) }
+    BackHandler(enabled = activeTab != null && !navigator.canPop() && !navFocused) { navEntry.requestFocus() }
+    val focusManager = LocalFocusManager.current
+    val appKeys = Modifier.onPreviewKeyEvent { event ->
+        val code = event.nativeKeyEvent.keyCode
+        val fresh = event.type == KeyEventType.KeyDown && event.nativeKeyEvent.repeatCount == 0
+        when {
+            // The remote's search or microphone key, from any screen: the search opens listening.
+            code == AndroidKeyEvent.KEYCODE_SEARCH -> {
+                if (fresh) {
+                    searchSession.voiceRequested = true
+                    navigator.selectTab(Route.Search)
+                }
+                true
+            }
+            code in PAGE_KEYS && navigator.current !is Route.Player -> {
+                if (event.type == KeyEventType.KeyDown) {
+                    val direction = if (code in PAGE_DOWN_KEYS) FocusDirection.Down else FocusDirection.Up
+                    repeat(PAGE_STEPS) { focusManager.moveFocus(direction) }
+                }
+                true
+            }
+            else -> false
+        }
+    }
     val openDetail: (Video) -> Unit = { navigator.push(Route.Detail(it.id, it)) }
     val scope = rememberCoroutineScope()
     val prewarm = remember(repository) { StreamPrewarm(repository::prewarm, scope) }
@@ -99,7 +134,24 @@ fun AppRoot(
         VideoPreviews { video, onPlaying, modifier -> MutedPreview(video, playback, onPlaying, modifier) }
     }
     var menuRequest by remember { mutableStateOf<MenuRequest?>(null) }
-    val videoMenu = remember { VideoMenu { video, onClosed -> menuRequest = MenuRequest(video, onClosed) } }
+    // The menu keeps the focus while it is shown, so the card gets it back only once the menu is gone.
+    var menuClosed by remember { mutableStateOf<MenuRequest?>(null) }
+    LaunchedEffect(menuRequest, menuClosed) {
+        val closed = menuClosed ?: return@LaunchedEffect
+        if (menuRequest != null) return@LaunchedEffect
+        withFrameNanos { }
+        closed.onClosed()
+        menuClosed = null
+    }
+    val videoMenu = remember(navigator) {
+        object : VideoMenu {
+            override fun open(video: Video, onClosed: () -> Unit) {
+                menuRequest = MenuRequest(video, onClosed)
+            }
+
+            override fun play(video: Video) = navigator.push(Route.Player(video.id, preview = video))
+        }
+    }
     val menuActions = remember(navigator) {
         VideoMenuActions(
             onPlay = {
@@ -117,7 +169,7 @@ fun AppRoot(
         LocalVideoPreviews provides previews,
         LocalVideoMenu provides videoMenu,
     ) {
-        Box(Modifier.fillMaxSize()) {
+        Box(Modifier.fillMaxSize().then(appKeys)) {
             AnimatedContent(
                 targetState = navigator.current,
                 transitionSpec = { routeTransition(initialState, targetState) },
@@ -203,6 +255,8 @@ fun AppRoot(
                         },
                         account = account,
                         contentEntry = homeSession.heroEntry.takeIf { activeTab == TopTab.Home },
+                        navEntry = navEntry,
+                        onNavFocusChange = { navFocused = it },
                     )
                 }
             }
@@ -212,8 +266,8 @@ fun AppRoot(
                     repository = repository,
                     actions = menuActions,
                     onClose = {
+                        menuClosed = request
                         menuRequest = null
-                        request.onClosed()
                     },
                 )
             }
@@ -222,3 +276,9 @@ fun AppRoot(
 }
 
 private class MenuRequest(val video: Video, val onClosed: () -> Unit)
+
+private val PAGE_DOWN_KEYS = setOf(AndroidKeyEvent.KEYCODE_CHANNEL_DOWN, AndroidKeyEvent.KEYCODE_PAGE_DOWN)
+private val PAGE_KEYS = PAGE_DOWN_KEYS + setOf(AndroidKeyEvent.KEYCODE_CHANNEL_UP, AndroidKeyEvent.KEYCODE_PAGE_UP)
+
+// Channel and page keys skip this many rows at once.
+private const val PAGE_STEPS = 3

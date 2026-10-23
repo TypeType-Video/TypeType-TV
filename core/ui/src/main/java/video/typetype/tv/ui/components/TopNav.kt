@@ -66,6 +66,8 @@ fun TopNav(
     account: AccountBadge,
     modifier: Modifier = Modifier,
     contentEntry: FocusRequester? = null,
+    navEntry: FocusRequester? = null,
+    onNavFocusChange: (Boolean) -> Unit = {},
 ) {
     Box(
         modifier = modifier
@@ -89,14 +91,18 @@ fun TopNav(
             .height(Dimens.TopNavHeight),
     ) {
         BrandLogo(Modifier.align(Alignment.CenterStart))
-        val selectedRequester = remember { FocusRequester() }
+        val ownEntry = remember { FocusRequester() }
+        val selectedRequester = navEntry ?: ownEntry
         var navFocused by remember { mutableStateOf(false) }
         Row(
             modifier = Modifier
                 .align(Alignment.Center)
                 .focusProperties { enter = { selectedRequester } }
                 .focusGroup()
-                .onFocusChanged { navFocused = it.hasFocus },
+                .onFocusChanged {
+                    navFocused = it.hasFocus
+                    onNavFocusChange(it.hasFocus)
+                },
             horizontalArrangement = Arrangement.spacedBy(6.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

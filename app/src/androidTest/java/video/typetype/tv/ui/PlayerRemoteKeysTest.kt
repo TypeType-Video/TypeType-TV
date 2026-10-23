@@ -23,6 +23,7 @@ class PlayerRemoteKeysTest {
         startOver = { calls += "start" },
         toggleCaptions = { calls += "captions" },
         openPanel = { calls += it.name },
+        seekToFraction = { calls += "seek $it" },
     )
 
     private fun press(code: Int, panelOpen: Boolean = false) =
@@ -36,6 +37,13 @@ class PlayerRemoteKeysTest {
         assertTrue(press(AndroidKeyEvent.KEYCODE_MEDIA_NEXT))
         assertTrue(press(AndroidKeyEvent.KEYCODE_MEDIA_PREVIOUS))
         assertEquals(listOf("captions", PlayerPanel.Info.name, PlayerPanel.Menu.name, "next", "start"), calls)
+    }
+
+    @Test
+    fun digitsJumpToTenthsOfTheVideo() {
+        assertTrue(press(AndroidKeyEvent.KEYCODE_5))
+        assertTrue(press(AndroidKeyEvent.KEYCODE_0))
+        assertEquals(listOf("seek 0.5", "seek 0.0"), calls)
     }
 
     @Test

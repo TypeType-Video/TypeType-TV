@@ -38,12 +38,25 @@ class VideoCardMenuTest {
         rule.setContent {
             val card = @androidx.compose.runtime.Composable { VideoCard(video, onClick = { opened++ }) }
             if (withMenu) {
-                CompositionLocalProvider(LocalVideoMenu provides VideoMenu { shown, _ -> menus += shown }) { card() }
+                CompositionLocalProvider(LocalVideoMenu provides recordingMenu()) { card() }
             } else {
                 card()
             }
         }
         rule.onNodeWithContentDescription(description()).requestFocus()
+    }
+
+    private var playedFromCard = mutableListOf<Video>()
+
+    private fun recordingMenu(onOpen: () -> Unit = {}) = object : VideoMenu {
+        override fun open(video: Video, onClosed: () -> Unit) {
+            menus += video
+            onOpen()
+        }
+
+        override fun play(video: Video) {
+            playedFromCard += video
+        }
     }
 
     private fun description(): String = InstrumentationRegistry.getInstrumentation().targetContext
@@ -80,7 +93,7 @@ class VideoCardMenuTest {
         var played = 0
         rule.setContent {
             var shown by remember { mutableStateOf(false) }
-            CompositionLocalProvider(LocalVideoMenu provides VideoMenu { _, _ -> shown = true }) {
+            CompositionLocalProvider(LocalVideoMenu provides recordingMenu { shown = true }) {
                 VideoCard(video, onClick = { opened++ })
             }
             if (shown) {
@@ -107,5 +120,23 @@ class VideoCardMenuTest {
         rule.onNodeWithContentDescription(play).performKeyInput { pressKey(Key.DirectionCenter) }
         rule.waitForIdle()
         assertEquals(1, played)
+    }
+
+    @Test
+    fun theMenuKeyOpensTheMenu() {
+        showCard(withMenu = true)
+        rule.onNodeWithContentDescription(description()).performKeyInput { pressKey(Key.Menu) }
+        rule.waitForIdle()
+        assertEquals(listOf(video), menus)
+        assertEquals(0, opened)
+    }
+
+    @Test
+    fun thePlayKeyPlaysWithoutOpeningTheDetailPage() {
+        showCard(withMenu = true)
+        rule.onNodeWithContentDescription(description()).performKeyInput { pressKey(Key.MediaPlayPause) }
+        rule.waitForIdle()
+        assertEquals(listOf(video), playedFromCard)
+        assertEquals(0, opened)
     }
 }
