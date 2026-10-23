@@ -71,8 +71,8 @@ class RemoteContentRepository(
         return branding.apply(filter.allowed(stream(id).relatedStreams.mapNotNull { it.toVideo(now) }).take(RELATED_LIMIT))
     }
 
-    override suspend fun search(query: String, source: ContentSource, kind: SearchKind): SearchResults = watch.watch {
-        playlists.search(query, source, kind)
+    override suspend fun search(query: String, source: ContentSource, kind: SearchKind, page: String?): SearchResults = watch.watch {
+        playlists.search(query, source, kind, page)
     }
 
     override suspend fun publicPlaylist(url: String, page: String?): PublicPlaylistPage = watch.watch { playlists.page(url, page) }

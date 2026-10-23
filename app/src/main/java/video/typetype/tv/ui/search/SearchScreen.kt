@@ -26,6 +26,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,7 +54,9 @@ private const val SEARCH_DEBOUNCE_MILLIS = 180L
 private sealed interface ResultsState {
     data object Idle : ResultsState
     data object Loading : ResultsState
-    data class Loaded(val results: SearchResults) : ResultsState
+    data class Loaded(val pager: SearchPager) : ResultsState {
+        val results: SearchResults get() = pager.first
+    }
     data class Failed(val message: UiMessage) : ResultsState
 }
 
@@ -67,6 +70,7 @@ fun SearchScreen(
     modifier: Modifier = Modifier,
 ) {
     var state by remember { mutableStateOf<ResultsState>(ResultsState.Idle) }
+    val scope = rememberCoroutineScope()
     val firstKey = remember { FocusRequester() }
     val resultsEntry = remember { FocusRequester() }
     var ideas by remember { mutableStateOf<List<String>>(emptyList()) }
@@ -92,8 +96,11 @@ fun SearchScreen(
         state = ResultsState.Loading
         delay(SEARCH_DEBOUNCE_MILLIS)
         var failed: UiMessage? = null
-        val found = tryLoad({ failed = it }) { repository.search(query, session.source, session.kind) }
-        state = found?.let { ResultsState.Loaded(it) } ?: ResultsState.Failed(failed ?: UiMessage(R.string.load_error_generic))
+        val source = session.source
+        val kind = session.kind
+        val found = tryLoad({ failed = it }) { repository.search(query, source, kind) }
+        state = found?.let { ResultsState.Loaded(SearchPager(repository, query, source, kind, it, scope)) }
+            ?: ResultsState.Failed(failed ?: UiMessage(R.string.load_error_generic))
     }
     LaunchedEffect(state, moveFocusToResults) {
         val loaded = state as? ResultsState.Loaded
@@ -168,7 +175,9 @@ fun SearchScreen(
                         ChannelResults(current.results.channels, onOpen = { onOpenChannel(it.url) }, entry = resultsEntry)
                     } else {
                         ResultList(
-                            results = current.results.videos,
+                            results = current.pager.videos,
+                            loadingMore = current.pager.loadingMore,
+                            onNearEnd = current.pager::loadMore,
                             onOpen = {
                                 session.restoreVideoId = it.id
                                 onOpen(it)

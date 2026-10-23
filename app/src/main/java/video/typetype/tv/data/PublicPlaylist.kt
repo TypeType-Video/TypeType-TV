@@ -58,6 +58,7 @@ data class SearchResults(
     val videos: List<Video> = emptyList(),
     val playlists: List<PublicPlaylist> = emptyList(),
     val channels: List<ChannelSummary> = emptyList(),
+    val nextPage: String? = null,
 ) {
     val size: Int get() = videos.size + playlists.size + channels.size
 }

@@ -35,7 +35,8 @@ class PublicPlaylistSourceTest {
                     path.startsWith("/api/search") -> MockResponse().setResponseCode(200).setBody(
                         """{"items":[],"playlists":[{"title":"Linux course","url":"https://www.youtube.com/playlist?list=PL1","thumbnailUrl":"https://i.example/t.jpg","uploaderName":"Teacher","streamCount":18},
                         {"title":"","url":"https://www.youtube.com/playlist?list=PL2"}],
-                        "channels":[{"name":"Darkone","url":"https://www.youtube.com/channel/UC1","description":" Linux ","subscriberCount":12500,"thumbnailUrl":""},{"name":"","url":"x"}]}""",
+                        "channels":[{"name":"Darkone","url":"https://www.youtube.com/channel/UC1","description":" Linux ","subscriberCount":12500,"thumbnailUrl":""},{"name":"","url":"x"}],
+                        "nextpage":"p2"}""",
                     )
                     path.startsWith("/api/podcasts/episodes") -> MockResponse().setResponseCode(200).setBody(
                         """{"podcast":{"title":"The Show","url":"https://www.youtube.com/playlist?list=PODCAST","uploaderName":"Host","streamCount":2},
@@ -150,5 +151,13 @@ class PublicPlaylistSourceTest {
         assertEquals(listOf("https://www.youtube.com/watch?v=ep1"), page.videos.map { it.id })
         assertEquals("more", page.nextPage)
         assertEquals("Host", page.playlist.uploader)
+    }
+
+    @Test
+    fun videoSearchSendsAndReturnsThePageCursor() = runBlocking {
+        val results = source.search("q", ContentSource.YouTube, SearchKind.Videos, page = "p1")
+        assertEquals("p2", results.nextPage)
+        val search = requests.single { it.path.orEmpty().startsWith("/api/search") }
+        assertEquals("p1", search.requestUrl?.queryParameter("nextpage"))
     }
 }

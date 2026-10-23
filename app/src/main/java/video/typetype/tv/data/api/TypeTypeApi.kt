@@ -53,11 +53,16 @@ class TypeTypeApi(private val client: ApiClient) {
     suspend fun trending(source: ContentSource = ContentSource.YouTube): List<VideoItemDto> =
         client.get("trending", ListSerializer(VideoItemDto.serializer()), mapOf("service" to source.serviceId.toString()))
 
-    suspend fun search(query: String, source: ContentSource = ContentSource.YouTube, filter: String? = null): SearchResultDto =
+    suspend fun search(
+        query: String,
+        source: ContentSource = ContentSource.YouTube,
+        filter: String? = null,
+        nextPage: String? = null,
+    ): SearchResultDto =
         client.get(
             "search",
             SearchResultDto.serializer(),
-            mapOf("q" to query, "service" to source.serviceId.toString(), "contentFilter" to filter),
+            mapOf("q" to query, "service" to source.serviceId.toString(), "contentFilter" to filter, "nextpage" to nextPage),
         )
 
     suspend fun publicPlaylist(url: String, nextPage: String? = null): PublicPlaylistDto =

@@ -20,6 +20,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
@@ -27,6 +28,8 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -50,8 +53,11 @@ import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.SkeletonBox
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.components.VideoThumbnail
-import video.typetype.tv.ui.util.formatDuration
+import video.typetype.tv.ui.util.metaLine
 import video.typetype.tv.ui.util.requestFocusWhenReady
+
+private const val NEXT_PAGE_DISTANCE = 3
+private const val MORE_SKELETONS = 2
 
 @Composable
 fun ResultList(
@@ -59,10 +65,19 @@ fun ResultList(
     onOpen: (Video) -> Unit,
     entry: FocusRequester,
     modifier: Modifier = Modifier,
+    loadingMore: Boolean = false,
+    onNearEnd: () -> Unit = {},
     restoreId: String? = null,
     onRestored: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
+    val nearEnd by remember(results.size) {
+        derivedStateOf {
+            val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+            last >= results.size - NEXT_PAGE_DISTANCE
+        }
+    }
+    LaunchedEffect(nearEnd, results.size) { if (nearEnd) onNearEnd() }
     val restorer = remember { FocusRequester() }
     LaunchedEffect(restoreId, results) {
         if (restoreId != null) {
@@ -95,6 +110,9 @@ fun ResultList(
                     },
                 )
             }
+            if (loadingMore) {
+                items(MORE_SKELETONS) { ResultRowSkeleton() }
+            }
         }
     }
 }
@@ -125,12 +143,11 @@ private fun ResultRow(video: Video, onClick: () -> Unit, modifier: Modifier = Mo
             }
             Column(Modifier.weight(1f)) {
                 TextLabel(video.title, Type.Title, maxLines = 2)
-                Spacer(Modifier.height(4.dp))
-                TextLabel("${video.channel.name}  ·  ${video.views}", Type.Meta, maxLines = 1)
                 Spacer(Modifier.height(6.dp))
-                TextLabel(video.description, Type.Meta.copy(color = Palette.TextLow), maxLines = 2)
+                TextLabel(video.channel.name, Type.Meta, maxLines = 1)
+                Spacer(Modifier.height(2.dp))
+                TextLabel(metaLine(video.views, video.age), Type.Meta.copy(color = Palette.TextLow), maxLines = 1)
             }
-            TextLabel(formatDuration(video.durationSeconds), Type.Meta, Modifier.padding(end = 6.dp))
         }
     }
 }
@@ -142,15 +159,18 @@ fun ResultsSkeleton(modifier: Modifier = Modifier) {
         modifier = modifier.semantics { contentDescription = description },
         verticalArrangement = Arrangement.spacedBy(10.dp),
     ) {
-        repeat(4) {
-            Row(Modifier.fillMaxWidth().padding(10.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
-                SkeletonBox(Modifier.width(152.dp).aspectRatio(16f / 9f))
-                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    SkeletonBox(Modifier.size(width = 280.dp, height = 14.dp), Shapes.Chip)
-                    SkeletonBox(Modifier.size(width = 200.dp, height = 11.dp), Shapes.Chip)
-                    SkeletonBox(Modifier.size(width = 240.dp, height = 11.dp), Shapes.Chip)
-                }
-            }
+        repeat(4) { ResultRowSkeleton() }
+    }
+}
+
+@Composable
+private fun ResultRowSkeleton() {
+    Row(Modifier.fillMaxWidth().padding(10.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
+        SkeletonBox(Modifier.width(152.dp).aspectRatio(16f / 9f))
+        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            SkeletonBox(Modifier.size(width = 280.dp, height = 14.dp), Shapes.Chip)
+            SkeletonBox(Modifier.size(width = 200.dp, height = 11.dp), Shapes.Chip)
+            SkeletonBox(Modifier.size(width = 240.dp, height = 11.dp), Shapes.Chip)
         }
     }
 }

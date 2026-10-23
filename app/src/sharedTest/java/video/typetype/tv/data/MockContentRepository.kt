@@ -76,7 +76,7 @@ class MockContentRepository(
         return (sameGenre + others).take(10)
     }
 
-    override suspend fun search(query: String, source: ContentSource, kind: SearchKind): SearchResults {
+    override suspend fun search(query: String, source: ContentSource, kind: SearchKind, page: String?): SearchResults {
         delay(latencyMillis / 3)
         return SearchResults(videos = if (kind == SearchKind.Videos) MockCatalog.all.search(query) else emptyList())
     }

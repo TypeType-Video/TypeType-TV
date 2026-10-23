@@ -19,14 +19,17 @@ class PublicPlaylistSource(
     private val branding: DeArrowBranding,
     private val clock: () -> Long,
 ) {
-    suspend fun search(query: String, source: ContentSource, kind: SearchKind): SearchResults {
+    suspend fun search(query: String, source: ContentSource, kind: SearchKind, page: String? = null): SearchResults {
         val effective = kind.takeIf { it.supports(source) } ?: SearchKind.Videos
-        val response = api.search(query, source, effective.filterFor(source))
+        val response = api.search(query, source, effective.filterFor(source), page)
         val now = clock()
         return when (effective) {
             SearchKind.Playlists -> SearchResults(playlists = response.playlists.mapNotNull { it.toPlaylist() })
             SearchKind.Channels -> SearchResults(channels = response.channels.mapNotNull { it.toSummary() })
-            else -> SearchResults(videos = branding.apply(filter.allowed(response.items.mapNotNull { it.toVideo(now) })))
+            else -> SearchResults(
+                videos = branding.apply(filter.allowed(response.items.mapNotNull { it.toVideo(now) })),
+                nextPage = response.nextpage,
+            )
         }
     }
 
