@@ -10,6 +10,7 @@ import video.typetype.tv.data.Channel
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.ContentSource
 import video.typetype.tv.data.MockContentRepository
+import video.typetype.tv.data.PublicPlaylist
 import video.typetype.tv.data.SearchKind
 import video.typetype.tv.data.SearchResults
 import video.typetype.tv.data.Video
@@ -63,5 +64,14 @@ class SearchPagerTest {
         pager.loadMore()
         assertEquals(listOf("a", "b"), pager.videos.map { it.id })
         assertEquals(listOf("p2", "p2"), repository.asked)
+    }
+
+    @Test
+    fun playlistResultsPageToo() = runBlocking {
+        val second = SearchResults(playlists = listOf(PublicPlaylist("p2", "Two", "", 1, null)))
+        val repository = PagedRepository(mapOf("n" to second))
+        val pager = pager(repository, SearchResults(playlists = listOf(PublicPlaylist("p1", "One", "", 1, null)), nextPage = "n"))
+        pager.loadMore()
+        assertEquals(listOf("p1", "p2"), pager.playlists.map { it.url })
     }
 }

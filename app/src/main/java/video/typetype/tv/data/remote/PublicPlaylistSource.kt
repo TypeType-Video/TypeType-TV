@@ -24,8 +24,8 @@ class PublicPlaylistSource(
         val response = api.search(query, source, effective.filterFor(source), page)
         val now = clock()
         return when (effective) {
-            SearchKind.Playlists -> SearchResults(playlists = response.playlists.mapNotNull { it.toPlaylist() })
-            SearchKind.Channels -> SearchResults(channels = response.channels.mapNotNull { it.toSummary() })
+            SearchKind.Playlists -> SearchResults(playlists = response.playlists.mapNotNull { it.toPlaylist() }, nextPage = response.nextpage)
+            SearchKind.Channels -> SearchResults(channels = response.channels.mapNotNull { it.toSummary() }, nextPage = response.nextpage)
             else -> SearchResults(
                 videos = branding.apply(filter.allowed(response.items.mapNotNull { it.toVideo(now) })),
                 nextPage = response.nextpage,

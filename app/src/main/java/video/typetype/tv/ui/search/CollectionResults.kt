@@ -18,7 +18,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -40,6 +42,7 @@ import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.FocusSurface
 import video.typetype.tv.ui.components.TextLabel
+import video.typetype.tv.ui.util.LoadMoreNearEnd
 import video.typetype.tv.ui.util.metaLine
 
 @Composable
@@ -48,8 +51,9 @@ fun PlaylistResults(
     onOpen: (PublicPlaylist) -> Unit,
     entry: FocusRequester,
     modifier: Modifier = Modifier,
+    paging: CollectionPaging = CollectionPaging(),
 ) {
-    CollectionList(playlists, modifier, entry, key = { it.url }) { playlist, rowModifier ->
+    CollectionList(playlists, modifier, entry, paging, key = { it.url }) { playlist, rowModifier ->
         val count = stringResource(R.string.playlist_video_count, playlist.count.toString())
         val description = stringResource(
             R.string.card_description,
@@ -79,8 +83,9 @@ fun ChannelResults(
     onOpen: (ChannelSummary) -> Unit,
     entry: FocusRequester,
     modifier: Modifier = Modifier,
+    paging: CollectionPaging = CollectionPaging(),
 ) {
-    CollectionList(channels, modifier, entry, key = { it.url }) { channel, rowModifier ->
+    CollectionList(channels, modifier, entry, paging, key = { it.url }) { channel, rowModifier ->
         val subscribers = if (channel.subscribers.isBlank()) "" else stringResource(R.string.detail_subscribers, channel.subscribers)
         val description = if (subscribers.isBlank()) channel.name else stringResource(R.string.card_description, channel.name, subscribers)
         CollectionRow(onClick = { onOpen(channel) }, description = description, modifier = rowModifier) {
@@ -107,10 +112,14 @@ private fun <T> CollectionList(
     items: List<T>,
     modifier: Modifier,
     entry: FocusRequester,
+    paging: CollectionPaging,
     key: (T) -> Any,
     row: @Composable (T, Modifier) -> Unit,
 ) {
+    val listState = rememberLazyListState()
+    LoadMoreNearEnd(listState, items.size, paging.onNearEnd)
     LazyColumn(
+        state = listState,
         modifier = modifier,
         contentPadding = PaddingValues(top = 6.dp, bottom = 40.dp, end = 8.dp, start = 6.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp),
@@ -118,8 +127,13 @@ private fun <T> CollectionList(
         itemsIndexed(items, key = { _, item -> key(item) }) { index, item ->
             row(item, if (index == 0) Modifier.focusRequester(entry) else Modifier)
         }
+        if (paging.loadingMore) {
+            items(MORE_SKELETONS) { ResultRowSkeleton() }
+        }
     }
 }
+
+class CollectionPaging(val loadingMore: Boolean = false, val onNearEnd: () -> Unit = {})
 
 @Composable
 private fun CollectionRow(

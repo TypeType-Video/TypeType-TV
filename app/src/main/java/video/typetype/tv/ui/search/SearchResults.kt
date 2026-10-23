@@ -28,8 +28,6 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.TrendingUp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -53,11 +51,11 @@ import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.SkeletonBox
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.components.VideoThumbnail
+import video.typetype.tv.ui.util.LoadMoreNearEnd
 import video.typetype.tv.ui.util.metaLine
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
-private const val NEXT_PAGE_DISTANCE = 3
-private const val MORE_SKELETONS = 2
+internal const val MORE_SKELETONS = 2
 
 @Composable
 fun ResultList(
@@ -71,13 +69,7 @@ fun ResultList(
     onRestored: () -> Unit = {},
 ) {
     val listState = rememberLazyListState()
-    val nearEnd by remember(results.size) {
-        derivedStateOf {
-            val last = listState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-            last >= results.size - NEXT_PAGE_DISTANCE
-        }
-    }
-    LaunchedEffect(nearEnd, results.size) { if (nearEnd) onNearEnd() }
+    LoadMoreNearEnd(listState, results.size, onNearEnd)
     val restorer = remember { FocusRequester() }
     LaunchedEffect(restoreId, results) {
         if (restoreId != null) {
@@ -164,7 +156,7 @@ fun ResultsSkeleton(modifier: Modifier = Modifier) {
 }
 
 @Composable
-private fun ResultRowSkeleton() {
+internal fun ResultRowSkeleton() {
     Row(Modifier.fillMaxWidth().padding(10.dp), horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         SkeletonBox(Modifier.width(152.dp).aspectRatio(16f / 9f))
         Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {

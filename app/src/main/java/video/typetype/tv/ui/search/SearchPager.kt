@@ -24,6 +24,12 @@ class SearchPager(
     var videos by mutableStateOf(first.videos)
         private set
 
+    var playlists by mutableStateOf(first.playlists)
+        private set
+
+    var channels by mutableStateOf(first.channels)
+        private set
+
     var loadingMore by mutableStateOf(false)
         private set
 
@@ -36,8 +42,9 @@ class SearchPager(
         scope.launch {
             try {
                 val more = repository.search(query, source, kind, page)
-                val known = videos.mapTo(HashSet()) { it.id }
-                videos = videos + more.videos.filterNot { it.id in known }
+                videos = videos.appendNew(more.videos) { it.id }
+                playlists = playlists.appendNew(more.playlists) { it.url }
+                channels = channels.appendNew(more.channels) { it.url }
                 nextPage = more.nextPage?.takeIf { it != page }
             } catch (_: IOException) {
                 // The list keeps what it has; reaching the end again retries the same page.
@@ -45,5 +52,10 @@ class SearchPager(
                 loadingMore = false
             }
         }
+    }
+
+    private fun <T> List<T>.appendNew(more: List<T>, key: (T) -> String): List<T> {
+        val known = mapTo(HashSet(), key)
+        return this + more.filterNot { key(it) in known }
     }
 }

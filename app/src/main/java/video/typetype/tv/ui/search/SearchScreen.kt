@@ -170,9 +170,19 @@ fun SearchScreen(
                             body = stringResource(R.string.search_empty_body),
                         )
                     } else if (current.results.playlists.isNotEmpty()) {
-                        PlaylistResults(current.results.playlists, onOpen = { onOpenPlaylist(it.url) }, entry = resultsEntry)
+                        PlaylistResults(
+                            current.pager.playlists,
+                            onOpen = { onOpenPlaylist(it.url) },
+                            entry = resultsEntry,
+                            paging = CollectionPaging(current.pager.loadingMore, current.pager::loadMore),
+                        )
                     } else if (current.results.channels.isNotEmpty()) {
-                        ChannelResults(current.results.channels, onOpen = { onOpenChannel(it.url) }, entry = resultsEntry)
+                        ChannelResults(
+                            current.pager.channels,
+                            onOpen = { onOpenChannel(it.url) },
+                            entry = resultsEntry,
+                            paging = CollectionPaging(current.pager.loadingMore, current.pager::loadMore),
+                        )
                     } else {
                         ResultList(
                             results = current.pager.videos,
