@@ -31,7 +31,7 @@ internal fun VideoItemDto.toVideo(now: Long, keepShorts: Boolean = false): Video
     if (url.isBlank() || title.isBlank() || (!keepShorts && (isShortFormContent || isShortUrl(url)))) return null
     return Video(
         id = url,
-        title = title,
+        title = HtmlText.title(title),
         channel = channelOf(uploaderName, uploaderUrl, uploaderAvatarUrl),
         durationSeconds = duration.coerceAtLeast(0L).toInt(),
         views = Formatters.audience(viewCount, isLive || streamType == "live_stream"),
@@ -49,7 +49,7 @@ internal fun LibraryVideoDto.toVideo(now: Long, resume: Boolean): Video? {
     val resumeSeconds = if (progress > 0L) progress else watchPosition / 1_000L
     return Video(
         id = url,
-        title = title,
+        title = HtmlText.title(title),
         channel = channelOf(channelName, channelUrl, channelAvatar),
         durationSeconds = duration.coerceAtLeast(0L).toInt(),
         views = Formatters.views(viewCount),
@@ -63,7 +63,7 @@ internal fun LibraryVideoDto.toVideo(now: Long, resume: Boolean): Video? {
 
 internal fun StreamDto.toVideo(url: String, now: Long): Video = Video(
     id = url,
-    title = title,
+    title = HtmlText.title(title),
     channel = channelOf(
         uploaderName, uploaderUrl, uploaderAvatarUrl,
         Formatters.compactCount(uploaderSubscriberCount),

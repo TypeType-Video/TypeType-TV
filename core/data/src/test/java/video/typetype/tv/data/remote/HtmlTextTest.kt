@@ -60,4 +60,10 @@ class HtmlTextTest {
         assertEquals(Formatters.age(now, now - 3 * 86_400_000L), comment?.published)
         assertEquals("fallback", CommentDto(id = "1", text = "x", publishedTime = "fallback").toComment(now)?.published)
     }
+
+    @Test
+    fun titlesDropObjectPlaceholdersAndExtraSpaces() {
+        assertEquals("IL DEVIENT PATRON il nous raconte tout", HtmlText.title("IL DEVIENT PATRON  il nous raconte tout \uFFFC"))
+        assertEquals("a b", HtmlText.title("a\u200B \uFEFFb"))
+    }
 }
