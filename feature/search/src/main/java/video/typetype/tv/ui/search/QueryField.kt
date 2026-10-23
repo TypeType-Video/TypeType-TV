@@ -33,6 +33,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.text.TextLayoutResult
 import androidx.compose.ui.text.drawText
 import androidx.compose.ui.text.rememberTextMeasurer
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import video.typetype.tv.resources.R
@@ -79,9 +80,14 @@ internal fun QueryField(query: String, recent: List<String>, voice: VoiceSearch?
     val measurer = rememberTextMeasurer()
     val queryStyle = Type.Title.copy(color = Palette.TextHigh)
     val ghostStyle = Type.Title.copy(color = Palette.TextHigh.copy(alpha = GHOST_ALPHA))
-    val ghosts = remember(phrases) { phrases.map { measurer.measure(it, ghostStyle, maxLines = 1, softWrap = false) } }
+    // Visible overflow: clipped to its line, the text lost the bottom of g, p and y.
+    val ghosts = remember(phrases) {
+        phrases.map { measurer.measure(it, ghostStyle, overflow = TextOverflow.Visible, maxLines = 1, softWrap = false) }
+    }
     val shown = remember(line) {
-        line?.let { measurer.measure(it.text, if (it.ghostly) ghostStyle else queryStyle, maxLines = 1, softWrap = false) }
+        line?.let {
+            measurer.measure(it.text, if (it.ghostly) ghostStyle else queryStyle, overflow = TextOverflow.Visible, maxLines = 1, softWrap = false)
+        }
     }
     val picture = remember { FieldPicture() }
     LaunchedEffect(line == null, ghosts) {

@@ -5,6 +5,7 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+// Line heights stay near 1.25 times the size: tighter, the letters that go below the line (g, p, y) are cut off.
 object Type {
     private val family = FontFamily.SansSerif
 
@@ -12,7 +13,7 @@ object Type {
         fontFamily = family,
         fontWeight = FontWeight.SemiBold,
         fontSize = 38.sp,
-        lineHeight = 42.sp,
+        lineHeight = 48.sp,
         letterSpacing = (-0.6).sp,
         color = Palette.TextHigh,
     )
@@ -21,7 +22,7 @@ object Type {
         fontFamily = family,
         fontWeight = FontWeight.SemiBold,
         fontSize = 24.sp,
-        lineHeight = 28.sp,
+        lineHeight = 30.sp,
         letterSpacing = (-0.3).sp,
         color = Palette.TextHigh,
     )
