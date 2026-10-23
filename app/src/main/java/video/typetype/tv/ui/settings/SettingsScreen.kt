@@ -11,6 +11,7 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
+import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -55,6 +56,7 @@ import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.FocusSurface
 import video.typetype.tv.ui.components.InkBackground
 import video.typetype.tv.ui.components.TextLabel
+import video.typetype.tv.ui.components.Glyph
 import video.typetype.tv.ui.util.requestFocusWhenReady
 import video.typetype.tv.ui.util.trapFocusDown
 
@@ -196,14 +198,18 @@ private fun GroupItem(
             animationSpec = tween(160),
             label = "group-content",
         )
+        val bar = animateDpAsState(if (selected && !focused) 18.dp else 0.dp, tween(200), label = "group-bar")
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .heightIn(min = 48.dp)
                 .background(container.value)
-                .padding(horizontal = 16.dp, vertical = 12.dp),
+                .padding(horizontal = 14.dp, vertical = 12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            Box(Modifier.width(3.dp).height(bar.value).background(Palette.Accent, Shapes.Chip))
+            Glyph(group.icon(), content.value, 20)
             TextLabel(stringResource(group.titleRes), Type.Button.copy(color = content.value), maxLines = 1)
         }
     }
