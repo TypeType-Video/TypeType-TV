@@ -12,19 +12,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ClosedCaption
-import androidx.compose.material.icons.rounded.ClosedCaptionOff
-import androidx.compose.material.icons.rounded.Forum
 import androidx.compose.material.icons.rounded.Forward10
-import androidx.compose.material.icons.rounded.Language
-import androidx.compose.material.icons.rounded.MoreHoriz
-import androidx.compose.material.icons.rounded.HighQuality
 import androidx.compose.material.icons.rounded.Pause
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.Replay10
 import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
@@ -227,68 +220,6 @@ private fun TransportRow(state: PlayerUiState, actions: PlayerControlActions, pl
     }
 }
 
-@Composable
-private fun PreferenceRow(preferences: PlayerPreferences, actions: PlayerControlActions, modifier: Modifier = Modifier) {
-    Row(
-        modifier = modifier,
-        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        if (preferences.captionsAvailable) {
-            PillButton(
-                compact = true,
-                label = if (preferences.captionsOn) preferences.captionLabel else stringResource(R.string.player_captions),
-                icon = if (preferences.captionsOn) Icons.Rounded.ClosedCaption else Icons.Rounded.ClosedCaptionOff,
-                onClick = actions.onToggleCaptions,
-                emphasized = preferences.captionsOn,
-                description = if (preferences.captionsOn) {
-                    stringResource(R.string.player_captions_on_description, preferences.captionLabel)
-                } else {
-                    stringResource(R.string.player_captions_off_description)
-                },
-            )
-        }
-        preferences.audioLabel?.let { label ->
-            PillButton(
-                compact = true,
-                label = label,
-                icon = Icons.Rounded.Language,
-                onClick = actions.onOpenAudio,
-                description = stringResource(R.string.player_audio_description, label),
-                maxLabelWidth = AUDIO_LABEL_MAX_WIDTH,
-            )
-        }
-        if (preferences.commentsAvailable) {
-            PillButton(
-                compact = true,
-                label = stringResource(if (preferences.commentsAreChat) R.string.player_chat else R.string.player_comments),
-                icon = Icons.Rounded.Forum,
-                onClick = actions.onToggleComments,
-                emphasized = preferences.commentsOn,
-                description = stringResource(commentsDescription(preferences)),
-            )
-        }
-        if (preferences.qualityAvailable) {
-            PillButton(
-                compact = true,
-                label = preferences.qualityLabel,
-                icon = Icons.Rounded.HighQuality,
-                onClick = actions.onOpenQuality,
-                description = stringResource(R.string.player_quality_description, preferences.qualityLabel),
-            )
-        }
-        PillButton(
-            compact = true,
-            label = preferences.speedLabel,
-            icon = Icons.Rounded.Speed,
-            onClick = actions.onCycleSpeed,
-            description = stringResource(R.string.player_speed_description, preferences.speedLabel),
-        )
-        CircleButton(Icons.Rounded.MoreHoriz, stringResource(R.string.player_more_description), actions.onOpenMenu)
-    }
-}
-
-private val AUDIO_LABEL_MAX_WIDTH = 150.dp
 
 // On a live stream the bubble says how far behind the edge the thumb is, like the elapsed label.
 @Composable
@@ -297,11 +228,4 @@ private fun liveLabel(windowMillis: Long): (Long) -> String {
     return remember(windowMillis, atEdge) {
         { position -> LiveEdge.label((windowMillis - position).coerceAtLeast(0L)) ?: atEdge }
     }
-}
-
-private fun commentsDescription(preferences: PlayerPreferences): Int = when {
-    preferences.commentsAreChat && preferences.commentsOn -> R.string.player_chat_on_description
-    preferences.commentsAreChat -> R.string.player_chat_off_description
-    preferences.commentsOn -> R.string.player_comments_on_description
-    else -> R.string.player_comments_off_description
 }
