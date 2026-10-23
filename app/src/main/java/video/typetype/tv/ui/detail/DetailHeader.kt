@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
@@ -44,12 +45,14 @@ import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.ProgressLine
 import video.typetype.tv.ui.components.QualityBadge
 import video.typetype.tv.ui.components.TextLabel
-import video.typetype.tv.ui.util.formatDuration
+import video.typetype.tv.ui.util.knownDuration
 import video.typetype.tv.ui.util.formatTimeLeft
+import video.typetype.tv.ui.util.metaLine
 
 @Composable
 fun DetailHeader(
     video: Video,
+    pending: Boolean,
     activity: VideoActivity,
     actions: DetailActions,
     playRequester: FocusRequester,
@@ -63,18 +66,20 @@ fun DetailHeader(
     Column(
         modifier = modifier.padding(start = Dimens.SafeStart, top = Dimens.SafeTop + 34.dp),
     ) {
-        if (video.genre.isNotBlank()) {
-            TextLabel(video.genre.uppercase(), Type.Label.copy(color = Palette.Accent))
-            Spacer(Modifier.height(8.dp))
-        }
+        TextLabel(video.genre.uppercase(), Type.Label.copy(color = Palette.Accent))
+        Spacer(Modifier.height(8.dp))
         Box(Modifier.width(500.dp)) {
             TextLabel(video.title, Type.Display, maxLines = 2)
         }
         Spacer(Modifier.height(10.dp))
-        Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
+        Row(
+            modifier = Modifier.heightIn(min = 20.dp),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp),
+        ) {
             if (video.quality.isNotBlank()) QualityBadge(video.quality)
             TextLabel(
-                "${video.views}  ·  ${video.age}  ·  ${formatDuration(video.durationSeconds)}",
+                metaLine(video.views, video.age, knownDuration(video.durationSeconds)),
                 Type.Meta,
             )
         }
@@ -82,7 +87,8 @@ fun DetailHeader(
         ChannelLine(video)
         Spacer(Modifier.height(12.dp))
         Box(Modifier.width(500.dp)) {
-            TextLabel(video.description, Type.Body, maxLines = 3)
+            TextLabel(video.description, Type.Body, maxLines = 3, minLines = 3)
+            if (pending) DescriptionSkeleton()
         }
         video.resumeFraction?.let { fraction ->
             Spacer(Modifier.height(10.dp))
@@ -152,13 +158,18 @@ private fun ChannelLine(video: Video) {
             contentAlignment = Alignment.Center,
         ) {
             BasicText(
-                video.channel.name.first().toString(),
+                video.channel.name.take(1),
                 style = Type.Title.copy(color = Palette.AccentSoft),
             )
         }
         Column {
             TextLabel(video.channel.name, Type.Title, maxLines = 1)
-            TextLabel(stringResource(R.string.detail_subscribers, video.channel.subscribers), Type.Meta, maxLines = 1)
+            val subscribers = video.channel.subscribers
+            TextLabel(
+                if (subscribers.isBlank()) "" else stringResource(R.string.detail_subscribers, subscribers),
+                Type.Meta,
+                maxLines = 1,
+            )
         }
     }
 }

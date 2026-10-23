@@ -51,6 +51,14 @@ fun DetailSkeleton(modifier: Modifier = Modifier) {
 }
 
 @Composable
+fun DescriptionSkeleton(modifier: Modifier = Modifier) {
+    Column(modifier.padding(top = 4.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        SkeletonBox(Modifier.size(width = 480.dp, height = 12.dp), RoundedCornerShape(6.dp))
+        SkeletonBox(Modifier.size(width = 440.dp, height = 12.dp), RoundedCornerShape(6.dp))
+    }
+}
+
+@Composable
 fun RelatedSkeleton(modifier: Modifier = Modifier) {
     Row(
         modifier = modifier.padding(start = Dimens.SafeStart),

@@ -153,6 +153,7 @@ fun TextLabel(
     modifier: Modifier = Modifier,
     maxLines: Int = Int.MAX_VALUE,
     color: ColorProducer? = null,
+    minLines: Int = 1,
 ) {
     BasicText(
         text = text,
@@ -160,6 +161,7 @@ fun TextLabel(
         style = style,
         color = color,
         maxLines = maxLines,
+        minLines = minLines,
         overflow = androidx.compose.ui.text.style.TextOverflow.Ellipsis,
     )
 }

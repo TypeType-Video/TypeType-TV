@@ -9,13 +9,14 @@ import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.VideoLibrary
 import video.typetype.tv.R
+import video.typetype.tv.data.Video
 
 sealed interface Route {
     data object Home : Route
     data object Search : Route
     data object Library : Route
     data object Settings : Route
-    data class Detail(val videoId: String) : Route
+    data class Detail(val videoId: String, val preview: Video? = null) : Route
     data class Channel(val url: String) : Route
     data class Playlist(val url: String) : Route
     data class Podcast(val url: String) : Route

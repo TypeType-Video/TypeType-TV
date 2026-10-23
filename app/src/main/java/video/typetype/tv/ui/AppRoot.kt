@@ -23,6 +23,7 @@ import video.typetype.tv.data.AccountBadge
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.LibrarySection
 import video.typetype.tv.data.LandingPage
+import video.typetype.tv.data.Video
 import video.typetype.tv.data.net.Connectivity
 import video.typetype.tv.navigation.MockNavigator
 import video.typetype.tv.playback.PlaybackProvider
@@ -79,6 +80,7 @@ fun AppRoot(
         }
     }
     BackHandler(enabled = navigator.canPop()) { navigator.pop() }
+    val openDetail: (Video) -> Unit = { navigator.push(Route.Detail(it.id, it)) }
 
     Box(Modifier.fillMaxSize()) {
         AnimatedContent(
@@ -90,45 +92,46 @@ fun AppRoot(
                 Route.Home -> HomeScreen(
                     repository = repository,
                     session = homeSession,
-                    onOpen = { navigator.push(Route.Detail(it.id)) },
+                    onOpen = openDetail,
                     onPlay = { navigator.push(Route.Player(it.id)) },
                 )
                 Route.Search -> SearchScreen(
                     repository = repository,
                     session = searchSession,
-                    onOpen = { navigator.push(Route.Detail(it.id)) },
+                    onOpen = openDetail,
                     onOpenPlaylist = { navigator.push(Route.Playlist(it)) },
                     onOpenChannel = { navigator.push(Route.Channel(it)) },
                 )
                 Route.Library -> LibraryScreen(
                     repository = repository,
                     session = librarySession,
-                    onOpen = { navigator.push(Route.Detail(it.id)) },
+                    onOpen = openDetail,
                 )
                 Route.Settings -> SettingsScreen(repository, settingsSession, onSettingsAction)
                 is Route.Detail -> DetailScreen(
                     videoId = route.videoId,
+                    preview = route.preview,
                     repository = repository,
                     onOpenChannel = { navigator.push(Route.Channel(it)) },
                     onPlay = { navigator.push(Route.Player(it.id)) },
-                    onOpen = { navigator.push(Route.Detail(it.id)) },
+                    onOpen = openDetail,
                 )
                 is Route.Playlist -> PlaylistScreen(
                     url = route.url,
                     kind = CollectionKind.Playlist,
                     repository = repository,
-                    onOpen = { navigator.push(Route.Detail(it.id)) },
+                    onOpen = openDetail,
                 )
                 is Route.Podcast -> PlaylistScreen(
                     url = route.url,
                     kind = CollectionKind.Podcast,
                     repository = repository,
-                    onOpen = { navigator.push(Route.Detail(it.id)) },
+                    onOpen = openDetail,
                 )
                 is Route.Channel -> ChannelScreen(
                     url = route.url,
                     repository = repository,
-                    onOpen = { navigator.push(Route.Detail(it.id)) },
+                    onOpen = openDetail,
                     onOpenPodcast = { navigator.push(Route.Podcast(it)) },
                 )
                 is Route.Player -> PlayerScreen(

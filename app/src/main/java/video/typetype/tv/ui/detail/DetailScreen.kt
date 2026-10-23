@@ -42,6 +42,7 @@ fun DetailScreen(
     onOpen: (Video) -> Unit,
     onOpenChannel: (String) -> Unit,
     modifier: Modifier = Modifier,
+    preview: Video? = null,
 ) {
     var video by remember(videoId) { mutableStateOf<Video?>(null) }
     var related by remember(videoId) { mutableStateOf<List<Video>?>(null) }
@@ -49,32 +50,41 @@ fun DetailScreen(
     val controller = remember(videoId) { VideoActivityController(repository, scope) }
     var failure by remember(videoId) { mutableStateOf<UiMessage?>(null) }
     var attempt by remember(videoId) { mutableIntStateOf(0) }
+    val activityFromPreview = preview != null && preview.channel.url.isNotBlank()
     LaunchedEffect(videoId, attempt) {
         failure = null
+        if (activityFromPreview && preview != null) launch { controller.load(preview) }
         val loaded = tryLoad({ failure = it }) { repository.video(videoId) } ?: return@LaunchedEffect
         video = loaded
-        controller.load(loaded)
+        if (!activityFromPreview) controller.load(loaded)
         related = tryLoad({}) { repository.related(videoId) }.orEmpty()
     }
+    val shown = video ?: preview
+    val state = when {
+        video == null && failure != null -> DetailState.Failed
+        shown == null -> DetailState.Loading
+        else -> DetailState.Shown
+    }
     Crossfade(
-        targetState = video,
+        targetState = state,
         animationSpec = tween(400),
         modifier = modifier.fillMaxSize(),
         label = "detail-state",
-    ) { loaded ->
-        if (loaded == null && failure != null) {
-            ScreenFailure(failure, onRetry = { attempt++ })
-        } else if (loaded == null) {
-            DetailSkeleton()
-        } else {
-            DetailContent(loaded, controller, repository, related, onPlay, onOpen, onOpenChannel)
+    ) { current ->
+        when {
+            current == DetailState.Failed -> ScreenFailure(failure, onRetry = { attempt++ })
+            current == DetailState.Loading || shown == null -> DetailSkeleton()
+            else -> DetailContent(shown, video == null, controller, repository, related, onPlay, onOpen, onOpenChannel)
         }
     }
 }
 
+private enum class DetailState { Loading, Failed, Shown }
+
 @Composable
 private fun DetailContent(
     source: Video,
+    pending: Boolean,
     controller: VideoActivityController,
     repository: ContentRepository,
     related: List<Video>?,
@@ -101,6 +111,7 @@ private fun DetailContent(
             item(key = "header") {
                 DetailHeader(
                     video = video,
+                    pending = pending,
                     activity = activity,
                     actions = DetailActions(
                         failed = controller.failed,
