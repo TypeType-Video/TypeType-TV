@@ -35,6 +35,7 @@ import video.typetype.tv.data.Storyboard
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
@@ -90,6 +91,7 @@ fun PlayerControls(
     scrubMillis: Long? = null,
     storyboard: Storyboard? = null,
 ) {
+    val playRequester = remember { FocusRequester() }
     val markers = remember(video.chapters, sponsorSegments, state.durationMillis) {
         SeekMarkers.build(video.chapters, sponsorSegments, state.durationMillis)
     }
@@ -117,14 +119,14 @@ fun PlayerControls(
                 .align(Alignment.BottomCenter)
                 .padding(start = Dimens.SafeStart, end = Dimens.SafeEnd, bottom = Dimens.SafeBottom + 6.dp),
         ) {
-            TimeLine(state, actions, seekRequester, markers, scrubMillis, storyboard, video.chapters)
+            TimeLine(state, actions, seekRequester, playRequester, markers, scrubMillis, storyboard, video.chapters)
             Spacer(Modifier.height(10.dp))
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically,
             ) {
-                TransportRow(state, actions)
+                TransportRow(state, actions, playRequester)
                 PreferenceRow(preferences, actions, Modifier.weight(1f, fill = false))
             }
         }
@@ -152,6 +154,7 @@ private fun TimeLine(
     state: PlayerUiState,
     actions: PlayerControlActions,
     seekRequester: FocusRequester,
+    playRequester: FocusRequester,
     markers: List<SeekMarker>,
     scrubMillis: Long?,
     storyboard: Storyboard?,
@@ -170,7 +173,10 @@ private fun TimeLine(
             durationMillis = state.durationMillis,
             onScrubBy = actions.onScrubBy,
             onTogglePlay = actions.onTogglePlay,
-            modifier = Modifier.weight(1f).focusRequester(seekRequester),
+            modifier = Modifier
+                .weight(1f)
+                .focusRequester(seekRequester)
+                .focusProperties { down = playRequester },
             markers = markers,
             scrubMillis = scrubMillis,
             storyboard = storyboard,
@@ -185,7 +191,7 @@ private fun TimeLine(
 }
 
 @Composable
-private fun TransportRow(state: PlayerUiState, actions: PlayerControlActions) {
+private fun TransportRow(state: PlayerUiState, actions: PlayerControlActions, playRequester: FocusRequester) {
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
         CircleButton(
             Icons.Rounded.SkipPrevious, stringResource(R.string.player_previous), actions.onPrevious,
@@ -197,6 +203,7 @@ private fun TransportRow(state: PlayerUiState, actions: PlayerControlActions) {
             icon = if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
             description = stringResource(if (state.isPlaying) R.string.player_pause else R.string.player_play),
             onClick = actions.onTogglePlay,
+            modifier = Modifier.focusRequester(playRequester),
             diameter = 54,
             emphasized = true,
         )
