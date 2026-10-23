@@ -116,7 +116,9 @@ private fun HomeLoaded(
     val target = focusedCard ?: hero
     var shown by remember { mutableStateOf(target) }
     LaunchedEffect(target) {
-        delay(BACKDROP_SETTLE_MILLIS)
+        // Only card focus waits, so a fast scroll through a row does not load every backdrop; the hero
+        // rotation changes title and image together.
+        if (focusedCard != null) delay(BACKDROP_SETTLE_MILLIS)
         shown = target
     }
     Box(Modifier.fillMaxSize()) {
