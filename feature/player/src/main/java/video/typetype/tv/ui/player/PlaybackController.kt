@@ -22,9 +22,8 @@ import video.typetype.tv.data.PlaybackSetup
 import video.typetype.tv.data.Video
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.net.Connectivity
-import video.typetype.tv.data.withResume
 import video.typetype.tv.playback.PlaybackProvider
-import video.typetype.tv.playback.PlaybackRequest
+import video.typetype.tv.playback.PlaybackRequests
 import video.typetype.tv.playback.PlayerHandle
 import video.typetype.tv.playback.StartupTrace
 import video.typetype.tv.ui.util.UiMessage
@@ -174,26 +173,10 @@ class PlaybackController(
         val loaded = setup
         val current = video ?: runCatching { repository.video(videoId) }.getOrNull()?.also { video = it }
         trace.step("video")
-        val start = resumeFromMs ?: resumeStart(current)
+        val start = resumeFromMs ?: PlaybackRequests.resumeStart(repository, current)
         trace.step("resume")
-        val request = PlaybackRequest(
-            startMs = start,
-            maxHeight = qualityCap ?: loaded.preferences.maxHeight,
-            subtitles = loaded.subtitles,
-            liveManifest = loaded.liveManifest,
-            audioTrackId = audioTrack,
-            audioLanguage = loaded.preferences.audioLanguage,
-            preferOriginalAudio = loaded.preferences.preferOriginalAudio,
-            stream = loaded.stream,
-            trace = trace,
-        )
+        val request = PlaybackRequests.of(loaded, start, maxHeight = qualityCap, audioTrackId = audioTrack, trace = trace)
         return provider.open(context, videoId, request).also { choices.initialize(it, loaded.preferences) }
-    }
-
-    private suspend fun resumeStart(current: Video?): Long {
-        if (current == null) return 0L
-        val position = runCatching { repository.resumePositionMs(current.id) }.getOrDefault(0L)
-        return if (current.withResume(position).resumeFraction != null) position else 0L
     }
 
     private suspend fun waitBeforeRetry(attempt: Int, startedAt: Long) {

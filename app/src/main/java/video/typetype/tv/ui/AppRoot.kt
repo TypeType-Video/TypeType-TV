@@ -65,6 +65,9 @@ import video.typetype.tv.ui.components.VideoMenu
 import video.typetype.tv.ui.components.LocalVideoMenu
 import video.typetype.tv.ui.components.PlaylistContext
 import video.typetype.tv.ui.components.VideoPreviews
+import video.typetype.tv.ui.components.PlaybackPreload
+import video.typetype.tv.ui.components.LocalPlaybackPreload
+import video.typetype.tv.playback.PlaybackPreloader
 import video.typetype.tv.ui.util.LocalPerformance
 import video.typetype.tv.data.device.Performance
 import video.typetype.tv.ui.player.MutedPreview
@@ -134,6 +137,10 @@ fun AppRoot(
     val openDetail: (Video) -> Unit = { navigator.push(Route.Detail(it.id, it)) }
     val scope = rememberCoroutineScope()
     val prewarm = remember(repository) { StreamPrewarm(repository::prewarm, scope) }
+    val playbackPreload = remember(repository, playback) {
+        val preloader = PlaybackPreloader(repository, playback, scope)
+        PlaybackPreload { preloader.preload(it) }
+    }
 
     val previews = remember(playback) {
         VideoPreviews { video, onPlaying, modifier -> MutedPreview(video, playback, onPlaying, modifier) }
@@ -171,6 +178,7 @@ fun AppRoot(
     }
     CompositionLocalProvider(
         LocalStreamPrewarm provides prewarm,
+        LocalPlaybackPreload provides playbackPreload,
         LocalVideoPreviews provides previews,
         LocalPerformance provides performance,
         LocalVideoMenu provides videoMenu,

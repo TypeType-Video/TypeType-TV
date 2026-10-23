@@ -20,6 +20,10 @@ class RoutingPlaybackProvider(
     private val standard = StandardPlaybackProvider(backend, codecs, access, online)
     private val live = HlsPlayerFactory(backend, online)
 
+    override fun preload(videoUrl: String, request: PlaybackRequest) {
+        if (request.liveManifest == null && ContentSource.of(videoUrl) == ContentSource.YouTube) youtube.preload(videoUrl, request)
+    }
+
     override suspend fun open(context: Context, videoUrl: String, request: PlaybackRequest): PlayerHandle {
         request.liveManifest?.let { return live.open(context, it, request.maxHeight) }
         return when (ContentSource.of(videoUrl)) {

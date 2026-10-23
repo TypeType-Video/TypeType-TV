@@ -53,4 +53,7 @@ data class CaptionLanguage(val tag: String, val label: String)
 
 interface PlaybackProvider {
     suspend fun open(context: Context, videoUrl: String, request: PlaybackRequest): PlayerHandle
+
+    // Prepares what open() will need for this request, in the background; providers with nothing to prepare ignore it.
+    fun preload(videoUrl: String, request: PlaybackRequest) = Unit
 }

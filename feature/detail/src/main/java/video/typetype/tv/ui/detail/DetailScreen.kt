@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentRepository
@@ -28,6 +29,7 @@ import video.typetype.tv.data.Video
 import video.typetype.tv.data.withResume
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.ui.components.Backdrop
+import video.typetype.tv.ui.components.LocalPlaybackPreload
 import video.typetype.tv.ui.util.UiMessage
 import video.typetype.tv.ui.components.ScreenFailure
 import video.typetype.tv.ui.components.ShelfRow
@@ -59,6 +61,14 @@ fun DetailScreen(
         if (!activityFromPreview) controller.load(loaded)
         related = tryLoad({}) { repository.related(videoId) }.orEmpty()
     }
+    // With Play under the focus, the player's session is prepared while the page is read; a page left at once
+    // prepares nothing.
+    val preload = LocalPlaybackPreload.current
+    LaunchedEffect(video?.id) {
+        val loaded = video ?: return@LaunchedEffect
+        delay(PRELOAD_DWELL_MILLIS)
+        preload?.preload(loaded)
+    }
     val shown = video ?: preview
     val state = when {
         video == null && failure != null -> DetailState.Failed
@@ -80,6 +90,8 @@ fun DetailScreen(
 }
 
 private enum class DetailState { Loading, Failed, Shown }
+
+private const val PRELOAD_DWELL_MILLIS = 600L
 
 @Composable
 private fun DetailContent(
