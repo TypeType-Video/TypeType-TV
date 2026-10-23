@@ -38,6 +38,7 @@ fun UpNextPanel(
     onPlayNext: () -> Unit,
     onReplay: () -> Unit,
     modifier: Modifier = Modifier,
+    liveEnded: Boolean = false,
 ) {
     val primary = remember { FocusRequester() }
     LaunchedEffect(Unit) { primary.requestFocusWhenReady() }
@@ -48,6 +49,10 @@ fun UpNextPanel(
             .background(Palette.Scrim)
             .padding(18.dp),
     ) {
+        if (liveEnded) {
+            TextLabel(stringResource(R.string.player_live_ended), Type.Title)
+            Spacer(Modifier.height(14.dp))
+        }
         if (next != null) {
             TextLabel(stringResource(R.string.player_up_next), Type.Label.copy(color = Palette.Accent))
             Spacer(Modifier.height(10.dp))
@@ -73,12 +78,14 @@ fun UpNextPanel(
                     modifier = Modifier.focusRequester(primary),
                 )
             }
-            PillButton(
-                label = stringResource(R.string.player_replay),
-                icon = Icons.Rounded.Replay,
-                onClick = onReplay,
-                modifier = if (next == null) Modifier.focusRequester(primary) else Modifier,
-            )
+            if (!liveEnded) {
+                PillButton(
+                    label = stringResource(R.string.player_replay),
+                    icon = Icons.Rounded.Replay,
+                    onClick = onReplay,
+                    modifier = if (next == null) Modifier.focusRequester(primary) else Modifier,
+                )
+            }
         }
     }
 }

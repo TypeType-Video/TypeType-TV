@@ -252,6 +252,7 @@ fun PlayerContent(
                     player.seekTo(0L)
                     player.play()
                 },
+                liveEnded = handle.isLive,
             )
         }
         if (current != null) {
