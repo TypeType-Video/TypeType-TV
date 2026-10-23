@@ -213,11 +213,12 @@ private fun TransportRow(state: PlayerUiState, actions: PlayerControlActions, pl
         // A live stream has no start worth jumping to: the window behind the edge only lasts a few hours.
         if (!state.isLive) {
             CircleButton(
-                Icons.Rounded.SkipPrevious, stringResource(R.string.player_previous), actions.onPrevious,
+                Icons.Rounded.SkipPrevious, stringResource(R.string.player_previous), actions.onPrevious, labelOnFocus = true,
             )
         }
         CircleButton(
             Icons.Rounded.Replay10, stringResource(R.string.player_rewind), { actions.onSeekBy(-SeekMath.JUMP_MILLIS) },
+            labelOnFocus = true,
         )
         CircleButton(
             icon = if (state.isPlaying) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
@@ -226,12 +227,14 @@ private fun TransportRow(state: PlayerUiState, actions: PlayerControlActions, pl
             modifier = Modifier.focusRequester(playRequester),
             diameter = 54,
             emphasized = true,
+            labelOnFocus = true,
         )
         CircleButton(
             Icons.Rounded.Forward10, stringResource(R.string.player_forward), { actions.onSeekBy(SeekMath.JUMP_MILLIS) },
+            labelOnFocus = true,
         )
         CircleButton(
-            Icons.Rounded.SkipNext, stringResource(R.string.player_next), actions.onNext,
+            Icons.Rounded.SkipNext, stringResource(R.string.player_next), actions.onNext, labelOnFocus = true,
         )
         if (state.isLive) {
             PillButton(label = stringResource(R.string.player_go_live), onClick = actions.onGoLive, emphasized = true)

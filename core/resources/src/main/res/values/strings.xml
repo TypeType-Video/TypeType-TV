@@ -38,7 +38,7 @@
     <string name="player_pause">Pause</string>
     <string name="player_rewind">Back 10 seconds</string>
     <string name="player_forward">Forward 10 seconds</string>
-    <string name="player_previous">Previous video</string>
+    <string name="player_previous">Start over</string>
     <string name="player_next">Next video</string>
     <string name="player_captions">Captions</string>
     <string name="player_captions_on_description">Captions on, %1$s</string>

@@ -1,5 +1,9 @@
 package video.typetype.tv.ui.components
 
+import androidx.compose.ui.unit.Constraints
+import androidx.compose.ui.layout.layout
+import androidx.compose.ui.semantics.clearAndSetSemantics
+import androidx.compose.foundation.background
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -105,6 +109,7 @@ fun CircleButton(
     diameter: Int = 44,
     emphasized: Boolean = false,
     onFocused: (() -> Unit)? = null,
+    labelOnFocus: Boolean = false,
 ) {
     val source = remember { MutableInteractionSource() }
     val focused by source.collectIsFocusedAsState()
@@ -122,29 +127,51 @@ fun CircleButton(
         animationSpec = tween(160),
         label = "circle-tint",
     )
-    FocusSurface(
-        onClick = onClick,
-        modifier = modifier
-            .size(diameter.dp)
-            .semantics {
-                role = Role.Button
-                contentDescription = description
-            },
-        shape = Shapes.Button,
-        focusedScale = Dimens.FocusScaleSmall,
-        interactionSource = source,
-        onFocused = onFocused,
-    ) {
-        Box(
+    Box(modifier, contentAlignment = Alignment.TopCenter) {
+        FocusSurface(
+            onClick = onClick,
             modifier = Modifier
                 .size(diameter.dp)
-                .drawBehind { drawRect(container.value) },
-            contentAlignment = Alignment.Center,
+                .semantics {
+                    role = Role.Button
+                    contentDescription = description
+                },
+            shape = Shapes.Button,
+            focusedScale = Dimens.FocusScaleSmall,
+            interactionSource = source,
+            onFocused = onFocused,
         ) {
-            Glyph(icon, { tint.value }, (diameter * 0.5f).toInt())
+            Box(
+                modifier = Modifier
+                    .size(diameter.dp)
+                    .drawBehind { drawRect(container.value) },
+                contentAlignment = Alignment.Center,
+            ) {
+                Glyph(icon, { tint.value }, (diameter * 0.5f).toInt())
+            }
+        }
+        // An icon alone does not say what it does from the sofa; the focused one names itself underneath. The
+        // label takes no room in the layout, so the row never moves.
+        if (labelOnFocus && focused) {
+            BasicText(
+                description,
+                style = Type.Meta.copy(color = Palette.TextHigh),
+                maxLines = 1,
+                modifier = Modifier
+                    .layout { measurable, _ ->
+                        val label = measurable.measure(Constraints())
+                        layout(0, 0) { label.place(-label.width / 2, (diameter + LABEL_GAP).dp.roundToPx()) }
+                    }
+                    .background(Palette.Scrim, Shapes.Chip)
+                    .padding(horizontal = 8.dp, vertical = 3.dp)
+                    .clearAndSetSemantics { },
+            )
         }
     }
 }
+
+private const val LABEL_GAP = 6
+
 
 @Composable
 fun TextLabel(

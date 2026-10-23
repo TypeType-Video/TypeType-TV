@@ -76,7 +76,7 @@ internal fun PreferenceRow(preferences: PlayerPreferences, actions: PlayerContro
             onClick = actions.onCycleSpeed,
             description = stringResource(R.string.player_speed_description, preferences.speedLabel),
         )
-        CircleButton(Icons.Rounded.MoreHoriz, stringResource(R.string.player_more_description), actions.onOpenMenu)
+        CircleButton(Icons.Rounded.MoreHoriz, stringResource(R.string.player_more_description), actions.onOpenMenu, labelOnFocus = true)
     }
 }
 
