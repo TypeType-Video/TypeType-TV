@@ -10,9 +10,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -55,9 +54,7 @@ import video.typetype.tv.ui.util.requestFocusWhenReady
 private const val CONTROLS_TIMEOUT_MILLIS = 4_500L
 private const val SCRUB_COMMIT_MILLIS = 800L
 private const val NOTICE_VISIBLE_MILLIS = 5_000L
-// Keeps the chat below the title block when no statistics sit above it.
-private val CHAT_CLEARANCE = 62.dp
-private val CHAT_BOTTOM = 150.dp
+private val CHAT_WIDTH = 320.dp
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(UnstableApi::class)
@@ -171,17 +168,37 @@ fun PlayerContent(
             .onPreviewKeyEvent { event -> session.onKey(event, upNextVisible) { next?.let(onOpenNext) } }
             .focusable(),
     ) {
-        PlayerVideoSurface(player, captionStyles)
-        AudioOnlyPoster(video, choices.audioOnly)
-        if (commentsOn && bulletComments.isNotEmpty()) {
-            DanmakuOverlay(bulletComments, state, SPEED_CHOICES[speedIndex])
-        }
         val chatAvailable = handle.isLive && video?.source == ContentSource.YouTube
-        val chatUrl = video?.id?.takeIf { commentsOn && chatAvailable && !state.isEnded }
+        val chatUrl = video?.id?.takeIf { choices.chatOn && chatAvailable && !state.isEnded }
         val heights = if (handle.isLive) state.trackHeights else handle.heights
         val opening = !state.hasFirstFrame && !state.isPlaying && !choices.audioOnly
+        // With the live chat on, the picture keeps the left part of the screen and the chat its own column,
+        // as YouTube's TV app does, so no message covers the stream.
+        Box(Modifier.fillMaxSize().padding(end = if (chatUrl != null) CHAT_WIDTH else 0.dp)) {
+            PlayerVideoSurface(player, captionStyles)
+            AudioOnlyPoster(video, choices.audioOnly)
+            if (commentsOn && bulletComments.isNotEmpty()) {
+                DanmakuOverlay(bulletComments, state, SPEED_CHOICES[speedIndex])
+            }
+            BufferingSpinner(state.isBuffering && !state.isEnded && !opening, Modifier.align(Alignment.Center))
+            Column(
+                modifier = Modifier.align(Alignment.TopEnd).padding(end = Dimens.SafeEnd, top = Dimens.SafeTop + 12.dp),
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(10.dp),
+            ) {
+                if (choices.statsOn) PlaybackStatsOverlay(player)
+                SponsorLabelBadge(sponsorLabel.takeIf { preferences.showCurrentSegment && session.panel == null })
+            }
+        }
+        if (chatUrl != null) {
+            LiveChatLayer(
+                chatUrl,
+                repository,
+                underControls = session.controlsVisible,
+                modifier = Modifier.align(Alignment.TopEnd).width(CHAT_WIDTH).fillMaxHeight(),
+            )
+        }
         OpeningPoster(video, opening)
-        BufferingSpinner(state.isBuffering && !state.isEnded && !opening, Modifier.align(Alignment.Center))
         val current = video
         if (current != null) {
             FadeVisibility(visible = session.controlsVisible) {
@@ -191,7 +208,7 @@ fun PlayerContent(
                     preferences = playerPreferences(
                         handle, heights, qualityCap, preferences.maxHeight, captionIndex, speedIndex,
                         commentsAvailable = bulletComments.isNotEmpty() || chatAvailable,
-                        commentsOn = commentsOn,
+                        commentsOn = if (chatAvailable) choices.chatOn else commentsOn,
                         commentsAreChat = chatAvailable,
                     ),
                     actions = PlayerControlActions(
@@ -205,7 +222,7 @@ fun PlayerContent(
                             session.panel = PlayerPanel.Quality
                         },
                         onCycleSpeed = { choices.speedIndex = (speedIndex + 1) % SPEED_CHOICES.size },
-                        onToggleComments = { commentsOn = !commentsOn },
+                        onToggleComments = { if (chatAvailable) choices.chatOn = !choices.chatOn else commentsOn = !commentsOn },
                         onOpenAudio = {
                             session.controlsVisible = false
                             session.panel = PlayerPanel.Audio
@@ -225,24 +242,6 @@ fun PlayerContent(
                     scrubMillis = session.scrub.target,
                     storyboard = setup.storyboard,
                 )
-            }
-        }
-        // Statistics, the sponsor label and the live chat share the right edge, stacked so none covers another.
-        Column(
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(end = Dimens.SafeEnd, top = Dimens.SafeTop + 12.dp)
-                .then(if (chatUrl != null) Modifier.fillMaxHeight().padding(bottom = CHAT_BOTTOM) else Modifier),
-            horizontalAlignment = Alignment.End,
-            verticalArrangement = Arrangement.spacedBy(10.dp),
-        ) {
-            if (choices.statsOn) PlaybackStatsOverlay(player)
-            SponsorLabelBadge(
-                sponsorLabel.takeIf { preferences.showCurrentSegment && session.panel == null },
-            )
-            if (chatUrl != null) {
-                if (!choices.statsOn) Spacer(Modifier.height(CHAT_CLEARANCE))
-                LiveChatLayer(chatUrl, repository, Modifier.weight(1f))
             }
         }
         SponsorSkipNotice(

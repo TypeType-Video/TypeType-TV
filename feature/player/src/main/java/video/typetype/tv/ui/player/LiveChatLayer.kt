@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
 import androidx.compose.runtime.Composable
@@ -44,7 +43,7 @@ import video.typetype.tv.data.LiveChatEvent
 import video.typetype.tv.data.LiveChatMessage
 import video.typetype.tv.resources.R
 import video.typetype.tv.theme.Palette
-import video.typetype.tv.theme.Shapes
+import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.TextLabel
 
@@ -70,7 +69,12 @@ class LiveChatState {
 // Messages are published to the UI a few times a second, not one by one: the server pushes YouTube's
 // batches in bursts and every recomposition is a full-window redraw on the box GPU.
 @Composable
-fun LiveChatLayer(videoUrl: String, repository: ContentRepository, modifier: Modifier = Modifier) {
+fun LiveChatLayer(
+    videoUrl: String,
+    repository: ContentRepository,
+    underControls: Boolean,
+    modifier: Modifier = Modifier,
+) {
     val state = remember(videoUrl) { LiveChatState() }
     LaunchedEffect(videoUrl) {
         val incoming = Channel<LiveChatEvent>(capacity = INCOMING_CAPACITY, onBufferOverflow = BufferOverflow.DROP_OLDEST)
@@ -82,22 +86,26 @@ fun LiveChatLayer(videoUrl: String, repository: ContentRepository, modifier: Mod
             delay(PUBLISH_MILLIS)
         }
     }
-    LiveChatPanel(state, modifier)
+    LiveChatPanel(state, underControls, modifier)
 }
 
 @Composable
-private fun LiveChatPanel(state: LiveChatState, modifier: Modifier) {
+private fun LiveChatPanel(state: LiveChatState, underControls: Boolean, modifier: Modifier) {
     val status = when {
         state.unavailable -> stringResource(R.string.live_chat_unavailable)
         state.messages.isEmpty() -> stringResource(R.string.live_chat_connecting)
         else -> null
     }
+    // An opaque column: a translucent one over moving video would be blended on every frame.
     Column(
         modifier
-            .width(PANEL_WIDTH)
-            .clip(Shapes.Panel)
-            .background(Palette.Scrim)
-            .padding(horizontal = 16.dp, vertical = 14.dp)
+            .background(Palette.SurfaceOnInk)
+            .padding(
+                start = 20.dp,
+                end = Dimens.SafeEnd,
+                top = Dimens.SafeTop + 12.dp,
+                bottom = if (underControls) CONTROLS_CLEARANCE else Dimens.SafeBottom,
+            )
             .clearAndSetSemantics { },
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -155,4 +163,5 @@ private fun chatText(message: LiveChatMessage): AnnotatedString = buildAnnotated
 private const val INCOMING_CAPACITY = 64
 private const val PUBLISH_MILLIS = 400L
 private val LINE_GAP = 8.dp
-private val PANEL_WIDTH = 380.dp
+// The control bar keeps the full width; the newest lines stay above it while it is shown.
+private val CONTROLS_CLEARANCE = 150.dp

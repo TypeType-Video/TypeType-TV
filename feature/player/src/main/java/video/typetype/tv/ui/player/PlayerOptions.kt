@@ -55,6 +55,7 @@ class PlayerChoices {
     var speedIndex by mutableIntStateOf(UNSET)
     var audioOnly by mutableStateOf(false)
     var statsOn by mutableStateOf(false)
+    var chatOn by mutableStateOf(true)
 
     fun initialize(handle: PlayerHandle, preferences: PlaybackPreferences) {
         if (captionIndex == UNSET) captionIndex = initialCaptionIndex(handle, preferences)
