@@ -49,10 +49,7 @@ import video.typetype.tv.ui.detail.VideoActivityController
 import video.typetype.tv.ui.player.danmaku.DanmakuOverlay
 import video.typetype.tv.ui.player.panel.PanelScene
 import video.typetype.tv.ui.player.panel.PlayerPanelHost
-import video.typetype.tv.ui.util.requestFocusWhenReady
 
-private const val CONTROLS_TIMEOUT_MILLIS = 4_500L
-private const val SCRUB_COMMIT_MILLIS = 800L
 private const val NOTICE_VISIBLE_MILLIS = 5_000L
 private val CHAT_WIDTH = 320.dp
 
@@ -128,28 +125,7 @@ fun PlayerContent(
         derivedStateOf { SponsorLabels.current(state.positionMillis, setup.sponsorSegments) }
     }
 
-    LaunchedEffect(session.interaction, state.isPlaying, session.controlsVisible, session.relatedOpen) {
-        if (state.isPlaying && session.controlsVisible && !session.relatedOpen) {
-            delay(CONTROLS_TIMEOUT_MILLIS)
-            session.controlsVisible = false
-        }
-    }
-    LaunchedEffect(session.controlsVisible, state.isEnded, session.panel, session.relatedOpen) {
-        if (!session.controlsVisible) session.relatedOpen = false
-        when {
-            session.panel != null || session.relatedOpen -> Unit
-            state.isEnded -> Unit
-            session.controlsVisible && session.controlsFromBelow -> play.requestFocusWhenReady()
-            session.controlsVisible -> seek.requestFocusWhenReady()
-            else -> root.requestFocusWhenReady()
-        }
-    }
-    LaunchedEffect(session.scrub.target) {
-        if (session.scrub.active) {
-            delay(SCRUB_COMMIT_MILLIS)
-            session.commitScrub()
-        }
-    }
+    ControlsTimingEffects(session, state, root = root, seek = seek, play = play)
     val noticeVisible = session.notice.segment != null && !session.controlsVisible && session.panel == null
     LaunchedEffect(noticeVisible) {
         if (noticeVisible) {
