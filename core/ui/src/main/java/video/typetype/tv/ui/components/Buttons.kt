@@ -48,6 +48,7 @@ fun PillButton(
     description: String? = null,
     maxLabelWidth: Dp = Dp.Unspecified,
     compact: Boolean = false,
+    leading: (@Composable () -> Unit)? = null,
 ) {
     val source = remember { MutableInteractionSource() }
     val focused by source.collectIsFocusedAsState()
@@ -87,6 +88,8 @@ fun PillButton(
         ) {
             if (icon != null) {
                 Glyph(icon, { content.value }, 20)
+            } else {
+                leading?.invoke()
             }
             BasicText(
                 text = label,

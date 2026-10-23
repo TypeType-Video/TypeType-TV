@@ -3,7 +3,6 @@ package video.typetype.tv.ui.search
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Public
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -15,6 +14,7 @@ import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentSource
 import video.typetype.tv.data.SearchKind
 import video.typetype.tv.ui.components.PillButton
+import video.typetype.tv.ui.components.ServiceMark
 
 fun nextSource(current: ContentSource): ContentSource {
     val all = ContentSource.entries
@@ -35,9 +35,9 @@ fun SearchScope(
     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
         PillButton(
             label = sourceName,
-            icon = Icons.Rounded.Public,
             onClick = onCycleSource,
             modifier = Modifier.semantics { contentDescription = sourceDescription },
+            leading = { ServiceMark(source, 20) },
         )
         if (SearchKind.available(source).size > 1) {
             PillButton(

@@ -1,13 +1,14 @@
 package video.typetype.tv.data
 
+import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
 import okhttp3.HttpUrl.Companion.toHttpUrlOrNull
 import video.typetype.tv.resources.R
 
-enum class ContentSource(val serviceId: Int, @StringRes val labelRes: Int, val badge: String?) {
-    YouTube(0, R.string.source_youtube, null),
-    BiliBili(5, R.string.source_bilibili, "Bilibili"),
-    NicoNico(6, R.string.source_niconico, "NicoNico"),
+enum class ContentSource(val serviceId: Int, @StringRes val labelRes: Int, @DrawableRes val iconRes: Int) {
+    YouTube(0, R.string.source_youtube, R.drawable.ic_service_youtube),
+    BiliBili(5, R.string.source_bilibili, R.drawable.ic_service_bilibili),
+    NicoNico(6, R.string.source_niconico, R.drawable.ic_service_niconico),
     ;
 
     companion object {

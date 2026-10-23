@@ -45,6 +45,7 @@ import video.typetype.tv.ui.components.LiveBadge
 import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.ProgressLine
 import video.typetype.tv.ui.components.QualityBadge
+import video.typetype.tv.ui.components.ServiceBadge
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.util.knownDuration
 import video.typetype.tv.ui.util.formatTimeLeft
@@ -78,6 +79,7 @@ fun DetailHeader(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(10.dp),
         ) {
+            video.source?.let { ServiceBadge(it) }
             if (video.isLive) LiveBadge(stringResource(R.string.badge_live))
             if (video.quality.isNotBlank()) QualityBadge(video.quality)
             TextLabel(

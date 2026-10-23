@@ -26,6 +26,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
 import video.typetype.tv.resources.R
+import video.typetype.tv.data.ContentSource
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Type
@@ -101,8 +102,9 @@ fun VideoThumbnail(
         if (video.isShort) {
             LiveBadge(stringResource(R.string.badge_short), Modifier.align(Alignment.TopStart).padding(8.dp))
         }
-        video.source?.badge?.let { label ->
-            QualityBadge(label, Modifier.align(Alignment.TopEnd).padding(8.dp))
+        // Most videos come from YouTube: only the other services are named on the card.
+        video.source?.takeIf { it != ContentSource.YouTube }?.let { source ->
+            ServiceBadge(source, Modifier.align(Alignment.TopEnd).padding(8.dp))
         }
     }
 }
