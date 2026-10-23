@@ -35,6 +35,7 @@ import video.typetype.tv.data.dto.BlockVideoRequest
 import video.typetype.tv.data.dto.StreamDto
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.net.ServerWatch
+import video.typetype.tv.data.session.StreamAccess
 
 class RemoteContentRepository(
     private val api: TypeTypeApi,
@@ -44,13 +45,14 @@ class RemoteContentRepository(
     private val texts: TextProvider,
     private val presence: RemotePresence,
     private val watch: ServerWatch,
+    private val userSettings: RemoteUserSettings,
+    access: StreamAccess,
     private val clock: () -> Long = System::currentTimeMillis,
 ) : ContentRepository {
-    private val streams = StreamStore(api::streamFor, clock)
+    private val streams = StreamStore({ url -> access.anonymousFirst { api.streamFor(url, it) } }, clock)
     private val liveChat = LiveChatSource(api.liveChat)
     private val homeCache = TtlCache<String, HomeContent>(HOME_TTL_MILLIS, 1, clock)
     private val firstComments = TtlCache<String, CommentsPage>(STREAM_TTL_MILLIS, COMMENT_ENTRIES, clock)
-    private val userSettings = RemoteUserSettings(api, clock)
     private val filter = ContentFilter(api, userSettings, clock)
     private val branding = DeArrowBranding(api, apiBase, userSettings, clock)
     private val homeLoader = HomeLoader(api, filter, branding, texts, clock)

@@ -10,12 +10,13 @@ import video.typetype.tv.data.net.ApiClient
 class SabrApi(private val client: ApiClient) {
     val baseUrl get() = client.baseUrl
 
-    suspend fun createSession(videoId: String, request: SabrSessionRequest): SabrSessionDto =
+    suspend fun createSession(videoId: String, request: SabrSessionRequest, anonymous: Boolean = false): SabrSessionDto =
         client.postAllowing(
             "sabr/playback/$videoId",
             client.json.encodeToString(request),
             SabrSessionDto.serializer(),
             READY_OR_PENDING,
+            anonymous,
         ).second
 
     suspend fun position(sessionId: String, request: SabrWindowRequest) {

@@ -15,16 +15,18 @@ import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.net.ApiFailure
 import video.typetype.tv.data.net.FailureCategory
 import video.typetype.tv.data.session.Backend
+import video.typetype.tv.data.session.StreamAccess
 
 @UnstableApi
 class StandardPlaybackProvider(
     private val backend: Backend,
     private val codecs: CodecSupport,
+    private val access: StreamAccess,
     private val online: () -> Boolean = { true },
 ) {
     suspend fun open(context: Context, videoUrl: String, request: PlaybackRequest): PlayerHandle {
         val source = ContentSource.of(videoUrl) ?: failure("unsupported_source", "This video source is not supported")
-        val stream = backend.api.streamFor(videoUrl)
+        val stream = access.anonymousFirst { backend.api.streamFor(videoUrl, it) }
         val selection = StandardFormatSelector.select(stream, request.maxHeight ?: Int.MAX_VALUE, codecs)
             ?: failure("playback_unavailable", "No compatible video format")
         val factory = OkHttpDataSource.Factory(backend.mediaHttp)

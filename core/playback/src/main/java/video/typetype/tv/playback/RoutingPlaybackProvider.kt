@@ -7,15 +7,17 @@ import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.net.ApiFailure
 import video.typetype.tv.data.net.FailureCategory
 import video.typetype.tv.data.session.Backend
+import video.typetype.tv.data.session.StreamAccess
 
 @UnstableApi
 class RoutingPlaybackProvider(
     backend: Backend,
     codecs: CodecSupport,
+    access: StreamAccess,
     online: () -> Boolean = { true },
 ) : PlaybackProvider {
-    private val youtube = SabrPlaybackProvider(backend, codecs, online)
-    private val standard = StandardPlaybackProvider(backend, codecs, online)
+    private val youtube = SabrPlaybackProvider(backend, codecs, access, online)
+    private val standard = StandardPlaybackProvider(backend, codecs, access, online)
     private val live = HlsPlayerFactory(backend, online)
 
     override suspend fun open(context: Context, videoUrl: String, request: PlaybackRequest): PlayerHandle {

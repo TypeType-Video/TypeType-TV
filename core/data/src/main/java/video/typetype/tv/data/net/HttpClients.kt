@@ -30,12 +30,16 @@ class AccessTokenInterceptor(
     override fun intercept(chain: Interceptor.Chain): Response {
         val request = chain.request()
         val token = tokens.current()
-        if (token == null || request.url.host != host || request.header("Authorization") != null) {
+        val anonymous = request.tag(Anonymous::class.java) != null
+        if (token == null || anonymous || request.url.host != host || request.header("Authorization") != null) {
             return chain.proceed(request)
         }
         return chain.proceed(request.newBuilder().header("Authorization", "Bearer $token").build())
     }
 }
+
+// Marks a request sent without the account, so the server can answer it from its shared cache.
+object Anonymous
 
 class RefreshAuthenticator(private val refresher: TokenRefresher) : Authenticator {
     override fun authenticate(route: Route?, response: Response): Request? {

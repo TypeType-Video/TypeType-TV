@@ -142,10 +142,10 @@ class TypeTypeApi(private val client: ApiClient) {
     suspend fun bulletComments(videoUrl: String): BulletCommentsDto =
         client.get("bullet-comments", BulletCommentsDto.serializer(), mapOf("url" to videoUrl))
 
-    suspend fun streamBootstrap(videoUrl: String): StreamDto =
-        client.get("streams/youtube/sabr/bootstrap", StreamDto.serializer(), mapOf("url" to videoUrl))
+    suspend fun streamBootstrap(videoUrl: String, anonymous: Boolean = false): StreamDto =
+        client.get("streams/youtube/sabr/bootstrap", StreamDto.serializer(), mapOf("url" to videoUrl), anonymous)
 
-    suspend fun streamFor(videoUrl: String): StreamDto {
+    suspend fun streamFor(videoUrl: String, anonymous: Boolean = false): StreamDto {
         val endpoint = when (ContentSource.of(videoUrl)) {
             ContentSource.YouTube -> "streams/youtube/sabr"
             ContentSource.BiliBili -> "streams/bilibili"
@@ -154,6 +154,6 @@ class TypeTypeApi(private val client: ApiClient) {
                 ApiFailure(FailureCategory.Contract, null, "unsupported_source", "This video source is not supported", null),
             )
         }
-        return client.get(endpoint, StreamDto.serializer(), mapOf("url" to videoUrl))
+        return client.get(endpoint, StreamDto.serializer(), mapOf("url" to videoUrl), anonymous)
     }
 }

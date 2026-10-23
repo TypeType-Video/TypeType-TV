@@ -15,11 +15,13 @@ import video.typetype.tv.data.net.ApiFailure
 import video.typetype.tv.data.net.FailureCategory
 import video.typetype.tv.data.net.HttpClients
 import video.typetype.tv.data.session.Backend
+import video.typetype.tv.data.session.StreamAccess
 
 @UnstableApi
 class SabrPlaybackProvider(
     private val backend: Backend,
     private val codecs: CodecSupport,
+    private val access: StreamAccess,
     private val online: () -> Boolean = { true },
 ) : PlaybackProvider {
 
@@ -27,17 +29,16 @@ class SabrPlaybackProvider(
         val startPositionMs = request.startMs
         val videoId = VideoIds.parse(videoUrl) ?: failure("The video address is not supported")
         val trace = request.trace
-        val stream = request.stream?.takeIf(FormatSelector::hasSabrFormats) ?: backend.api.streamBootstrap(videoUrl)
+        val stream = request.stream?.takeIf(FormatSelector::hasSabrFormats)
+            ?: access.anonymousFirst { backend.api.streamBootstrap(videoUrl, it) }
         trace?.step("bootstrap")
         val limit = request.maxHeight ?: Int.MAX_VALUE
         val tracks = FormatSelector.audioTracks(stream)
         val chosenTrack = request.audioTrackId?.takeIf { id -> tracks.any { it.id == id } }
             ?: FormatSelector.defaultAudioTrack(tracks, request.audioLanguage, request.preferOriginalAudio)
         val tuple = FormatSelector.select(stream, limit, codecs, chosenTrack) ?: failure("No compatible video format")
-        val created = backend.sabr.createSession(
-            videoId,
-            SabrSessionRequest(tuple.videoItag, tuple.audioItag, tuple.audioTrackId, startPositionMs, startPositionMs),
-        )
+        val sessionRequest = SabrSessionRequest(tuple.videoItag, tuple.audioItag, tuple.audioTrackId, startPositionMs, startPositionMs)
+        val created = access.anonymousFirst { backend.sabr.createSession(videoId, sessionRequest, it) }
         trace?.step("session")
         val session = SabrSession(videoId, tuple, created)
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)

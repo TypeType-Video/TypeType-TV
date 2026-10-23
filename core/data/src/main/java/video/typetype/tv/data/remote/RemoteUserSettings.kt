@@ -117,6 +117,8 @@ class RemoteUserSettings(
 
     suspend fun historyDisabled(): Boolean = flag(load(), "disableWatchHistory") ?: false
 
+    suspend fun allowListOnly(): Boolean = load()?.let { text(it, "accessMode") } == ALLOW_LIST
+
     suspend fun playbackPreferences(): PlaybackPreferences {
         val settings = load()
         return PlaybackPreferences(
@@ -153,5 +155,6 @@ class RemoteUserSettings(
         const val TTL_MILLIS = 60_000L
         const val AUTO_SKIP = "auto_skip"
         const val ORIGINAL = "original"
+        const val ALLOW_LIST = "allow_list"
     }
 }

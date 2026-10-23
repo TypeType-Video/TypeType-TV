@@ -13,9 +13,11 @@ import video.typetype.tv.data.remote.AndroidTextProvider
 import video.typetype.tv.data.remote.RemoteContentRepository
 import video.typetype.tv.data.remote.RemotePresence
 import video.typetype.tv.data.remote.RemoteSettings
+import video.typetype.tv.data.remote.RemoteUserSettings
 import video.typetype.tv.data.session.Backend
 import video.typetype.tv.data.session.DeviceProfileStore
 import video.typetype.tv.data.session.SessionManager
+import video.typetype.tv.data.session.StreamAccess
 import video.typetype.tv.playback.CodecSupport
 import video.typetype.tv.playback.DeviceCodecSupport
 import video.typetype.tv.playback.PlaybackProvider
@@ -37,7 +39,19 @@ class AppContainer(context: Context) {
         Thread({ secrets.warmUp() }, "secrets-warmup").start()
     }
 
-    fun repository(backend: Backend, profile: UserProfileDto): ContentRepository = RemoteContentRepository(
+    // One account's view of the server: the repository and the players share its settings and how streams are asked.
+    fun services(backend: Backend, profile: UserProfileDto): SignedInServices {
+        val userSettings = RemoteUserSettings(backend.api)
+        val access = StreamAccess(backend.instance.guestAllowed, userSettings::allowListOnly)
+        return SignedInServices(repository(backend, profile, userSettings, access), playback(backend, access))
+    }
+
+    private fun repository(
+        backend: Backend,
+        profile: UserProfileDto,
+        userSettings: RemoteUserSettings,
+        access: StreamAccess,
+    ): ContentRepository = RemoteContentRepository(
         api = backend.api,
         library = backend.library,
         apiBase = backend.apiBase,
@@ -56,15 +70,20 @@ class AppContainer(context: Context) {
             enabled = !profile.id.startsWith("guest"),
         ).also { it.report(PresenceReport.Online) },
         watch = backend.watch,
+        userSettings = userSettings,
+        access = access,
     )
 
     private val codecs: CodecSupport by lazy { deviceCodecs() }
 
     @OptIn(UnstableApi::class)
     @androidx.annotation.OptIn(UnstableApi::class)
-    fun playback(backend: Backend): PlaybackProvider = RoutingPlaybackProvider(backend, codecs) { connectivity.online.value }
+    private fun playback(backend: Backend, access: StreamAccess): PlaybackProvider =
+        RoutingPlaybackProvider(backend, codecs, access) { connectivity.online.value }
 
     @OptIn(UnstableApi::class)
     @androidx.annotation.OptIn(UnstableApi::class)
     private fun deviceCodecs(): CodecSupport = DeviceCodecSupport(appContext)
 }
+
+class SignedInServices(val repository: ContentRepository, val playback: PlaybackProvider)

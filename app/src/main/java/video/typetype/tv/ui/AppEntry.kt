@@ -94,10 +94,9 @@ private fun AppState(container: AppContainer, state: SessionState, scope: Corout
             ReconnectScreen(session, current.backend.apiBase.host, current.failedAttempts, onChangeInstance)
         is SessionState.SignedOut -> LoginScreen(current.backend, session, current.notice, onChangeInstance)
         is SessionState.SignedIn -> {
-            val repository = remember(current.backend, current.profile.id) {
-                container.repository(current.backend, current.profile)
-            }
-            val playback = remember(current.backend) { container.playback(current.backend) }
+            val services = remember(current.backend, current.profile.id) { container.services(current.backend, current.profile) }
+            val repository = services.repository
+            val playback = services.playback
             val guest = current.profile.id.startsWith("guest")
             var accountName by remember(current.profile.id) { mutableStateOf(current.profile.publicUsername) }
             LaunchedEffect(current.profile.id) {

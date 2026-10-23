@@ -45,8 +45,9 @@ class ApiClient(
         path: String,
         strategy: DeserializationStrategy<T>,
         query: Map<String, String?> = emptyMap(),
+        anonymous: Boolean = false,
     ): T = withRetry {
-        checked(execute(Request.Builder().url(url(path, query)).get().build())).decode(json, strategy)
+        checked(execute(jsonRequest("GET", url(path, query), null, anonymous))).decode(json, strategy)
     }
 
     suspend fun <T> post(
@@ -61,8 +62,9 @@ class ApiClient(
         body: String?,
         strategy: DeserializationStrategy<T>,
         accepted: Set<Int>,
+        anonymous: Boolean = false,
     ): Pair<Int, T> {
-        val raw = execute(jsonRequest("POST", url(path), body))
+        val raw = execute(jsonRequest("POST", url(path), body, anonymous))
         if (raw.status !in accepted) throw ApiException(raw.toFailure(json))
         return raw.status to raw.decode(json, strategy)
     }
@@ -116,13 +118,15 @@ class ApiClient(
         return raw
     }
 
-    private fun jsonRequest(method: String, url: HttpUrl, body: String?): Request {
+    private fun jsonRequest(method: String, url: HttpUrl, body: String?, anonymous: Boolean = false): Request {
         val requestBody: RequestBody? = when {
             body != null -> body.toRequestBody(JSON_TYPE)
             method == "GET" || method == "DELETE" -> null
             else -> "".toRequestBody(JSON_TYPE)
         }
-        return Request.Builder().url(url).method(method, requestBody).build()
+        val request = Request.Builder().url(url).method(method, requestBody)
+        if (anonymous) request.tag(Anonymous::class.java, Anonymous)
+        return request.build()
     }
 
     companion object {
