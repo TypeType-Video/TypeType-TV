@@ -26,6 +26,12 @@ import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Download
 import androidx.compose.runtime.Composable
+import video.typetype.tv.ui.components.PlaylistContext
+import video.typetype.tv.ui.components.LocalPlaylistContext
+import video.typetype.tv.data.LibrarySection
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -69,6 +75,9 @@ fun LibraryScreen(
     var tabsFailure by remember { mutableStateOf<UiMessage?>(null) }
     var tabsAttempt by remember { mutableIntStateOf(0) }
     var itemsFailure by remember { mutableStateOf<UiMessage?>(null) }
+    // After a video leaves the open playlist, the focus goes to the one that took its place.
+    var focusAfterRemoval by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
     var itemsAttempt by remember { mutableIntStateOf(0) }
     LaunchedEffect(tabsAttempt) {
         tabsFailure = null
@@ -83,6 +92,17 @@ fun LibraryScreen(
     }
     LaunchedEffect(Unit) {
         if (restoreId == null) selectedRequester.requestFocusWhenReady()
+    }
+    val section = session.selected
+    val playlist = (section as? LibrarySection.Playlist)?.let { open ->
+        PlaylistContext(open.id, open.name) { removed ->
+            val current = items.orEmpty()
+            val index = current.indexOfFirst { it.id == removed.id }
+            val remaining = current.filterNot { it.id == removed.id }
+            focusAfterRemoval = remaining.getOrNull(index.coerceAtMost(remaining.lastIndex))?.id
+            items = remaining
+            if (remaining.isEmpty()) scope.launch { selectedRequester.requestFocusWhenReady() }
+        }
     }
     LaunchedEffect(session.selected, itemsAttempt) {
         items = null
@@ -117,16 +137,21 @@ fun LibraryScreen(
                     loaded == null && itemsFailure != null -> ScreenFailure(itemsFailure, onRetry = { itemsAttempt++ })
                     loaded == null -> LibraryGridSkeleton()
                     loaded.isEmpty() -> EmptyLibrary()
-                    else -> LibraryGrid(
-                        videos = loaded,
-                        onOpen = {
-                            session.restoreVideoId = it.id
-                            onOpen(it)
-                        },
-                        restoreId = restoreId?.takeIf { pendingRestore },
-                        fallback = selectedRequester,
-                        onRestored = { pendingRestore = false },
-                    )
+                    else -> CompositionLocalProvider(LocalPlaylistContext provides playlist) {
+                        LibraryGrid(
+                            videos = loaded,
+                            onOpen = {
+                                session.restoreVideoId = it.id
+                                onOpen(it)
+                            },
+                            restoreId = focusAfterRemoval ?: restoreId?.takeIf { pendingRestore },
+                            fallback = selectedRequester,
+                            onRestored = {
+                                pendingRestore = false
+                                focusAfterRemoval = null
+                            },
+                        )
+                    }
                 }
             }
         }

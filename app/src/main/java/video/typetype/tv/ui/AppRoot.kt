@@ -63,6 +63,7 @@ import video.typetype.tv.ui.detail.VideoMenuPanel
 import video.typetype.tv.ui.detail.VideoMenuActions
 import video.typetype.tv.ui.components.VideoMenu
 import video.typetype.tv.ui.components.LocalVideoMenu
+import video.typetype.tv.ui.components.PlaylistContext
 import video.typetype.tv.ui.components.VideoPreviews
 import video.typetype.tv.ui.player.MutedPreview
 import video.typetype.tv.ui.components.StreamPrewarm
@@ -146,8 +147,8 @@ fun AppRoot(
     }
     val videoMenu = remember(navigator) {
         object : VideoMenu {
-            override fun open(video: Video, onClosed: () -> Unit) {
-                menuRequest = MenuRequest(video, onClosed)
+            override fun open(video: Video, playlist: PlaylistContext?, onClosed: () -> Unit) {
+                menuRequest = MenuRequest(video, playlist, onClosed)
             }
 
             override fun play(video: Video) = navigator.push(Route.Player(video.id, preview = video))
@@ -266,8 +267,9 @@ fun AppRoot(
                     video = request.video,
                     repository = repository,
                     actions = menuActions,
-                    onClose = {
-                        menuClosed = request
+                    playlist = request.playlist,
+                    onClose = { returnFocus ->
+                        if (returnFocus) menuClosed = request
                         menuRequest = null
                     },
                 )
@@ -276,7 +278,7 @@ fun AppRoot(
     }
 }
 
-private class MenuRequest(val video: Video, val onClosed: () -> Unit)
+private class MenuRequest(val video: Video, val playlist: PlaylistContext?, val onClosed: () -> Unit)
 
 private val PAGE_DOWN_KEYS = setOf(AndroidKeyEvent.KEYCODE_CHANNEL_DOWN, AndroidKeyEvent.KEYCODE_PAGE_DOWN)
 private val PAGE_KEYS = PAGE_DOWN_KEYS + setOf(AndroidKeyEvent.KEYCODE_CHANNEL_UP, AndroidKeyEvent.KEYCODE_PAGE_UP)

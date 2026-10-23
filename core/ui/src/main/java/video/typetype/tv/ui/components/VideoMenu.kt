@@ -2,6 +2,7 @@ package video.typetype.tv.ui.components
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
@@ -21,12 +22,17 @@ import android.view.KeyEvent as AndroidKeyEvent
 // and play it at once (the Play/Pause key). The app provides it, so every screen with cards behaves the same;
 // onClosed gives the focus back to the card that opened the menu.
 interface VideoMenu {
-    fun open(video: Video, onClosed: () -> Unit)
+    fun open(video: Video, playlist: PlaylistContext?, onClosed: () -> Unit)
 
     fun play(video: Video)
 }
 
 val LocalVideoMenu = staticCompositionLocalOf<VideoMenu?> { null }
+
+// One of the viewer's own playlists, open on screen: its cards offer to remove the video from it.
+class PlaylistContext(val id: String, val name: String, val onRemoved: (Video) -> Unit)
+
+val LocalPlaylistContext = compositionLocalOf<PlaylistContext?> { null }
 
 // What a video card needs: the long press, the remote's Menu and Play/Pause keys, the focus to return to, and the
 // same menu entry for TalkBack.
@@ -64,12 +70,13 @@ class VideoMenuTarget internal constructor(
 @Composable
 fun rememberVideoMenuTarget(video: Video): VideoMenuTarget {
     val menu = LocalVideoMenu.current
+    val playlist = LocalPlaylistContext.current
     val focus = remember { FocusRequester() }
     val label = stringResource(R.string.video_menu_open)
-    return remember(menu, video, label) {
+    return remember(menu, playlist, video, label) {
         VideoMenuTarget(
             focus = focus,
-            open = menu?.let { { it.open(video) { focus.requestFocus() } } },
+            open = menu?.let { { it.open(video, playlist) { focus.requestFocus() } } },
             play = menu?.let { { it.play(video) } },
             label = label,
         )

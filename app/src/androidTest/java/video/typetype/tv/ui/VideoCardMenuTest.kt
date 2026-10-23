@@ -9,6 +9,7 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performKeyInput
 import androidx.compose.ui.test.pressKey
 import androidx.compose.ui.test.requestFocus
@@ -20,6 +21,7 @@ import video.typetype.tv.data.MockCatalog
 import video.typetype.tv.data.Video
 import video.typetype.tv.resources.R
 import video.typetype.tv.ui.components.LocalVideoMenu
+import video.typetype.tv.ui.components.PlaylistContext
 import video.typetype.tv.ui.components.VideoCard
 import video.typetype.tv.ui.components.VideoMenu
 import video.typetype.tv.data.MockContentRepository
@@ -49,7 +51,7 @@ class VideoCardMenuTest {
     private var playedFromCard = mutableListOf<Video>()
 
     private fun recordingMenu(onOpen: () -> Unit = {}) = object : VideoMenu {
-        override fun open(video: Video, onClosed: () -> Unit) {
+        override fun open(video: Video, playlist: PlaylistContext?, onClosed: () -> Unit) {
             menus += video
             onOpen()
         }
@@ -138,5 +140,26 @@ class VideoCardMenuTest {
         rule.waitForIdle()
         assertEquals(listOf(video), playedFromCard)
         assertEquals(0, opened)
+    }
+
+    @Test
+    fun aPlaylistCardOffersToRemoveTheVideoFromIt() {
+        val removed = mutableListOf<Video>()
+        val closes = mutableListOf<Boolean>()
+        rule.setContent {
+            VideoMenuPanel(
+                video = video,
+                repository = MockContentRepository(latencyMillis = 0),
+                actions = VideoMenuActions(onPlay = {}, onOpenChannel = {}),
+                onClose = { closes += it },
+                playlist = PlaylistContext("mock-1", "memes") { removed += it },
+            )
+        }
+        val label = InstrumentationRegistry.getInstrumentation().targetContext
+            .getString(R.string.video_menu_remove_from_playlist, "memes")
+        rule.onNodeWithContentDescription(label).performClick()
+        rule.waitUntil(5_000) { removed.isNotEmpty() }
+        assertEquals(listOf(video), removed)
+        assertEquals(listOf(false), closes)
     }
 }

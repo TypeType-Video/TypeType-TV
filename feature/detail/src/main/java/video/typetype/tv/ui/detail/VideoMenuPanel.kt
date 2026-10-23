@@ -30,6 +30,7 @@ import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.PersonOff
 import androidx.compose.material.icons.rounded.PlayArrow
 import androidx.compose.material.icons.rounded.PlaylistAdd
+import androidx.compose.material.icons.rounded.PlaylistRemove
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -59,6 +60,8 @@ import androidx.compose.ui.semantics.disabled
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
+import java.io.IOException
 import video.typetype.tv.data.Video
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.withResume
@@ -68,6 +71,7 @@ import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.FocusSurface
+import video.typetype.tv.ui.components.PlaylistContext
 import video.typetype.tv.ui.components.Glyph
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.components.VideoThumbnail
@@ -82,7 +86,13 @@ private val Enter = CubicBezierEasing(0.2f, 0f, 0f, 1f)
 // leaving the row. The focus stays in the panel until Back closes it.
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
-fun VideoMenuPanel(video: Video, repository: ContentRepository, actions: VideoMenuActions, onClose: () -> Unit) {
+fun VideoMenuPanel(
+    video: Video,
+    repository: ContentRepository,
+    actions: VideoMenuActions,
+    onClose: (returnFocus: Boolean) -> Unit,
+    playlist: PlaylistContext? = null,
+) {
     val scope = rememberCoroutineScope()
     val controller = remember(video.id) { VideoActivityController(repository, scope) }
     val blocking = remember(video.id) { BlockingController(repository, scope) }
@@ -103,7 +113,8 @@ fun VideoMenuPanel(video: Video, repository: ContentRepository, actions: VideoMe
         slide.animateTo(0f, tween(260, easing = Enter))
     }
     LaunchedEffect(pickerOpen) { if (!pickerOpen && pickerUsed) playlists.requestFocusWhenReady() }
-    BackHandler(enabled = !pickerOpen, onBack = onClose)
+    BackHandler(enabled = !pickerOpen) { onClose(true) }
+    var removeFailed by remember { mutableStateOf(false) }
     val activity = controller.activity
     Box(
         Modifier
@@ -150,6 +161,21 @@ fun VideoMenuPanel(video: Video, repository: ContentRepository, actions: VideoMe
                 pickerUsed = true
                 pickerOpen = true
             }
+            if (playlist != null) {
+                // The card is gone once removed: the screen moves the focus, so the menu closes without returning it.
+                MenuRow(Icons.Rounded.PlaylistRemove, stringResource(R.string.video_menu_remove_from_playlist, playlist.name)) {
+                    removeFailed = false
+                    scope.launch {
+                        try {
+                            repository.setInPlaylist(video, playlist.id, false)
+                            playlist.onRemoved(video)
+                            onClose(false)
+                        } catch (failure: IOException) {
+                            removeFailed = true
+                        }
+                    }
+                }
+            }
             MenuRow(
                 icon = if (activity.watchLater) Icons.Rounded.BookmarkAdded else Icons.Rounded.BookmarkAdd,
                 label = stringResource(
@@ -181,7 +207,7 @@ fun VideoMenuPanel(video: Video, repository: ContentRepository, actions: VideoMe
                     enabled = blocking.loaded,
                 ) { blocking.setChannelBlocked(video, !blocking.channelBlocked) }
             }
-            if (controller.failed || blocking.failed) {
+            if (controller.failed || blocking.failed || removeFailed) {
                 TextLabel(stringResource(R.string.detail_action_failed), Type.Meta.copy(color = Palette.Accent), maxLines = 2)
             }
         }

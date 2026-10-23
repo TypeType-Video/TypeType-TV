@@ -22,6 +22,7 @@
     <string name="detail_play">Play</string>
     <string name="video_menu_open">Video options</string>
     <string name="video_menu_channel">Open channel</string>
+    <string name="video_menu_remove_from_playlist">Remove from %1$s</string>
     <string name="video_menu_watch_later_add">Add to Watch later</string>
     <string name="video_menu_watch_later_remove">Remove from Watch later</string>
     <string name="video_menu_favorite_add">Add to Favorites</string>
