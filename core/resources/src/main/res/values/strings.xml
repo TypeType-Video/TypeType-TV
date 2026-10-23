@@ -171,6 +171,12 @@
     <string name="shelf_trending_bilibili">Trending on Bilibili</string>
     <string name="shelf_trending_niconico">Trending on NicoNico</string>
     <string name="player_comments">Danmaku</string>
+    <string name="player_chat">Chat</string>
+    <string name="player_chat_on_description">Live chat shown</string>
+    <string name="player_chat_off_description">Live chat hidden</string>
+    <string name="live_chat_title">Live chat</string>
+    <string name="live_chat_connecting">Connecting to the live chat</string>
+    <string name="live_chat_unavailable">Live chat is not available for this stream</string>
     <string name="search_source">Source: %1$s</string>
     <string name="detail_channel">Channel</string>
     <string name="comment_likes">%1$s likes</string>

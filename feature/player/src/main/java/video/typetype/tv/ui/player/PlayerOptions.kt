@@ -29,6 +29,7 @@ internal fun playerPreferences(
     speedIndex: Int,
     commentsAvailable: Boolean,
     commentsOn: Boolean,
+    commentsAreChat: Boolean = false,
 ): PlayerPreferences {
     val effective = qualityCap ?: defaultCap
     val speed = SPEED_CHOICES[speedIndex]
@@ -41,6 +42,7 @@ internal fun playerPreferences(
         speedLabel = "${speed}x".replace(".0x", "x"),
         commentsAvailable = commentsAvailable,
         commentsOn = commentsOn,
+        commentsAreChat = commentsAreChat,
         audioLabel = audioLabel(handle.audioTracks, handle.audioTrackId),
     )
 }

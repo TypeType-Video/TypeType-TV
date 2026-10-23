@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -39,6 +40,7 @@ import video.typetype.tv.data.PlaybackSetup
 import video.typetype.tv.data.Video
 import video.typetype.tv.playback.PlayerHandle
 import video.typetype.tv.theme.Dimens
+import video.typetype.tv.data.ContentSource
 import video.typetype.tv.ui.components.FadeVisibility
 import video.typetype.tv.ui.detail.CommentsState
 import video.typetype.tv.ui.detail.VideoActivityController
@@ -50,6 +52,8 @@ import video.typetype.tv.ui.util.requestFocusWhenReady
 private const val CONTROLS_TIMEOUT_MILLIS = 4_500L
 private const val SCRUB_COMMIT_MILLIS = 800L
 private const val NOTICE_VISIBLE_MILLIS = 5_000L
+private val CHAT_TOP = 112.dp
+private val CHAT_BOTTOM = 150.dp
 
 @androidx.annotation.OptIn(UnstableApi::class)
 @OptIn(UnstableApi::class)
@@ -167,6 +171,14 @@ fun PlayerContent(
         if (commentsOn && bulletComments.isNotEmpty()) {
             DanmakuOverlay(bulletComments, state, SPEED_CHOICES[speedIndex])
         }
+        val chatAvailable = handle.isLive && video?.source == ContentSource.YouTube
+        if (commentsOn && chatAvailable && video != null) {
+            LiveChatLayer(
+                video.id,
+                repository,
+                Modifier.align(Alignment.TopEnd).padding(top = CHAT_TOP, end = Dimens.SafeEnd, bottom = CHAT_BOTTOM).fillMaxHeight(),
+            )
+        }
         val heights = if (handle.isLive) state.trackHeights else handle.heights
         val opening = !state.hasFirstFrame && !state.isPlaying && !choices.audioOnly
         OpeningPoster(video, opening)
@@ -179,8 +191,9 @@ fun PlayerContent(
                     state = state,
                     preferences = playerPreferences(
                         handle, heights, qualityCap, preferences.maxHeight, captionIndex, speedIndex,
-                        commentsAvailable = bulletComments.isNotEmpty(),
+                        commentsAvailable = bulletComments.isNotEmpty() || chatAvailable,
                         commentsOn = commentsOn,
+                        commentsAreChat = chatAvailable,
                     ),
                     actions = PlayerControlActions(
                         onTogglePlay = session::togglePlay,

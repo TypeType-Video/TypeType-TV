@@ -78,6 +78,7 @@ data class PlayerPreferences(
     val speedLabel: String,
     val commentsAvailable: Boolean = false,
     val commentsOn: Boolean = false,
+    val commentsAreChat: Boolean = false,
     val audioLabel: String? = null,
 )
 
@@ -260,13 +261,11 @@ private fun PreferenceRow(preferences: PlayerPreferences, actions: PlayerControl
         if (preferences.commentsAvailable) {
             PillButton(
                 compact = true,
-                label = stringResource(R.string.player_comments),
+                label = stringResource(if (preferences.commentsAreChat) R.string.player_chat else R.string.player_comments),
                 icon = Icons.Rounded.Forum,
                 onClick = actions.onToggleComments,
                 emphasized = preferences.commentsOn,
-                description = stringResource(
-                    if (preferences.commentsOn) R.string.player_comments_on_description else R.string.player_comments_off_description,
-                ),
+                description = stringResource(commentsDescription(preferences)),
             )
         }
         if (preferences.qualityAvailable) {
@@ -298,4 +297,11 @@ private fun liveLabel(windowMillis: Long): (Long) -> String {
     return remember(windowMillis, atEdge) {
         { position -> LiveEdge.label((windowMillis - position).coerceAtLeast(0L)) ?: atEdge }
     }
+}
+
+private fun commentsDescription(preferences: PlayerPreferences): Int = when {
+    preferences.commentsAreChat && preferences.commentsOn -> R.string.player_chat_on_description
+    preferences.commentsAreChat -> R.string.player_chat_off_description
+    preferences.commentsOn -> R.string.player_comments_on_description
+    else -> R.string.player_comments_off_description
 }
