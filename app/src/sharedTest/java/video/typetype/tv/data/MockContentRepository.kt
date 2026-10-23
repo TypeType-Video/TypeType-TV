@@ -66,6 +66,8 @@ class MockContentRepository(
         return MockCatalog.all.firstOrNull { it.id == id }
     }
 
+    override suspend fun prewarm(videoId: String) = Unit
+
     override suspend fun related(id: String): List<Video> {
         delay(latencyMillis / 2)
         val current = MockCatalog.all.firstOrNull { it.id == id } ?: return emptyList()

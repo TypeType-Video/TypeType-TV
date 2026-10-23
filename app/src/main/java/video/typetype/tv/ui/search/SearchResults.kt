@@ -45,6 +45,7 @@ import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.FocusSurface
 import video.typetype.tv.ui.components.Glyph
+import video.typetype.tv.ui.components.LocalStreamPrewarm
 import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.SkeletonBox
 import video.typetype.tv.ui.components.TextLabel
@@ -101,8 +102,10 @@ fun ResultList(
 @Composable
 private fun ResultRow(video: Video, onClick: () -> Unit, modifier: Modifier = Modifier) {
     val description = stringResource(R.string.card_description, video.title, video.channel.name)
+    val prewarm = LocalStreamPrewarm.current
     FocusSurface(
         onClick = onClick,
+        onFocused = { prewarm?.focus(video) },
         modifier = modifier.fillMaxWidth().semantics { contentDescription = description },
         shape = Shapes.Panel,
         focusedScale = 1.02f,

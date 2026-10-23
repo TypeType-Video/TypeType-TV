@@ -32,6 +32,7 @@ import video.typetype.tv.data.HomeContent
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.ui.components.Backdrop
+import video.typetype.tv.ui.components.LocalStreamPrewarm
 import video.typetype.tv.ui.components.ShelfRow
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
@@ -84,6 +85,7 @@ private fun HomeLoaded(
     val listState = rememberLazyListState()
     val playRequester = session.heroEntry
     val scope = rememberCoroutineScope()
+    val prewarm = LocalStreamPrewarm.current
     val restoreAnchor = remember { session.anchor }
     var pendingRestore by remember { mutableStateOf(restoreAnchor != null) }
 
@@ -135,6 +137,7 @@ private fun HomeLoaded(
                     onOpen = { onOpen(hero) },
                     onFocusHero = {
                         focusedCard = null
+                        prewarm?.focus(hero)
                         scope.launch { listState.animateScrollToItem(0) }
                     },
                     modifier = Modifier.padding(bottom = 6.dp),

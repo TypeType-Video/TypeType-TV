@@ -5,6 +5,8 @@ interface ContentRepository : VideoActivityRepository, PresenceSink {
 
     suspend fun video(id: String): Video?
 
+    suspend fun prewarm(videoId: String)
+
     suspend fun related(id: String): List<Video>
 
     suspend fun search(query: String, source: ContentSource = ContentSource.YouTube, kind: SearchKind = SearchKind.Videos): SearchResults

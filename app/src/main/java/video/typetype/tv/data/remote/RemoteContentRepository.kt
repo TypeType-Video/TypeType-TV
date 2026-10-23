@@ -40,7 +40,7 @@ class RemoteContentRepository(
     private val watch: ServerWatch,
     private val clock: () -> Long = System::currentTimeMillis,
 ) : ContentRepository {
-    private val streams = TtlCache<String, StreamDto>(STREAM_TTL_MILLIS, STREAM_ENTRIES, clock)
+    private val streams = StreamStore(api::streamFor, clock)
     private val homeCache = TtlCache<String, HomeContent>(HOME_TTL_MILLIS, 1, clock)
     private val firstComments = TtlCache<String, CommentsPage>(STREAM_TTL_MILLIS, COMMENT_ENTRIES, clock)
     private val userSettings = RemoteUserSettings(api, clock)
@@ -60,6 +60,10 @@ class RemoteContentRepository(
     }
 
     override suspend fun video(id: String): Video? = watch.watch { branding.apply(listOf(stream(id).toVideo(id, clock()))).single() }
+
+    override suspend fun prewarm(videoId: String) {
+        stream(videoId)
+    }
 
     override suspend fun related(id: String): List<Video> {
         if (filter.visibility().hideRelatedVideos) return emptyList()
@@ -208,17 +212,13 @@ class RemoteContentRepository(
 
     override fun reportPresence(report: PresenceReport) = presence.report(report)
 
-    private suspend fun stream(url: String): StreamDto {
-        streams.fresh(url)?.let { return it }
-        return api.streamFor(url).also { streams.put(url, it) }
-    }
+    private suspend fun stream(url: String): StreamDto = streams.get(url)
 
     private companion object {
         const val HOME_KEY = "home"
         const val MILLIS_PER_SECOND = 1_000L
         const val STREAM_TTL_MILLIS = 5 * 60_000L
         const val HOME_TTL_MILLIS = 2 * 60_000L
-        const val STREAM_ENTRIES = 24
         const val COMMENT_ENTRIES = 8
         const val HISTORY_LIMIT = 120
         const val LIBRARY_LIMIT = 240

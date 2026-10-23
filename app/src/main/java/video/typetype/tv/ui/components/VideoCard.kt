@@ -47,6 +47,7 @@ fun VideoCard(
         label = "card-title",
     )
     val description = stringResource(R.string.card_description, video.title, video.channel.name)
+    val prewarm = LocalStreamPrewarm.current
     Column(modifier = modifier) {
         FocusSurface(
             onClick = onClick,
@@ -55,7 +56,10 @@ fun VideoCard(
                 .aspectRatio(16f / 9f)
                 .semantics { contentDescription = description },
             interactionSource = source,
-            onFocused = onFocused,
+            onFocused = {
+                prewarm?.focus(video)
+                onFocused?.invoke()
+            },
         ) {
             VideoThumbnail(video)
         }
