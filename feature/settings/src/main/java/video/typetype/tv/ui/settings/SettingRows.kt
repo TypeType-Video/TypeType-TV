@@ -14,9 +14,11 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.ChevronLeft
-import androidx.compose.material.icons.rounded.ChevronRight
+import androidx.compose.material.icons.rounded.UnfoldMore
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -28,12 +30,14 @@ import androidx.compose.ui.semantics.stateDescription
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.resources.R
+import video.typetype.tv.data.ContentSource
 import video.typetype.tv.data.SettingItem
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.FocusSurface
 import video.typetype.tv.ui.components.Glyph
+import video.typetype.tv.ui.components.ServiceMark
 import video.typetype.tv.ui.components.TextLabel
 
 @Composable
@@ -42,10 +46,11 @@ fun SettingRow(
     session: SettingsSession,
     onAction: (String) -> Unit,
     onChange: (SettingChange) -> Unit,
+    onChoose: (ChoiceRequest) -> Unit = {},
 ) {
     when (item) {
         is SettingItem.Toggle -> ToggleRow(item, session, onChange)
-        is SettingItem.Choice -> ChoiceRow(item, session, onChange)
+        is SettingItem.Choice -> ChoiceRow(item, session, onChoose)
         is SettingItem.Info -> InfoRow(item)
         is SettingItem.Action -> ActionRow(item, onAction)
         is SettingItem.Blocked -> BlockedRow(item, onAction)
@@ -67,6 +72,7 @@ private fun ToggleRow(item: SettingItem.Toggle, session: SettingsSession, onChan
             stateDescription = stateText
         },
     ) {
+        RowIcon(item)
         Column(Modifier.weight(1f)) {
             TextLabel(stringResource(item.titleRes), Type.Title, maxLines = 1)
             TextLabel(stringResource(item.summaryRes), Type.Meta, maxLines = 2)
@@ -75,25 +81,31 @@ private fun ToggleRow(item: SettingItem.Toggle, session: SettingsSession, onChan
     }
 }
 
+// A setting with a few values: OK opens them all in a picker, and the focus comes back here once it closes.
+class ChoiceRequest(val item: SettingItem.Choice, val restoreFocus: () -> Unit)
+
 @Composable
-private fun ChoiceRow(item: SettingItem.Choice, session: SettingsSession, onChange: (SettingChange) -> Unit) {
+private fun ChoiceRow(item: SettingItem.Choice, session: SettingsSession, onChoose: (ChoiceRequest) -> Unit) {
     val value = item.options[session.choiceIndex(item)]
+    val focus = remember { FocusRequester() }
     InteractiveRow(
-        onClick = {
-            val previous = session.choiceIndex(item)
-            session.cycle(item)
-            onChange(SettingChange(item.id, item.wireValues[session.choiceIndex(item)]) { session.setChoice(item, previous) })
-        },
-        modifier = Modifier.semantics {
+        onClick = { onChoose(ChoiceRequest(item) { focus.requestFocus() }) },
+        modifier = Modifier.focusRequester(focus).semantics {
             role = Role.DropdownList
             stateDescription = value
         },
     ) {
-        TextLabel(stringResource(item.titleRes), Type.Title, Modifier.weight(1f), maxLines = 1)
-        Row(horizontalArrangement = Arrangement.spacedBy(6.dp), verticalAlignment = Alignment.CenterVertically) {
-            Glyph(Icons.Rounded.ChevronLeft, Palette.TextLow, 20)
+        val service = item.takeIf { it.id == "service" }?.let { choice ->
+            ContentSource.entries.firstOrNull { it.serviceId.toString() == choice.wireValues[session.choiceIndex(choice)] }
+        }
+        RowIcon(item, service)
+        Column(Modifier.weight(1f)) {
+            TextLabel(stringResource(item.titleRes), Type.Title, maxLines = 1)
+            item.summaryRes?.let { TextLabel(stringResource(it), Type.Meta, maxLines = 2) }
+        }
+        Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
             TextLabel(value, Type.Button.copy(color = Palette.TextHigh), maxLines = 1)
-            Glyph(Icons.Rounded.ChevronRight, Palette.TextLow, 20)
+            Glyph(Icons.Rounded.UnfoldMore, Palette.TextLow, 20)
         }
     }
 }
@@ -104,6 +116,7 @@ private fun ActionRow(item: SettingItem.Action, onAction: (String) -> Unit) {
         onClick = { onAction(item.id) },
         modifier = Modifier.semantics { role = Role.Button },
     ) {
+        RowIcon(item)
         Column(Modifier.weight(1f)) {
             TextLabel(stringResource(item.titleRes), Type.Title.copy(color = Palette.AccentSoft), maxLines = 1)
             TextLabel(stringResource(item.summaryRes), Type.Meta, maxLines = 2)
@@ -117,6 +130,7 @@ private fun BlockedRow(item: SettingItem.Blocked, onAction: (String) -> Unit) {
         onClick = { onAction(item.id) },
         modifier = Modifier.semantics { role = Role.Button },
     ) {
+        RowIcon(item)
         Column(Modifier.weight(1f)) {
             TextLabel(item.name, Type.Title, maxLines = 1)
             TextLabel(stringResource(R.string.settings_blocked_unblock), Type.Meta, maxLines = 1)
@@ -135,6 +149,7 @@ private fun InfoRow(item: SettingItem.Info) {
         horizontalArrangement = Arrangement.spacedBy(16.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
+        RowIcon(item)
         TextLabel(stringResource(item.titleRes), Type.Title.copy(color = Palette.TextMid), maxLines = 1)
         Box(Modifier.weight(1f), contentAlignment = Alignment.CenterEnd) {
             TextLabel(item.value, Type.Body.copy(color = Palette.TextHigh), maxLines = 1)
@@ -168,6 +183,17 @@ private fun InteractiveRow(
             verticalAlignment = Alignment.CenterVertically,
             content = content,
         )
+    }
+}
+
+// The row's picture in a round tile; the search service row shows the mark of the service it is set to.
+@Composable
+private fun RowIcon(item: SettingItem, service: ContentSource? = null) {
+    Box(
+        Modifier.size(40.dp).clip(CircleShape).background(Palette.SurfaceRaised),
+        contentAlignment = Alignment.Center,
+    ) {
+        if (service != null) ServiceMark(service, 22) else Glyph(item.icon(), Palette.TextHigh, 22)
     }
 }
 

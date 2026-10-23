@@ -22,13 +22,12 @@ class SettingsSessionTest {
     }
 
     @Test
-    fun `choice cycles and wraps around`() {
+    fun `choice starts at its default and keeps the picked option`() {
         val session = SettingsSession()
         assertEquals(0, session.choiceIndex(choice))
-        session.cycle(choice)
-        session.cycle(choice)
+        session.setChoice(choice, 2)
         assertEquals(2, session.choiceIndex(choice))
-        session.cycle(choice)
-        assertEquals(0, session.choiceIndex(choice))
+        session.setChoice(choice, 1)
+        assertEquals(1, session.choiceIndex(choice))
     }
 }

@@ -26,8 +26,4 @@ class SettingsSession {
     }
 
     fun choiceIndex(item: SettingItem.Choice): Int = values[item.id] ?: item.defaultIndex
-
-    fun cycle(item: SettingItem.Choice) {
-        values[item.id] = (choiceIndex(item) + 1) % item.options.size
-    }
 }

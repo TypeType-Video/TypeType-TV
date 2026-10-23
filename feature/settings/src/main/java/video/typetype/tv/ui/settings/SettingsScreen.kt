@@ -104,6 +104,7 @@ fun SettingsScreen(
     }
     val firstRequester = remember { FocusRequester() }
     LaunchedEffect(Unit) { firstRequester.requestFocusWhenReady() }
+    var choosing by remember { mutableStateOf<ChoiceRequest?>(null) }
     Box(modifier.fillMaxSize()) {
         InkBackground()
         Row(
@@ -136,8 +137,26 @@ fun SettingsScreen(
                 modifier = Modifier.weight(1f).fillMaxHeight().trapFocusDown(),
                 label = "settings-panel",
             ) { index ->
-                GroupPanel(groups[index], session, handleAction, onChange)
+                GroupPanel(groups[index], session, handleAction, onChange) { choosing = it }
             }
+        }
+        choosing?.let { request ->
+            val item = request.item
+            ChoicePicker(
+                item = item,
+                current = session.choiceIndex(item),
+                onPick = { index ->
+                    val previous = session.choiceIndex(item)
+                    session.setChoice(item, index)
+                    if (index != previous) onChange(SettingChange(item.id, item.wireValues[index]) { session.setChoice(item, previous) })
+                    choosing = null
+                    request.restoreFocus()
+                },
+                onClose = {
+                    choosing = null
+                    request.restoreFocus()
+                },
+            )
         }
     }
 }
@@ -148,6 +167,7 @@ private fun GroupPanel(
     session: SettingsSession,
     onAction: (String) -> Unit,
     onChange: (SettingChange) -> Unit,
+    onChoose: (ChoiceRequest) -> Unit,
 ) {
     Column(Modifier.fillMaxSize()) {
         TextLabel(stringResource(group.titleRes).uppercase(), Type.Label)
@@ -156,7 +176,7 @@ private fun GroupPanel(
             contentPadding = PaddingValues(start = 6.dp, end = 8.dp, top = 6.dp, bottom = 48.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp),
         ) {
-            items(group.items, key = { it.id }) { item -> SettingRow(item, session, onAction, onChange) }
+            items(group.items, key = { it.id }) { item -> SettingRow(item, session, onAction, onChange, onChoose) }
         }
     }
 }
