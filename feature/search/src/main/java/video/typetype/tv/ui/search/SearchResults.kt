@@ -25,7 +25,7 @@ import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Search
-import androidx.compose.material.icons.rounded.TrendingUp
+import androidx.compose.material.icons.rounded.History
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
@@ -192,12 +192,12 @@ fun MessagePanel(
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun TrendingSearches(
+fun RecentSearches(
     queries: List<String>,
     onPick: (String) -> Unit,
     entry: FocusRequester,
 ) {
-    TextLabel(stringResource(R.string.search_trending), Type.Label)
+    TextLabel(stringResource(R.string.search_recent), Type.Label)
     Spacer(Modifier.height(12.dp))
     FlowRow(
         modifier = Modifier.width(470.dp),
@@ -207,7 +207,7 @@ fun TrendingSearches(
         queries.forEachIndexed { index, query ->
             PillButton(
                 label = query,
-                icon = Icons.Rounded.TrendingUp,
+                icon = Icons.Rounded.History,
                 onClick = { onPick(query) },
                 modifier = if (index == 0) Modifier.focusRequester(entry) else Modifier,
             )

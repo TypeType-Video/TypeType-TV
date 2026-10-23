@@ -54,11 +54,11 @@
     <string name="player_replay">Replay</string>
     <string name="player_buffering">Buffering</string>
 
-    <string name="search_placeholder">Search videos, channels, genres</string>
+    <string name="search_placeholder">Type anything</string>
     <string name="search_space">Space</string>
     <string name="search_delete">Delete</string>
     <string name="search_clear">Clear</string>
-    <string name="search_trending">TRENDING SEARCHES</string>
+    <string name="search_recent">RECENT SEARCHES</string>
     <plurals name="search_results">
         <item quantity="one">%1$d RESULT</item>
         <item quantity="other">%1$d RESULTS</item>
@@ -66,7 +66,7 @@
     <string name="search_empty_title">Nothing found</string>
     <string name="search_empty_body">Try a shorter word, or search by genre or channel.</string>
     <string name="search_start_title">What do you want to watch?</string>
-    <string name="search_start_body">Type with the on-screen keyboard or pick a trending search.</string>
+    <string name="search_start_body">Type with the on-screen keyboard or pick a recent search.</string>
 
     <string name="library_title">Library</string>
     <string name="library_history">History</string>

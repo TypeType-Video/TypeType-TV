@@ -6,7 +6,6 @@ import video.typetype.tv.ui.util.UiMessage
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -14,21 +13,16 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.text.BasicText
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -46,10 +40,6 @@ import video.typetype.tv.data.SearchResults
 import video.typetype.tv.data.SearchKind
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Dimens
-import video.typetype.tv.theme.Palette
-import video.typetype.tv.theme.Shapes
-import video.typetype.tv.theme.Type
-import video.typetype.tv.ui.components.Glyph
 import video.typetype.tv.ui.components.InkBackground
 import video.typetype.tv.ui.util.requestFocusWhenReady
 import video.typetype.tv.ui.util.trapFocusDown
@@ -140,7 +130,7 @@ fun SearchScreen(
             horizontalArrangement = Arrangement.spacedBy(44.dp),
         ) {
             Column(Modifier.width(480.dp).trapFocusDown()) {
-                QueryField(session.query)
+                QueryField(session.query, ideas)
                 Spacer(Modifier.height(10.dp))
                 SearchScope(
                     source = session.source,
@@ -171,7 +161,7 @@ fun SearchScreen(
                         title = stringResource(R.string.search_start_title),
                         body = stringResource(R.string.search_start_body),
                     ) {
-                        TrendingSearches(
+                        RecentSearches(
                             queries = ideas,
                             onPick = {
                                 session.query = it
@@ -218,35 +208,5 @@ fun SearchScreen(
                 }
             }
         }
-    }
-}
-
-@Composable
-private fun QueryField(query: String) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .height(48.dp)
-            .background(Palette.Surface, Shapes.Panel)
-            .padding(horizontal = 14.dp),
-        horizontalArrangement = Arrangement.spacedBy(10.dp),
-        verticalAlignment = Alignment.CenterVertically,
-    ) {
-        Glyph(Icons.Rounded.Search, Palette.TextMid, 20)
-        if (query.isEmpty()) {
-            BasicText(
-                stringResource(R.string.search_placeholder),
-                style = Type.Body.copy(color = Palette.TextLow),
-                maxLines = 1,
-            )
-        } else {
-            BasicText(query, style = Type.Title.copy(color = Palette.TextHigh), maxLines = 1)
-        }
-        Box(
-            Modifier
-                .width(2.dp)
-                .height(20.dp)
-                .background(Palette.Accent),
-        )
     }
 }
