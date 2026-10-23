@@ -222,6 +222,7 @@ fun AppRoot(
                         repository = repository,
                         onOpen = openDetail,
                         onOpenPodcast = { navigator.push(Route.Podcast(it)) },
+                        onOpenPlaylist = { navigator.push(Route.Playlist(it)) },
                     )
                     is Route.Player -> PlayerScreen(
                         videoId = route.videoId,

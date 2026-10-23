@@ -52,7 +52,7 @@ class CollectionScreensAccessibilityTest {
 
     @Test
     fun channelNamesEveryControl() = assertEveryControlIsNamed("channel") {
-        ChannelScreen(MockCatalog.all.first().channel.url, repository, onOpen = {}, onOpenPodcast = {})
+        ChannelScreen(MockCatalog.all.first().channel.url, repository, onOpen = {}, onOpenPodcast = {}, onOpenPlaylist = {})
     }
 
     @Test
