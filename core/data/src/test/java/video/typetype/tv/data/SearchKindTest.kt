@@ -41,12 +41,4 @@ class SearchKindTest {
         assertFalse(SearchKind.Playlists.supports(ContentSource.NicoNico))
         assertEquals("|1|lives", SearchKind.Live.filterFor(ContentSource.NicoNico))
     }
-
-    @Test
-    fun cyclingStaysWithinTheServiceAndWraps() {
-        assertEquals(SearchKind.Live, SearchKind.next(ContentSource.NicoNico, SearchKind.Videos))
-        assertEquals(SearchKind.Videos, SearchKind.next(ContentSource.NicoNico, SearchKind.Live))
-        assertEquals(SearchKind.Videos, SearchKind.next(ContentSource.YouTube, SearchKind.MusicVideos))
-        assertEquals(SearchKind.Videos, SearchKind.next(ContentSource.NicoNico, SearchKind.Anime))
-    }
 }

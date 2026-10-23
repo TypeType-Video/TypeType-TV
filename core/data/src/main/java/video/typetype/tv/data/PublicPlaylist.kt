@@ -45,12 +45,6 @@ enum class SearchKind(@StringRes val labelRes: Int, private val filters: Map<Con
 
     companion object {
         fun available(source: ContentSource): List<SearchKind> = entries.filter { it.supports(source) }
-
-        fun next(source: ContentSource, current: SearchKind): SearchKind {
-            val kinds = available(source)
-            val index = kinds.indexOf(current)
-            return kinds[(index + 1).mod(kinds.size)]
-        }
     }
 }
 

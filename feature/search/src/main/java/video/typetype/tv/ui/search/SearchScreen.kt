@@ -165,7 +165,7 @@ fun SearchScreen(
                         session.source = nextSource(session.source)
                         session.kind = SearchKind.Videos
                     },
-                    onCycleKind = { session.kind = SearchKind.next(session.source, session.kind) },
+                    onSelectKind = { session.kind = it },
                 )
                 Spacer(Modifier.height(12.dp))
                 SearchKeyboard(
