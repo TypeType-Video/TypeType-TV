@@ -18,6 +18,17 @@ object SearchInput {
     }
 
     fun delete(query: String): String = query.dropLast(1)
+
+    // A Bluetooth keyboard or a phone remote app sends real characters; letters, digits and spaces are typed.
+    fun typed(codePoint: Int): Char? {
+        if (codePoint <= 0 || Character.charCount(codePoint) != 1) return null
+        val character = codePoint.toChar()
+        return when {
+            character.isLetterOrDigit() -> character.lowercaseChar()
+            character == ' ' -> ' '
+            else -> null
+        }
+    }
 }
 
 class SearchSession {

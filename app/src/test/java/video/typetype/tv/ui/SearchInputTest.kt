@@ -40,4 +40,15 @@ class SearchInputTest {
         assertTrue(('0'..'9').all { it in SearchInput.KEYS })
         assertEquals(0, SearchInput.KEYS.length % SearchInput.KEYS_PER_ROW)
     }
+
+    @Test
+    fun typedKeysKeepLettersDigitsAndSpaces() {
+        assertEquals('a', SearchInput.typed('A'.code))
+        assertEquals('7', SearchInput.typed('7'.code))
+        assertEquals(' ', SearchInput.typed(' '.code))
+        assertEquals('é', SearchInput.typed('É'.code))
+        assertEquals(null, SearchInput.typed(0))
+        assertEquals(null, SearchInput.typed('\n'.code))
+        assertEquals(null, SearchInput.typed('#'.code))
+    }
 }
