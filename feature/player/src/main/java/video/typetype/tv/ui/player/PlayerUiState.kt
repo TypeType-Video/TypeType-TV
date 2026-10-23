@@ -11,6 +11,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.media3.common.C
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import video.typetype.tv.ui.util.formatMillis
 import kotlinx.coroutines.delay
 
@@ -23,6 +24,7 @@ class PlayerUiState {
     var isBuffering by mutableStateOf(true)
     var isEnded by mutableStateOf(false)
     var hasFirstFrame by mutableStateOf(false)
+    var trackHeights by mutableStateOf(emptyList<Int>())
     var isLive by mutableStateOf(false)
     var liveOffsetMillis by mutableLongStateOf(0L)
 }
@@ -52,6 +54,15 @@ fun rememberPlayerUiState(player: Player): PlayerUiState {
 
             override fun onRenderedFirstFrame() {
                 state.hasFirstFrame = true
+            }
+
+            override fun onTracksChanged(tracks: Tracks) {
+                state.trackHeights = tracks.groups
+                    .filter { it.type == C.TRACK_TYPE_VIDEO }
+                    .flatMap { group -> (0 until group.length).filter(group::isTrackSupported).map { group.getTrackFormat(it).height } }
+                    .filter { it > 0 }
+                    .distinct()
+                    .sortedDescending()
             }
 
             override fun onPlaybackStateChanged(playbackState: Int) {

@@ -13,7 +13,7 @@ import video.typetype.tv.data.session.Backend
 
 @UnstableApi
 class HlsPlayerFactory(private val backend: Backend, private val online: () -> Boolean = { true }) {
-    fun open(context: Context, manifest: String): PlayerHandle {
+    fun open(context: Context, manifest: String, maxHeight: Int?): PlayerHandle {
         val address = InstanceUrls.resolve(backend.apiBase, manifest) ?: throw ApiException(
             ApiFailure(FailureCategory.Contract, null, "live_manifest_invalid", "The live address is not valid", null),
         )
@@ -22,8 +22,10 @@ class HlsPlayerFactory(private val backend: Backend, private val online: () -> B
             .setLoadErrorHandlingPolicy(MediaLoadErrorPolicy(online))
             .createMediaSource(MediaItem.fromUri(address))
         player.setMediaSource(source)
+        val handle = PlayerHandle(player = player, isLive = true)
+        handle.capVideoHeight(maxHeight)
         player.prepare()
         player.playWhenReady = true
-        return PlayerHandle(player = player, isLive = true)
+        return handle
     }
 }

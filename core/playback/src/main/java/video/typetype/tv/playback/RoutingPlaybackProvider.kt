@@ -19,7 +19,7 @@ class RoutingPlaybackProvider(
     private val live = HlsPlayerFactory(backend, online)
 
     override suspend fun open(context: Context, videoUrl: String, request: PlaybackRequest): PlayerHandle {
-        request.liveManifest?.let { return live.open(context, it) }
+        request.liveManifest?.let { return live.open(context, it, request.maxHeight) }
         return when (ContentSource.of(videoUrl)) {
             ContentSource.YouTube -> youtube.open(context, videoUrl, request)
             ContentSource.BiliBili, ContentSource.NicoNico -> standard.open(context, videoUrl, request)

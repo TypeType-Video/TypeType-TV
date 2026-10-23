@@ -22,6 +22,7 @@ internal fun nearestSpeedIndex(speed: Float): Int =
 
 internal fun playerPreferences(
     handle: PlayerHandle,
+    heights: List<Int>,
     qualityCap: Int?,
     defaultCap: Int?,
     captionIndex: Int,
@@ -35,8 +36,8 @@ internal fun playerPreferences(
         captionsAvailable = handle.captionLanguages.isNotEmpty(),
         captionsOn = captionIndex > 0,
         captionLabel = handle.captionLanguages.getOrNull(captionIndex - 1)?.label.orEmpty(),
-        qualityAvailable = handle.heights.size > 1,
-        qualityLabel = effective?.takeIf { it in handle.heights }?.let { "${it}p" } ?: "Auto",
+        qualityAvailable = heights.size > 1,
+        qualityLabel = effective?.takeIf { it in heights }?.let { "${it}p" } ?: "Auto",
         speedLabel = "${speed}x".replace(".0x", "x"),
         commentsAvailable = commentsAvailable,
         commentsOn = commentsOn,

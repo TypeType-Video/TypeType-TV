@@ -75,6 +75,11 @@ class PlaybackController(
 
     fun setQuality(cap: Int?) {
         qualityCap = cap
+        val live = (phase as? PlaybackPhase.Playing)?.handle?.takeIf { it.isLive }
+        if (live != null) {
+            live.capVideoHeight(cap)
+            return
+        }
         resumeFromCurrent()
         launch()
     }

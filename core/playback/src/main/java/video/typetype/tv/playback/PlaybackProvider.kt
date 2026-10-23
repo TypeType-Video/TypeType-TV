@@ -34,6 +34,14 @@ class PlayerHandle(
             .build()
     }
 
+    // A live stream is adaptive HLS: its quality is capped in place instead of reopening the stream.
+    fun capVideoHeight(height: Int?) {
+        player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
+            .setMaxVideoSize(Int.MAX_VALUE, height ?: Int.MAX_VALUE)
+            .setMinVideoSize(0, height ?: 0)
+            .build()
+    }
+
     fun release() {
         onRelease()
         player.release()

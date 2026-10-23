@@ -167,6 +167,7 @@ fun PlayerContent(
         if (commentsOn && bulletComments.isNotEmpty()) {
             DanmakuOverlay(bulletComments, state, SPEED_CHOICES[speedIndex])
         }
+        val heights = if (handle.isLive) state.trackHeights else handle.heights
         val opening = !state.hasFirstFrame && !state.isPlaying && !choices.audioOnly
         OpeningPoster(video, opening)
         BufferingSpinner(state.isBuffering && !state.isEnded && !opening, Modifier.align(Alignment.Center))
@@ -177,7 +178,7 @@ fun PlayerContent(
                     video = current,
                     state = state,
                     preferences = playerPreferences(
-                        handle, qualityCap, preferences.maxHeight, captionIndex, speedIndex,
+                        handle, heights, qualityCap, preferences.maxHeight, captionIndex, speedIndex,
                         commentsAvailable = bulletComments.isNotEmpty(),
                         commentsOn = commentsOn,
                     ),
@@ -277,7 +278,7 @@ fun PlayerContent(
                     },
                     onSeek = { player.seekTo(it) },
                     onOpenVideo = onOpenNext,
-                    qualityHeights = handle.heights,
+                    qualityHeights = heights,
                     qualitySelected = qualityCap ?: preferences.maxHeight,
                     playingHeight = player.videoSize.height.takeIf { it > 0 },
                     audioTracks = handle.audioTracks,
