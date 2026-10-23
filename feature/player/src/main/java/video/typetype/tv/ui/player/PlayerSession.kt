@@ -23,6 +23,14 @@ class PlayerSession(
     var interaction by mutableLongStateOf(0L)
     var panel by mutableStateOf<PlayerPanel?>(null)
     var relatedOpen by mutableStateOf(false)
+    var panelFromMenu by mutableStateOf(true)
+
+    fun openPanel(target: PlayerPanel, fromMenu: Boolean) {
+        panelFromMenu = fromMenu
+        relatedOpen = false
+        controlsVisible = false
+        panel = target
+    }
 
     // Down from playback lands on the buttons, so a second Down reaches the related row, as on YouTube.
     var controlsFromBelow by mutableStateOf(false)

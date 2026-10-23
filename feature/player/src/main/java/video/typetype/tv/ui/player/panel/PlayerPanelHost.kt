@@ -39,9 +39,10 @@ class PanelScene(
 )
 
 @Composable
-fun PlayerPanelHost(panel: PlayerPanel?, onPanel: (PlayerPanel?) -> Unit, scene: PanelScene) {
+fun PlayerPanelHost(panel: PlayerPanel?, onPanel: (PlayerPanel?) -> Unit, scene: PanelScene, openedFromMenu: Boolean = true) {
     val video = scene.video
-    val backToMenu = { onPanel(PlayerPanel.Menu) }
+    // A section reached from the player's shortcut row closes back to the video, not to a menu never opened.
+    val backToMenu = { onPanel(if (openedFromMenu) PlayerPanel.Menu else null) }
     when (panel) {
         null -> Unit
         PlayerPanel.Menu -> PlayerMenuPanel(

@@ -72,6 +72,7 @@ class RelatedVideos(
     val open: Boolean = false,
     val onOpenChange: (Boolean) -> Unit = {},
     val onPlay: (Video) -> Unit = {},
+    val shortcuts: List<PlayerShortcut> = emptyList(),
 )
 
 data class PlayerPreferences(
@@ -129,7 +130,7 @@ fun PlayerControls(
                 Spacer(Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth().onPreviewKeyEvent { event ->
-                        val opens = event.key == Key.DirectionDown && related.videos.isNotEmpty()
+                        val opens = event.key == Key.DirectionDown && (related.videos.isNotEmpty() || related.shortcuts.isNotEmpty())
                         if (opens && event.type == KeyEventType.KeyDown) related.onOpenChange(true)
                         opens
                     },
@@ -142,7 +143,7 @@ fun PlayerControls(
             }
             if (related.open) {
                 Spacer(Modifier.height(22.dp))
-                RelatedShelf(related.videos, onOpen = related.onPlay, onClose = { related.onOpenChange(false) })
+                RelatedShelf(related.videos, related.shortcuts, onOpen = related.onPlay, onClose = { related.onOpenChange(false) })
             }
         }
     }

@@ -209,10 +209,7 @@ fun PlayerContent(
                             session.controlsVisible = false
                             session.panel = PlayerPanel.Audio
                         },
-                        onOpenMenu = {
-                            session.controlsVisible = false
-                            session.panel = PlayerPanel.Menu
-                        },
+                        onOpenMenu = { session.openPanel(PlayerPanel.Menu, fromMenu = true) },
                         onScrubBy = session::scrubBy,
                         onGoLive = {
                             player.seekToDefaultPosition()
@@ -229,6 +226,7 @@ fun PlayerContent(
                             if (!open) session.controlsFromBelow = true
                         },
                         onPlay = onOpenNext,
+                        shortcuts = playerShortcuts(current, open = { session.openPanel(it, fromMenu = false) }),
                     ),
                     sponsorSegments = setup.sponsorSegments,
                     scrubMillis = session.scrub.target,
@@ -263,9 +261,11 @@ fun PlayerContent(
             PlayerPanelHost(
                 panel = session.panel,
                 onPanel = {
+                    if (session.panel == PlayerPanel.Menu) session.panelFromMenu = true
                     session.panel = it
                     if (it == null) session.controlsVisible = true
                 },
+                openedFromMenu = session.panelFromMenu,
                 scene = PanelScene(
                     video = current,
                     queue = queue,
