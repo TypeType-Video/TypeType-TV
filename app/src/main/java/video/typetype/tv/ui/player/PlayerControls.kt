@@ -181,6 +181,7 @@ private fun TimeLine(
             scrubMillis = scrubMillis,
             storyboard = storyboard,
             chapters = chapters,
+            positionLabel = if (state.isLive) liveLabel(state.durationMillis) else ::formatMillis,
         )
         if (state.isLive) {
             TextLabel(stringResource(R.string.player_live), Type.Label.copy(color = Palette.Accent), Modifier.width(48.dp))
@@ -193,9 +194,12 @@ private fun TimeLine(
 @Composable
 private fun TransportRow(state: PlayerUiState, actions: PlayerControlActions, playRequester: FocusRequester) {
     Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-        CircleButton(
-            Icons.Rounded.SkipPrevious, stringResource(R.string.player_previous), actions.onPrevious,
-        )
+        // A live stream has no start worth jumping to: the window behind the edge only lasts a few hours.
+        if (!state.isLive) {
+            CircleButton(
+                Icons.Rounded.SkipPrevious, stringResource(R.string.player_previous), actions.onPrevious,
+            )
+        }
         CircleButton(
             Icons.Rounded.Replay10, stringResource(R.string.player_rewind), { actions.onSeekBy(-SeekMath.JUMP_MILLIS) },
         )
@@ -283,3 +287,12 @@ private fun PreferenceRow(preferences: PlayerPreferences, actions: PlayerControl
 }
 
 private val AUDIO_LABEL_MAX_WIDTH = 150.dp
+
+// On a live stream the bubble says how far behind the edge the thumb is, like the elapsed label.
+@Composable
+private fun liveLabel(windowMillis: Long): (Long) -> String {
+    val atEdge = stringResource(R.string.player_live)
+    return remember(windowMillis, atEdge) {
+        { position -> LiveEdge.label((windowMillis - position).coerceAtLeast(0L)) ?: atEdge }
+    }
+}

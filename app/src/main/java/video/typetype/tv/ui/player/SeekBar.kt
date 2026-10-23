@@ -59,6 +59,7 @@ fun SeekBar(
     scrubMillis: Long? = null,
     storyboard: Storyboard? = null,
     chapters: List<Chapter> = emptyList(),
+    positionLabel: (Long) -> String = ::formatMillis,
 ) {
     val source = remember { MutableInteractionSource() }
     val focused by source.collectIsFocusedAsState()
@@ -130,6 +131,7 @@ fun SeekBar(
                 storyboard = storyboard,
                 positionMillis = scrubMillis,
                 chapterTitle = SeekMarkers.currentChapter(chapters, scrubMillis)?.title,
+                label = positionLabel,
                 modifier = Modifier
                     .wrapContentSize(Alignment.TopStart, unbounded = true)
                     .offset {
@@ -142,6 +144,7 @@ fun SeekBar(
         } else if (focused) {
             PositionBadge(
                 positionMillis,
+                positionLabel,
                 Modifier.offset {
                     val x = widthPx * SeekMath.fraction(positionMillis(), durationMillis)
                     IntOffset((x - BADGE_CENTER.toPx()).toInt(), BADGE_RISE.roundToPx())
@@ -152,8 +155,8 @@ fun SeekBar(
 }
 
 @Composable
-private fun PositionBadge(positionMillis: () -> Long, modifier: Modifier) {
-    val text by remember { derivedStateOf { formatMillis(positionMillis()) } }
+private fun PositionBadge(positionMillis: () -> Long, label: (Long) -> String, modifier: Modifier) {
+    val text by remember(label) { derivedStateOf { label(positionMillis()) } }
     Box(modifier) { DurationBadge(text) }
 }
 

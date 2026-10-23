@@ -45,6 +45,7 @@ fun SeekPreview(
     positionMillis: Long,
     chapterTitle: String?,
     modifier: Modifier = Modifier,
+    label: (Long) -> String = ::formatMillis,
 ) {
     Column(modifier.width(SEEK_PREVIEW_WIDTH), horizontalAlignment = Alignment.CenterHorizontally) {
         if (storyboard != null) {
@@ -53,7 +54,7 @@ fun SeekPreview(
         Spacer(Modifier.height(8.dp))
         TextLabel(chapterTitle.orEmpty(), Type.Meta.copy(color = Palette.TextHigh), maxLines = 1)
         Spacer(Modifier.height(6.dp))
-        DurationBadge(formatMillis(positionMillis))
+        DurationBadge(label(positionMillis))
     }
 }
 
