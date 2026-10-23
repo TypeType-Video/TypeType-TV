@@ -1,5 +1,9 @@
 package video.typetype.tv.ui.player
 
+import video.typetype.tv.theme.Dimens
+import androidx.compose.animation.fadeOut
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -87,5 +91,24 @@ fun UpNextPanel(
                 )
             }
         }
+    }
+}
+
+@Composable
+fun EndedOverlay(
+    visible: Boolean,
+    next: Video?,
+    onPlayNext: () -> Unit,
+    onReplay: () -> Unit,
+    liveEnded: Boolean,
+    modifier: Modifier = Modifier,
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = fadeIn(),
+        exit = fadeOut(),
+        modifier = modifier.padding(end = Dimens.SafeEnd, bottom = Dimens.SafeBottom + 6.dp),
+    ) {
+        UpNextPanel(next = next, onPlayNext = onPlayNext, onReplay = onReplay, liveEnded = liveEnded)
     }
 }

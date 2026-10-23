@@ -30,6 +30,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.type
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
@@ -62,6 +67,13 @@ data class PlayerControlActions(
     val onScrubBy: (Long) -> Unit = {},
 )
 
+class RelatedVideos(
+    val videos: List<Video> = emptyList(),
+    val open: Boolean = false,
+    val onOpenChange: (Boolean) -> Unit = {},
+    val onPlay: (Video) -> Unit = {},
+)
+
 data class PlayerPreferences(
     val captionsAvailable: Boolean,
     val captionsOn: Boolean,
@@ -83,11 +95,12 @@ fun PlayerControls(
     actions: PlayerControlActions,
     seekRequester: FocusRequester,
     modifier: Modifier = Modifier,
+    playRequester: FocusRequester = remember { FocusRequester() },
     sponsorSegments: List<SponsorSegment> = emptyList(),
     scrubMillis: Long? = null,
     storyboard: Storyboard? = null,
+    related: RelatedVideos = RelatedVideos(),
 ) {
-    val playRequester = remember { FocusRequester() }
     val markers = remember(video.chapters, sponsorSegments, state.durationMillis) {
         SeekMarkers.build(video.chapters, sponsorSegments, state.durationMillis)
     }
@@ -102,7 +115,7 @@ fun PlayerControls(
         Box(
             Modifier
                 .fillMaxWidth()
-                .height(230.dp)
+                .height(if (related.open) 470.dp else 230.dp)
                 .align(Alignment.BottomCenter)
                 .background(Brush.verticalGradient(listOf(Color.Transparent, Palette.Ink.copy(alpha = 0.92f)))),
         )
@@ -110,20 +123,26 @@ fun PlayerControls(
             derivedStateOf { SeekMarkers.currentChapter(video.chapters, state.positionMillis)?.title }
         }
         TitleBlock(video, chapter, Modifier.align(Alignment.TopStart))
-        Column(
-            modifier = Modifier
-                .align(Alignment.BottomCenter)
-                .padding(start = Dimens.SafeStart, end = Dimens.SafeEnd, bottom = Dimens.SafeBottom + 6.dp),
-        ) {
-            TimeLine(state, actions, seekRequester, playRequester, markers, scrubMillis, storyboard, video.chapters)
-            Spacer(Modifier.height(10.dp))
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically,
-            ) {
-                TransportRow(state, actions, playRequester)
-                PreferenceRow(preferences, actions, Modifier.weight(1f, fill = false))
+        Column(Modifier.align(Alignment.BottomCenter).padding(bottom = Dimens.SafeBottom + 6.dp)) {
+            Column(Modifier.padding(start = Dimens.SafeStart, end = Dimens.SafeEnd)) {
+                TimeLine(state, actions, seekRequester, playRequester, markers, scrubMillis, storyboard, video.chapters)
+                Spacer(Modifier.height(10.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth().onPreviewKeyEvent { event ->
+                        val opens = event.key == Key.DirectionDown && related.videos.isNotEmpty()
+                        if (opens && event.type == KeyEventType.KeyDown) related.onOpenChange(true)
+                        opens
+                    },
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically,
+                ) {
+                    TransportRow(state, actions, playRequester)
+                    PreferenceRow(preferences, actions, Modifier.weight(1f, fill = false))
+                }
+            }
+            if (related.open) {
+                Spacer(Modifier.height(22.dp))
+                RelatedShelf(related.videos, onOpen = related.onPlay, onClose = { related.onOpenChange(false) })
             }
         }
     }

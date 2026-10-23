@@ -22,11 +22,16 @@ class PlayerSession(
     var controlsVisible by mutableStateOf(startWithControls)
     var interaction by mutableLongStateOf(0L)
     var panel by mutableStateOf<PlayerPanel?>(null)
+    var relatedOpen by mutableStateOf(false)
+
+    // Down from playback lands on the buttons, so a second Down reaches the related row, as on YouTube.
+    var controlsFromBelow by mutableStateOf(false)
     val scrub = ScrubState()
     val notice = SponsorNotice()
     val upNext = UpNextState()
 
-    fun showControls() {
+    fun showControls(fromBelow: Boolean = false) {
+        controlsFromBelow = fromBelow
         controlsVisible = true
     }
 
@@ -70,7 +75,8 @@ class PlayerSession(
             event.key == Key.DirectionLeft && notice.segment != null -> undoSkip()
             event.key == Key.DirectionLeft || event.key == Key.MediaRewind -> { scrubBy(-step); true }
             event.key == Key.DirectionRight || event.key == Key.MediaFastForward -> { scrubBy(step); true }
-            event.key == Key.DirectionUp || event.key == Key.DirectionDown -> { showControls(); true }
+            event.key == Key.DirectionUp -> { showControls(); true }
+            event.key == Key.DirectionDown -> { showControls(fromBelow = true); true }
             else -> false
         }
     }
@@ -78,12 +84,13 @@ class PlayerSession(
     // Back goes through the activity's back dispatcher, not key events: from Android 16 (predictive back)
     // the Back key never reaches the views, so a key handler would let Back leave the player at once.
     fun handlesBack(upNextVisible: Boolean): Boolean =
-        panel == null && (scrub.active || upNextVisible || controlsVisible)
+        panel == null && (scrub.active || upNextVisible || relatedOpen || controlsVisible)
 
     fun back(upNextVisible: Boolean) {
         when {
             scrub.active -> scrub.cancel()
             upNextVisible -> upNext.dismiss()
+            relatedOpen -> relatedOpen = false
             controlsVisible -> controlsVisible = false
         }
     }

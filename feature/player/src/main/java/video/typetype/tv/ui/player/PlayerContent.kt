@@ -1,15 +1,13 @@
 package video.typetype.tv.ui.player
 
 import androidx.activity.compose.BackHandler
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.fadeIn
-import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.runtime.Composable
@@ -91,6 +89,7 @@ fun PlayerContent(
     var commentsOn by remember(handle) { mutableStateOf(!preferences.hideComments) }
     val root = remember { FocusRequester() }
     val seek = remember { FocusRequester() }
+    val play = remember { FocusRequester() }
     val scope = rememberCoroutineScope()
     val activity = remember(video?.id) { VideoActivityController(repository, scope) }
     val comments = remember(video?.id) { CommentsState(video?.id.orEmpty(), repository, scope) }
@@ -127,16 +126,18 @@ fun PlayerContent(
         derivedStateOf { SponsorLabels.current(state.positionMillis, setup.sponsorSegments) }
     }
 
-    LaunchedEffect(session.interaction, state.isPlaying, session.controlsVisible) {
-        if (state.isPlaying && session.controlsVisible) {
+    LaunchedEffect(session.interaction, state.isPlaying, session.controlsVisible, session.relatedOpen) {
+        if (state.isPlaying && session.controlsVisible && !session.relatedOpen) {
             delay(CONTROLS_TIMEOUT_MILLIS)
             session.controlsVisible = false
         }
     }
-    LaunchedEffect(session.controlsVisible, state.isEnded, session.panel) {
+    LaunchedEffect(session.controlsVisible, state.isEnded, session.panel, session.relatedOpen) {
+        if (!session.controlsVisible) session.relatedOpen = false
         when {
-            session.panel != null -> Unit
+            session.panel != null || session.relatedOpen -> Unit
             state.isEnded -> Unit
+            session.controlsVisible && session.controlsFromBelow -> play.requestFocusWhenReady()
             session.controlsVisible -> seek.requestFocusWhenReady()
             else -> root.requestFocusWhenReady()
         }
@@ -238,6 +239,16 @@ fun PlayerContent(
                         },
                     ),
                     seekRequester = seek,
+                    playRequester = play,
+                    related = RelatedVideos(
+                        videos = queue,
+                        open = session.relatedOpen,
+                        onOpenChange = { open ->
+                            session.relatedOpen = open
+                            if (!open) session.controlsFromBelow = true
+                        },
+                        onPlay = onOpenNext,
+                    ),
                     sponsorSegments = setup.sponsorSegments,
                     scrubMillis = session.scrub.target,
                     storyboard = setup.storyboard,
@@ -256,24 +267,17 @@ fun PlayerContent(
             onPlayNow = { next?.let(onOpenNext) },
             modifier = Modifier.align(Alignment.BottomEnd),
         )
-        AnimatedVisibility(
+        EndedOverlay(
             visible = state.isEnded && !autoAdvance,
-            enter = fadeIn(),
-            exit = fadeOut(),
-            modifier = Modifier
-                .align(Alignment.BottomEnd)
-                .padding(end = Dimens.SafeEnd, bottom = Dimens.SafeBottom + 6.dp),
-        ) {
-            UpNextPanel(
-                next = next,
-                onPlayNext = { next?.let(onOpenNext) },
-                onReplay = {
-                    player.seekTo(0L)
-                    player.play()
-                },
-                liveEnded = handle.isLive,
-            )
-        }
+            next = next,
+            onPlayNext = { next?.let(onOpenNext) },
+            onReplay = {
+                player.seekTo(0L)
+                player.play()
+            },
+            liveEnded = handle.isLive,
+            modifier = Modifier.align(Alignment.BottomEnd),
+        )
         if (current != null) {
             PlayerPanelHost(
                 panel = session.panel,

@@ -94,6 +94,25 @@ class PlayerSessionTest {
     }
 
     @Test
+    fun backClosesTheRelatedRowBeforeTheControls() {
+        onUi { session.relatedOpen = true }
+        onUi { session.back(upNextVisible = false) }
+        assertFalse(session.relatedOpen)
+        assertTrue(session.controlsVisible)
+    }
+
+    @Test
+    fun downFromPlaybackLandsOnTheButtons() {
+        onUi { session.controlsVisible = false }
+        assertTrue(press(AndroidKeyEvent.KEYCODE_DPAD_DOWN))
+        assertTrue(session.controlsVisible)
+        assertTrue(session.controlsFromBelow)
+        onUi { session.controlsVisible = false }
+        press(AndroidKeyEvent.KEYCODE_DPAD_UP)
+        assertFalse(session.controlsFromBelow)
+    }
+
+    @Test
     fun backWithNothingToCancelIsLeftToTheScreen() {
         onUi { session.controlsVisible = false }
         assertFalse(session.handlesBack(upNextVisible = false))

@@ -50,6 +50,7 @@
     <string name="player_speed_description">Playback speed, %1$s</string>
     <string name="player_seek_description">Seek bar</string>
     <string name="player_up_next">UP NEXT</string>
+    <string name="player_more_videos">More videos</string>
     <string name="player_replay">Replay</string>
     <string name="player_buffering">Buffering</string>
 
