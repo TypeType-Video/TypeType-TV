@@ -31,6 +31,11 @@ import androidx.compose.ui.input.key.onPreviewKeyEvent
 import androidx.compose.ui.input.key.type
 import androidx.compose.ui.input.key.utf16CodePoint
 import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.platform.LocalContext
+import android.Manifest
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
@@ -82,6 +87,22 @@ fun SearchScreen(
     LaunchedEffect(Unit) {
         if (restoreId == null) firstKey.requestFocusWhenReady()
     }
+    val context = LocalContext.current
+    val voice = rememberVoiceSearch()
+    fun listen() = voice.start { sentence ->
+        session.query = SearchInput.fromSpeech(sentence)
+        moveFocusToResults = true
+    }
+    val askMicrophone = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) listen() else voice.refused()
+    }
+    val onVoice = {
+        when {
+            voice.listening -> voice.stop()
+            context.checkSelfPermission(Manifest.permission.RECORD_AUDIO) == PackageManager.PERMISSION_GRANTED -> listen()
+            else -> askMicrophone.launch(Manifest.permission.RECORD_AUDIO)
+        }
+    }
     LaunchedEffect(session.query, session.source, session.kind, searchAttempt) {
         val query = session.query
         if (query.isBlank()) {
@@ -113,6 +134,7 @@ fun SearchScreen(
                 when {
                     typed != null -> session.query = SearchInput.append(session.query, typed)
                     event.key == Key.Backspace -> session.query = SearchInput.delete(session.query)
+                    event.key == Key.Search && voice.available -> onVoice()
                     else -> return@onPreviewKeyEvent false
                 }
                 true
@@ -130,7 +152,7 @@ fun SearchScreen(
             horizontalArrangement = Arrangement.spacedBy(44.dp),
         ) {
             Column(Modifier.width(480.dp).trapFocusDown()) {
-                QueryField(session.query, ideas)
+                QueryField(session.query, ideas, voice)
                 Spacer(Modifier.height(10.dp))
                 SearchScope(
                     source = session.source,
@@ -148,6 +170,7 @@ fun SearchScreen(
                     onClear = { session.query = "" },
                     firstKey = firstKey,
                     rightEdgeTarget = if (hasEntry) resultsEntry else null,
+                    voice = if (voice.available) VoiceKey(voice.listening, onVoice) else null,
                 )
             }
             Crossfade(

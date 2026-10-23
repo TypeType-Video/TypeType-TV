@@ -19,6 +19,11 @@ object SearchInput {
 
     fun delete(query: String): String = query.dropLast(1)
 
+    // A spoken sentence goes through the same rules as typing, so voice and keyboard queries look alike.
+    fun fromSpeech(sentence: String): String = sentence.fold("") { query, character ->
+        typed(character.code)?.let { append(query, it) } ?: query
+    }
+
     // A Bluetooth keyboard or a phone remote app sends real characters; letters, digits and spaces are typed.
     fun typed(codePoint: Int): Char? {
         if (codePoint <= 0 || Character.charCount(codePoint) != 1) return null

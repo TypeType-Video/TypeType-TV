@@ -15,7 +15,9 @@ import androidx.compose.foundation.text.BasicText
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Backspace
 import androidx.compose.material.icons.rounded.Clear
+import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.SpaceBar
+import androidx.compose.material.icons.rounded.Stop
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -44,6 +46,7 @@ fun SearchKeyboard(
     firstKey: FocusRequester,
     rightEdgeTarget: FocusRequester?,
     modifier: Modifier = Modifier,
+    voice: VoiceKey? = null,
 ) {
     Column(modifier = modifier, verticalArrangement = Arrangement.spacedBy(6.dp)) {
         SearchInput.KEYS.chunked(SearchInput.KEYS_PER_ROW).forEachIndexed { rowIndex, row ->
@@ -64,11 +67,21 @@ fun SearchKeyboard(
             ActionKey(Icons.Rounded.Backspace, stringResource(R.string.search_delete), onDelete)
             ActionKey(
                 Icons.Rounded.Clear, stringResource(R.string.search_clear), onClear,
-                modifier = Modifier.routeRightTo(rightEdgeTarget),
+                modifier = if (voice == null) Modifier.routeRightTo(rightEdgeTarget) else Modifier,
             )
+            if (voice != null) {
+                ActionKey(
+                    icon = if (voice.listening) Icons.Rounded.Stop else Icons.Rounded.Mic,
+                    description = stringResource(if (voice.listening) R.string.voice_stop else R.string.voice_search),
+                    onClick = voice.onClick,
+                    modifier = Modifier.routeRightTo(rightEdgeTarget),
+                )
+            }
         }
     }
 }
+
+class VoiceKey(val listening: Boolean, val onClick: () -> Unit)
 
 private fun Modifier.routeRightTo(target: FocusRequester?): Modifier =
     if (target == null) this else focusProperties { right = target }

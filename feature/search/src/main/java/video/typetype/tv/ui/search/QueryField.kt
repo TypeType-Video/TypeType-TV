@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Mic
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -43,6 +45,7 @@ private const val BLINK_MILLIS = 530L
 private const val GHOST_ALPHA = 0.42f
 private const val GHOST_LIMIT = 5
 private const val GHOST_MAX_LENGTH = 32
+private const val NOTICE_MILLIS = 4_000L
 private val CursorWidth = 2.dp
 private val CursorHeight = 22.dp
 private val CursorGap = 2.dp
@@ -57,20 +60,38 @@ private class FieldPicture {
 
 // The search field: a blinking cursor after the query. While it is empty, a translucent ghost types
 // "Type anything" and then the account's recent searches, one after another, and erases each one.
+// While the voice search listens, the heard words take the place of the query and the microphone pulses.
 @Composable
-internal fun QueryField(query: String, recent: List<String>) {
+internal fun QueryField(query: String, recent: List<String>, voice: VoiceSearch? = null) {
     val placeholder = stringResource(R.string.search_placeholder)
     val phrases = remember(placeholder, recent) {
         listOf(placeholder) + recent.map { it.take(GHOST_MAX_LENGTH) }.filter { it != placeholder }.take(GHOST_LIMIT)
+    }
+    val listening = voice?.listening == true
+    val notice = voice?.notice?.let { stringResource(it) }
+    val line = when {
+        listening && voice.heard.isNotEmpty() -> FieldLine(voice.heard, ghostly = false)
+        listening -> FieldLine(stringResource(R.string.voice_listening), ghostly = true)
+        query.isNotEmpty() -> FieldLine(query, ghostly = false)
+        notice != null -> FieldLine(notice, ghostly = true)
+        else -> null
     }
     val measurer = rememberTextMeasurer()
     val queryStyle = Type.Title.copy(color = Palette.TextHigh)
     val ghostStyle = Type.Title.copy(color = Palette.TextHigh.copy(alpha = GHOST_ALPHA))
     val ghosts = remember(phrases) { phrases.map { measurer.measure(it, ghostStyle, maxLines = 1, softWrap = false) } }
-    val typed = remember(query) { measurer.measure(query, queryStyle, maxLines = 1, softWrap = false) }
+    val shown = remember(line) {
+        line?.let { measurer.measure(it.text, if (it.ghostly) ghostStyle else queryStyle, maxLines = 1, softWrap = false) }
+    }
     val picture = remember { FieldPicture() }
-    LaunchedEffect(query, ghosts) {
-        if (query.isEmpty()) GhostWriter(ghosts.map { it.layoutInput.text.length }).run(picture) else blink(picture)
+    LaunchedEffect(line == null, ghosts) {
+        if (line == null) GhostWriter(ghosts.map { it.layoutInput.text.length }).run(picture) else blink(picture)
+    }
+    LaunchedEffect(notice) {
+        if (notice != null) {
+            delay(NOTICE_MILLIS)
+            voice?.clearNotice()
+        }
     }
     Row(
         modifier = Modifier
@@ -78,25 +99,46 @@ internal fun QueryField(query: String, recent: List<String>) {
             .height(48.dp)
             .background(Palette.Surface, Shapes.Panel)
             .padding(horizontal = 14.dp)
-            .clearAndSetSemantics { contentDescription = query.ifEmpty { placeholder } },
+            .clearAndSetSemantics { contentDescription = line?.text ?: placeholder },
         horizontalArrangement = Arrangement.spacedBy(10.dp),
         verticalAlignment = Alignment.CenterVertically,
     ) {
         Glyph(Icons.Rounded.Search, Palette.TextMid, 20)
         Box(
             Modifier
-                .fillMaxWidth()
+                .weight(1f)
                 .fillMaxHeight()
                 .clipToBounds()
                 .drawBehind {
-                    if (query.isEmpty()) {
+                    if (shown == null) {
                         val ghost = ghosts[picture.phrase.intValue.coerceIn(ghosts.indices)]
                         drawLine(ghost, picture.shown.intValue, picture.cursorOn.value)
                     } else {
-                        drawLine(typed, query.length, picture.cursorOn.value)
+                        drawLine(shown, shown.layoutInput.text.length, picture.cursorOn.value)
                     }
                 },
         )
+        if (listening && voice != null) MicPulse(voice)
+    }
+}
+
+private class FieldLine(val text: String, val ghostly: Boolean)
+
+// A red disc that swells with the voice behind the microphone glyph. The level is read in the draw phase only.
+@Composable
+private fun MicPulse(voice: VoiceSearch) {
+    Box(
+        Modifier
+            .size(32.dp)
+            .drawBehind {
+                val calm = size.minDimension * 0.34f
+                val radius = calm + (size.minDimension / 2 - calm) * voice.level.floatValue
+                drawCircle(Palette.Accent.copy(alpha = 0.35f), radius)
+                drawCircle(Palette.Accent, calm)
+            },
+        contentAlignment = Alignment.Center,
+    ) {
+        Glyph(Icons.Rounded.Mic, Palette.TextHigh, 14)
     }
 }
 

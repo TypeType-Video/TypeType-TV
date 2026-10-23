@@ -58,6 +58,12 @@
     <string name="search_delete">Delete</string>
     <string name="search_clear">Clear</string>
     <string name="search_recent">RECENT SEARCHES</string>
+    <string name="voice_search">Search by voice</string>
+    <string name="voice_stop">Stop listening</string>
+    <string name="voice_listening">Listening…</string>
+    <string name="voice_not_heard">Didn\'t catch that. Try again.</string>
+    <string name="voice_network">Voice search needs an internet connection.</string>
+    <string name="voice_permission">Allow the microphone to search by voice.</string>
     <plurals name="search_results">
         <item quantity="one">%1$d RESULT</item>
         <item quantity="other">%1$d RESULTS</item>
