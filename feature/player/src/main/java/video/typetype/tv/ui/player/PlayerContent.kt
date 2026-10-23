@@ -114,6 +114,7 @@ fun PlayerContent(
 
     val autoAdvance = !state.isLive && preferences.autoplay && next != null && !session.upNext.dismissed
     val currentAutoAdvance by rememberUpdatedState(autoAdvance)
+    WarmNextVideo(next, autoAdvance, state, repository)
     val countdownSeconds = preferences.autoplayCountdownSeconds
     val upNextWindow = { UpNextTimeline.windowMillis(state.durationMillis, countdownSeconds) }
     val inUpNextWindow by remember(state, countdownSeconds) {
