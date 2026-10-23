@@ -177,7 +177,8 @@ fun MessagePanel(
     modifier: Modifier = Modifier,
     content: @Composable () -> Unit = {},
 ) {
-    Column(modifier = modifier.fillMaxSize().padding(top = 28.dp)) {
+    // Level with the search field on the left, so the list below keeps its room above the bottom edge.
+    Column(modifier = modifier.fillMaxSize()) {
         Box(
             modifier = Modifier.size(56.dp).clip(Shapes.Panel).background(Palette.Glass),
             contentAlignment = Alignment.Center,

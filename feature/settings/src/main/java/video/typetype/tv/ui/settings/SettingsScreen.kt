@@ -11,7 +11,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.togetherWith
 import androidx.compose.foundation.background
-import androidx.compose.foundation.focusGroup
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -38,10 +37,8 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.withFrameNanos
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.Role
@@ -61,10 +58,10 @@ import video.typetype.tv.ui.components.FocusSurface
 import video.typetype.tv.ui.components.InkBackground
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.components.Glyph
+import video.typetype.tv.ui.util.focusEntersAt
 import video.typetype.tv.ui.util.requestFocusWhenReady
 import video.typetype.tv.ui.util.trapFocusDown
 
-@OptIn(ExperimentalComposeUiApi::class)
 @Composable
 fun SettingsScreen(
     repository: ContentRepository,
@@ -127,17 +124,15 @@ fun SettingsScreen(
                 .padding(
                     start = Dimens.SafeStart,
                     end = Dimens.SafeEnd,
-                    top = Dimens.TopNavHeight + Dimens.SafeTop + 22.dp,
+                    top = Dimens.TabContentTop,
                 ),
             horizontalArrangement = Arrangement.spacedBy(36.dp),
         ) {
             Column(Modifier.width(232.dp).trapFocusDown()) {
                 TextLabel(stringResource(R.string.settings_title), Type.Headline)
                 Spacer(Modifier.height(20.dp))
-                // Coming back from a group's rows always lands on that group, never on the nearest tab: landing on
-                // a tab opens it, so the nearest one would switch groups behind the viewer's back.
                 Column(
-                    modifier = Modifier.focusProperties { enter = { firstRequester } }.focusGroup(),
+                    modifier = Modifier.focusEntersAt(firstRequester),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     groups.forEachIndexed { index, group ->

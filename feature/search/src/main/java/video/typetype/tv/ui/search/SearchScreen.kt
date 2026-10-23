@@ -151,7 +151,7 @@ fun SearchScreen(
                 .padding(
                     start = Dimens.SafeStart,
                     end = Dimens.SafeEnd,
-                    top = Dimens.TopNavHeight + Dimens.SafeTop + 22.dp,
+                    top = Dimens.TabContentTop,
                 ),
             horizontalArrangement = Arrangement.spacedBy(44.dp),
         ) {

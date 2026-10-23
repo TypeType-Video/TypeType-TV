@@ -41,6 +41,7 @@ import video.typetype.tv.navigation.Route
 import video.typetype.tv.navigation.TopTab
 import video.typetype.tv.navigation.routeTransition
 import video.typetype.tv.navigation.topTab
+import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.ui.components.TopNav
 import video.typetype.tv.ui.home.HomeScreen
@@ -242,7 +243,7 @@ fun AppRoot(
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .height(128.dp)
+                            .height(Dimens.TabContentTop)
                             .background(Palette.NavScrim),
                     )
                     TopNav(
