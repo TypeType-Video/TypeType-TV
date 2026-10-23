@@ -37,9 +37,10 @@ object Palette {
         1.0f to Ink,
     )
 
+    // Nearly opaque down to where the previous row's text stops when a row scrolls under the bar.
     val NavScrim: Brush = Brush.verticalGradient(
-        0.0f to Ink.copy(alpha = 0.94f),
-        0.7f to Ink.copy(alpha = 0.55f),
+        0.0f to Ink.copy(alpha = 0.97f),
+        0.75f to Ink.copy(alpha = 0.92f),
         1.0f to Color.Transparent,
     )
 

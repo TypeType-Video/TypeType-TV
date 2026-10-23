@@ -162,7 +162,7 @@ fun AppRoot(
                     Box(
                         Modifier
                             .fillMaxWidth()
-                            .height(112.dp)
+                            .height(128.dp)
                             .background(Palette.NavScrim),
                     )
                     TopNav(
