@@ -4,11 +4,14 @@ import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.focusable
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.graphics.BlendMode
@@ -25,6 +28,7 @@ import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.resources.R
 import video.typetype.tv.theme.Palette
+import video.typetype.tv.ui.util.requestFocusWhenReady
 
 private val TraceSize = 250.dp
 private val FinalSize = 104.dp
@@ -57,9 +61,15 @@ fun StartupSplash(onFinished: () -> Unit, modifier: Modifier = Modifier) {
     val mark = remember { SplashMark() }
     val wordmark = remember { SplashWordmark() }
     val description = stringResource(R.string.logo_description)
+    // The splash holds the focus while it plays: with nothing focused, the first arrow key would move the focus
+    // into the screen behind, onto a text field that opens the keyboard. AppEntry drops the keys meanwhile.
+    val focus = remember { FocusRequester() }
+    LaunchedEffect(Unit) { focus.requestFocusWhenReady() }
     Canvas(
         modifier
             .fillMaxSize()
+            .focusRequester(focus)
+            .focusable()
             .semantics { contentDescription = description }
             .graphicsLayer { alpha = SplashTimeline.exitAlpha(clock.value) },
     ) {

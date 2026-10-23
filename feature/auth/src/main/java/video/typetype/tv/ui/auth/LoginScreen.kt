@@ -36,6 +36,7 @@ import video.typetype.tv.data.session.Backend
 import video.typetype.tv.data.session.SessionManager
 import video.typetype.tv.data.session.SignOutReason
 import video.typetype.tv.ui.components.PillButton
+import video.typetype.tv.ui.util.LocalIntroPlaying
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
 @Composable
@@ -57,7 +58,8 @@ fun LoginScreen(
     val focus = LocalFocusManager.current
     val first = remember { FocusRequester() }
     val submitButton = remember { FocusRequester() }
-    LaunchedEffect(registering) { first.requestFocusWhenReady() }
+    val introPlaying = LocalIntroPlaying.current
+    LaunchedEffect(registering, introPlaying) { if (!introPlaying) first.requestFocusWhenReady() }
 
     fun attempt(block: suspend () -> Unit) {
         if (busy) return

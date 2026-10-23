@@ -1,6 +1,9 @@
 package video.typetype.tv.ui
 
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.ui.input.key.onPreviewKeyEvent
+import video.typetype.tv.ui.util.LocalIntroPlaying
 import video.typetype.tv.ui.util.tryLoad
 import video.typetype.tv.data.AccountBadge
 import video.typetype.tv.data.AccountInitials
@@ -37,8 +40,9 @@ fun AppEntry(container: AppContainer) {
     val state by session.state.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { session.restore() }
     var splash by rememberSaveable { mutableStateOf(true) }
-    Box(Modifier.fillMaxSize()) {
-        AppState(container, state, scope)
+    // Keys are held back while the intro plays, so the remote cannot move focus into a field behind it.
+    Box(Modifier.fillMaxSize().onPreviewKeyEvent { splash }) {
+        CompositionLocalProvider(LocalIntroPlaying provides splash) { AppState(container, state, scope) }
         if (splash) StartupSplash(onFinished = { splash = false })
     }
 }

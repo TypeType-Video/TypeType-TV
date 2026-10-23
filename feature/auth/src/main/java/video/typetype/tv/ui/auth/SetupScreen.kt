@@ -27,6 +27,7 @@ import video.typetype.tv.resources.R
 import video.typetype.tv.data.session.DiscoveryResult
 import video.typetype.tv.data.session.SessionManager
 import video.typetype.tv.ui.components.PillButton
+import video.typetype.tv.ui.util.LocalIntroPlaying
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
 @Composable
@@ -37,7 +38,8 @@ fun SetupScreen(session: SessionManager, modifier: Modifier = Modifier) {
     var certificate by remember { mutableStateOf<CertificateRequest?>(null) }
     val scope = rememberCoroutineScope()
     val addressRequester = remember { FocusRequester() }
-    LaunchedEffect(Unit) { addressRequester.requestFocusWhenReady() }
+    val introPlaying = LocalIntroPlaying.current
+    LaunchedEffect(introPlaying) { if (!introPlaying) addressRequester.requestFocusWhenReady() }
 
     fun submit() {
         if (busy) return
