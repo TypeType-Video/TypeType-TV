@@ -26,22 +26,24 @@ class RemoteVideoActivity(
     private val onLibraryChanged: () -> Unit,
 ) : VideoActivityRepository {
     private val writes = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    private val membership = LibraryMembership(
+        favorites = { api.favorites().mapTo(HashSet()) { it.link } },
+        watchLater = { api.watchLater().mapTo(HashSet()) { it.link } },
+        subscriptions = { library.subscriptions().mapTo(HashSet()) { it.channelUrl } },
+    )
 
     override suspend fun activity(video: Video): VideoActivity = coroutineScope {
-        val favorites = async { runCatching { api.favorites() }.getOrDefault(emptyList()) }
-        val watchLater = async { runCatching { api.watchLater() }.getOrDefault(emptyList()) }
-        val subscriptions = async { runCatching { library.subscriptions() }.getOrDefault(emptyList()) }
         val progress = async { runCatching { library.progress(video.id) }.getOrNull() }
+        val saved = membership.current()
         VideoActivity(
-            watchLater = watchLater.await().any { it.link == video.id },
-            favorite = favorites.await().any { it.link == video.id },
-            subscribed = video.channel.url.isNotBlank() && subscriptions.await().any { it.channelUrl == video.channel.url },
+            watchLater = video.id in saved.watchLater,
+            favorite = video.id in saved.favorites,
+            subscribed = video.channel.url.isNotBlank() && video.channel.url in saved.subscriptions,
             resumePositionMs = progress.await()?.position ?: 0L,
         )
     }
 
-    override suspend fun isSubscribed(channelUrl: String): Boolean =
-        runCatching { library.subscriptions() }.getOrDefault(emptyList()).any { it.channelUrl == channelUrl }
+    override suspend fun isSubscribed(channelUrl: String): Boolean = channelUrl in membership.current().subscriptions
 
     override suspend fun playlists(video: Video): List<PlaylistChoice> = coroutineScope {
         api.playlists()
@@ -89,11 +91,13 @@ class RemoteVideoActivity(
         } else {
             library.removeWatchLater(video.id)
         }
+        membership.update { it.copy(watchLater = it.watchLater.toggled(video.id, enabled)) }
         onLibraryChanged()
     }
 
     override suspend fun setFavorite(video: Video, enabled: Boolean) {
         if (enabled) library.addFavorite(video.id) else library.removeFavorite(video.id)
+        membership.update { it.copy(favorites = it.favorites.toggled(video.id, enabled)) }
         onLibraryChanged()
     }
 
@@ -103,6 +107,7 @@ class RemoteVideoActivity(
         } else {
             library.unsubscribe(channel.url)
         }
+        membership.update { it.copy(subscriptions = it.subscriptions.toggled(channel.url, enabled)) }
         onLibraryChanged()
     }
 
@@ -121,6 +126,8 @@ class RemoteVideoActivity(
             }
         }
     }
+
+    private fun Set<String>.toggled(value: String, enabled: Boolean): Set<String> = if (enabled) this + value else this - value
 
     private fun historyRequest(video: Video, positionMs: Long) = HistoryRequest(
         url = video.id,
