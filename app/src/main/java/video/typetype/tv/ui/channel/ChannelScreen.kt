@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
-import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.foundation.lazy.grid.itemsIndexed
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -87,7 +87,10 @@ fun ChannelScreen(
         if (dialogWasOpen && !confirmingBlock) blockButton.requestFocusWhenReady()
         dialogWasOpen = confirmingBlock
     }
-    LaunchedEffect(url) { subscribe.requestFocusWhenReady() }
+    val firstVideo = remember { FocusRequester() }
+    LaunchedEffect(url) {
+        if (state.videos.isEmpty() || !firstVideo.requestFocusWhenReady()) subscribe.requestFocusWhenReady()
+    }
     val gridState = rememberLazyGridState()
     val nearEnd by remember {
         derivedStateOf {
@@ -117,7 +120,13 @@ fun ChannelScreen(
                     PodcastRow(state.podcasts, onOpenPodcast)
                 }
             }
-            items(state.videos, key = { it.id }) { video -> VideoCard(video = video, onClick = { onOpen(video) }) }
+            itemsIndexed(state.videos, key = { _, video -> video.id }) { index, video ->
+                VideoCard(
+                    video = video,
+                    onClick = { onOpen(video) },
+                    modifier = if (index == 0) Modifier.focusRequester(firstVideo) else Modifier,
+                )
+            }
         }
         if (confirmingBlock) {
             ConfirmDialog(
