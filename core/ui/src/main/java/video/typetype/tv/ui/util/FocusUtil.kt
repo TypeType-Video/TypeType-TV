@@ -30,3 +30,8 @@ fun Modifier.trapFocus(directions: List<FocusDirection>): Modifier =
             if (direction in directions) FocusRequester.Cancel else FocusRequester.Default
         }
     }.focusGroup()
+
+// A list of tabs whose focused tab opens its content: coming back into the list always lands on the open tab, never
+// on the nearest one, which would switch the content behind the viewer's back.
+@OptIn(ExperimentalComposeUiApi::class)
+fun Modifier.focusEntersAt(openTab: FocusRequester): Modifier = focusProperties { enter = { openTab } }.focusGroup()

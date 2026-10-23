@@ -32,6 +32,7 @@ import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.FocusSurface
 import video.typetype.tv.ui.components.Glyph
 import video.typetype.tv.ui.components.TextLabel
+import video.typetype.tv.ui.util.focusEntersAt
 import video.typetype.tv.ui.util.trapFocusDown
 
 @Composable
@@ -45,7 +46,7 @@ internal fun LibraryRail(
     Column(modifier = modifier.width(232.dp).trapFocusDown()) {
         TextLabel(stringResource(R.string.library_title), Type.Headline)
         Spacer(Modifier.height(20.dp))
-        Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        Column(Modifier.focusEntersAt(selectedRequester), verticalArrangement = Arrangement.spacedBy(6.dp)) {
             tabs.forEach { section ->
                 val isSelected = section.id == selected.id
                 RailItem(
