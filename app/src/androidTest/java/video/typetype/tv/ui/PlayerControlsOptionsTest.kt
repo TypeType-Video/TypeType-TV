@@ -8,6 +8,9 @@ import androidx.compose.ui.test.performClick
 import org.junit.Assert.assertEquals
 import androidx.compose.ui.test.onNodeWithText
 import androidx.test.platform.app.InstrumentationRegistry
+import androidx.compose.ui.test.onRoot
+import androidx.compose.ui.test.getBoundsInRoot
+import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
 import video.typetype.tv.resources.R
@@ -69,5 +72,26 @@ class PlayerControlsOptionsTest {
         assertEquals("channel", opened)
         rule.onNode(hasContentDescription(context.getString(R.string.menu_description))).performClick()
         assertEquals("description", opened)
+    }
+
+    @Test
+    fun manyChoicesWithALongAudioNameStillFitOnTheScreen() {
+        rule.setContent {
+            PlayerControls(
+                video.copy(channel = video.channel.copy(url = "https://c.example")),
+                remember { PlayerUiState() },
+                PlayerPreferences(
+                    true, true, "English (auto-generated)", true, "1080p",
+                    audioLabel = "French (FR) original", commentsPanelAvailable = true,
+                ),
+                actions,
+                remember { FocusRequester() },
+            )
+        }
+        val screen = rule.onRoot().getBoundsInRoot().right
+        val more = rule.onNode(hasContentDescription(context.getString(R.string.player_more_description))).getBoundsInRoot()
+        assertTrue(more.right <= screen)
+        rule.onNodeWithText("French (FR) original").assertDoesNotExist()
+        rule.onNodeWithText(context.getString(R.string.menu_comments)).assertIsDisplayed()
     }
 }
