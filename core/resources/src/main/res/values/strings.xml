@@ -303,6 +303,15 @@
     <string name="settings_intro_off">Off</string>
     <string name="settings_forget_decoders">Check the video decoders again</string>
     <string name="settings_forget_decoders_summary">Gives another chance to the video formats that failed on this TV.</string>
+    <string name="settings_group_updates">Updates</string>
+    <string name="settings_check_updates">Check for updates</string>
+    <string name="settings_check_updates_summary">Looks for a newer version of TypeType TV now.</string>
+    <string name="settings_update_channel">Update channel</string>
+    <string name="settings_update_channel_summary">Betas bring new features first and may still have bugs.</string>
+    <string name="settings_update_channel_stable">Stable</string>
+    <string name="settings_update_channel_beta">Beta</string>
+    <string name="settings_update_on_start">Check when the app opens</string>
+    <string name="settings_update_on_start_summary">Asks GitHub, where TypeType TV is published, when the app opens and every few hours while it stays open.</string>
     <string name="settings_blocked_count">Blocked channels</string>
     <string name="settings_blocked_unblock">Select to unblock this channel</string>
     <string name="channel_block">Block channel</string>

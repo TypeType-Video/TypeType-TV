@@ -30,9 +30,12 @@ import androidx.compose.material.icons.rounded.SmartDisplay
 import androidx.compose.material.icons.rounded.MovieFilter
 import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.material.icons.rounded.Smartphone
+import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.SwapHoriz
 import androidx.compose.material.icons.rounded.Tune
+import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material.icons.rounded.VideoLibrary
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -62,6 +65,9 @@ internal fun SettingItem.icon(): ImageVector = when {
         "backdrop" -> Icons.Rounded.Wallpaper
         "intro" -> Icons.Rounded.MovieFilter
         "forget-decoders" -> Icons.Rounded.Restore
+        "check-updates" -> Icons.Rounded.SystemUpdate
+        "update-channel" -> Icons.Rounded.Science
+        "update-on-start" -> Icons.Rounded.Update
         "guest", "name" -> Icons.Rounded.Person
         "email" -> Icons.Rounded.AlternateEmail
         "role" -> Icons.Rounded.Badge
