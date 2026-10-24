@@ -20,7 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
+import androidx.compose.runtime.snapshotFlow
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.filterNotNull
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentRepository
@@ -61,13 +64,13 @@ fun DetailScreen(
         if (!activityFromPreview) controller.load(loaded)
         related = tryLoad({}) { repository.related(videoId) }.orEmpty()
     }
-    // With Play under the focus, the player's session is prepared while the page is read; a page left at once
-    // prepares nothing.
+    // With Play under the focus, the player's session is prepared while the page is read, from the card's own
+    // details when it came from one; a page left at once prepares nothing.
     val preload = LocalPlaybackPreload.current
-    LaunchedEffect(video?.id) {
-        val loaded = video ?: return@LaunchedEffect
+    LaunchedEffect(videoId) {
         delay(PRELOAD_DWELL_MILLIS)
-        preload?.preload(loaded)
+        val target = snapshotFlow { video ?: preview }.filterNotNull().first()
+        preload?.preload(target)
     }
     val shown = video ?: preview
     val state = when {
@@ -91,7 +94,7 @@ fun DetailScreen(
 
 private enum class DetailState { Loading, Failed, Shown }
 
-private const val PRELOAD_DWELL_MILLIS = 600L
+private const val PRELOAD_DWELL_MILLIS = 300L
 
 @Composable
 private fun DetailContent(
