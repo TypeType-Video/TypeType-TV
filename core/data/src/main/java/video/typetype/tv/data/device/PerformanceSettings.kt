@@ -20,18 +20,15 @@ data class Performance(
 
 // What a slow box can turn off to stay smooth. The choice belongs to the box, not to the account: a strong
 // television and a small stick signed in to the same account each keep their own.
-class PerformanceSettings(private val store: DeviceStore) {
+class PerformanceSettings(private val store: DeviceStore) : DeviceSection {
     private val state = MutableStateFlow(read())
     val current: StateFlow<Performance> = state.asStateFlow()
 
     // The section sits with the everyday ones, before the account and the server.
-    fun addTo(groups: List<SettingsGroup>, texts: TextProvider): List<SettingsGroup> {
-        val at = groups.indexOfFirst { it.id == BEFORE_GROUP }.takeIf { it >= 0 } ?: groups.size
-        return groups.take(at) + group(texts) + groups.drop(at)
-    }
+    override fun addTo(groups: List<SettingsGroup>, texts: TextProvider): List<SettingsGroup> =
+        groups.insertBefore(BEFORE_GROUP, group(texts))
 
-    // Returns false for a setting kept on the server.
-    fun update(id: String, value: String): Boolean {
+    override fun update(id: String, value: String): Boolean {
         when (id) {
             in FLAGS -> store.putFlag(id, value.toBoolean())
             INTRO -> store.putText(id, Intro.entries.firstOrNull { it.wire == value }?.wire ?: return false)

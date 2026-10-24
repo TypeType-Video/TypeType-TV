@@ -27,5 +27,6 @@ class PreferencesDeviceStore(context: Context, name: String = PERFORMANCE) : Dev
     companion object {
         const val PERFORMANCE = "performance"
         const val DECODERS = "decoders"
+        const val UPDATES = "updates"
     }
 }

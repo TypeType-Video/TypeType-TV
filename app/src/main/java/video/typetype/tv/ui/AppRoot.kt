@@ -44,6 +44,10 @@ import video.typetype.tv.navigation.topTab
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.ui.components.TopNav
+import video.typetype.tv.ui.update.UpdateController
+import video.typetype.tv.ui.update.UpdateHost
+import video.typetype.tv.ui.update.offer
+import androidx.compose.runtime.collectAsState
 import video.typetype.tv.ui.home.HomeScreen
 import video.typetype.tv.ui.channel.ChannelScreen
 import video.typetype.tv.ui.playlist.CollectionKind
@@ -85,8 +89,10 @@ fun AppRoot(
     account: AccountBadge,
     onSettingsAction: (String) -> Unit,
     performance: Performance = Performance(),
+    updates: UpdateController,
 ) {
     val navigator = remember { MockNavigator() }
+    val updateState by updates.state.collectAsState()
     val homeSession = remember { HomeSession() }
     val searchSession = remember { SearchSession() }
     val librarySession = remember { LibrarySession() }
@@ -281,6 +287,8 @@ fun AppRoot(
                         contentEntry = homeSession.heroEntry.takeIf { activeTab == TopTab.Home },
                         navEntry = navEntry,
                         onNavFocusChange = { navFocused = it },
+                        updateVersion = updateState.offer?.target?.version?.toString(),
+                        onUpdate = updates::openPanel,
                     )
                 }
             }
@@ -296,6 +304,7 @@ fun AppRoot(
                     },
                 )
             }
+            UpdateHost(updates)
         }
     }
 }
