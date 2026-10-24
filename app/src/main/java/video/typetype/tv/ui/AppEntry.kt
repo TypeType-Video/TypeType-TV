@@ -122,6 +122,7 @@ private fun AppState(container: AppContainer, state: SessionState, scope: Corout
                             "change-instance" -> onChangeInstance()
                             "forget-certificate" -> session.forgetCertificate()
                             "mark-notifications-read" -> tryLoad({}) { repository.markNotificationsRead() }
+                            "forget-decoders" -> container.decoderFailures.forget()
                         }
                     }
                 },

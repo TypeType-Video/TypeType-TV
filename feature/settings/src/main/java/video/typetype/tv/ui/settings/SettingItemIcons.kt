@@ -25,6 +25,7 @@ import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PersonOff
 import androidx.compose.material.icons.rounded.Replay
+import androidx.compose.material.icons.rounded.Restore
 import androidx.compose.material.icons.rounded.SmartDisplay
 import androidx.compose.material.icons.rounded.MovieFilter
 import androidx.compose.material.icons.rounded.Wallpaper
@@ -60,6 +61,7 @@ internal fun SettingItem.icon(): ImageVector = when {
         "smooth-animations" -> Icons.Rounded.Speed
         "backdrop" -> Icons.Rounded.Wallpaper
         "intro" -> Icons.Rounded.MovieFilter
+        "forget-decoders" -> Icons.Rounded.Restore
         "guest", "name" -> Icons.Rounded.Person
         "email" -> Icons.Rounded.AlternateEmail
         "role" -> Icons.Rounded.Badge

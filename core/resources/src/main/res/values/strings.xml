@@ -301,6 +301,8 @@
     <string name="settings_intro_full">Full</string>
     <string name="settings_intro_short">Short</string>
     <string name="settings_intro_off">Off</string>
+    <string name="settings_forget_decoders">Check the video decoders again</string>
+    <string name="settings_forget_decoders_summary">Gives another chance to the video formats that failed on this TV.</string>
     <string name="settings_blocked_count">Blocked channels</string>
     <string name="settings_blocked_unblock">Select to unblock this channel</string>
     <string name="channel_block">Block channel</string>

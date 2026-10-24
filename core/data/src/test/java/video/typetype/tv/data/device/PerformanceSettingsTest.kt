@@ -88,5 +88,6 @@ class PerformanceSettingsTest {
         val intro = items.filterIsInstance<SettingItem.Choice>().single()
         assertEquals(listOf("full", "short", "off"), intro.wireValues)
         assertEquals(1, intro.defaultIndex)
+        assertEquals("forget-decoders", items.filterIsInstance<SettingItem.Action>().single().id)
     }
 }

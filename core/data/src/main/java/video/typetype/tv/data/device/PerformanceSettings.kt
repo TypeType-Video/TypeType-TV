@@ -59,6 +59,7 @@ class PerformanceSettings(private val store: DeviceStore) {
                     wireValues = Intro.entries.map { it.wire },
                     summaryRes = R.string.settings_intro_summary,
                 ),
+                SettingItem.Action(FORGET_DECODERS, R.string.settings_forget_decoders, R.string.settings_forget_decoders_summary),
             ),
         )
     }
@@ -79,6 +80,7 @@ class PerformanceSettings(private val store: DeviceStore) {
         const val SMOOTH_ANIMATIONS = "smooth-animations"
         const val BACKDROP = "backdrop"
         const val INTRO = "intro"
+        const val FORGET_DECODERS = "forget-decoders"
         val FLAGS = setOf(ANIMATED_AVATAR, VIDEO_PREVIEWS, SMOOTH_ANIMATIONS, BACKDROP)
     }
 }
