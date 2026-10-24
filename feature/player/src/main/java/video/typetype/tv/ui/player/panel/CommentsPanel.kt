@@ -51,6 +51,7 @@ import video.typetype.tv.ui.detail.CommentsState
 import video.typetype.tv.ui.detail.commentDescription
 import video.typetype.tv.ui.detail.commentLikesLabel
 import video.typetype.tv.ui.detail.commentRepliesLabel
+import video.typetype.tv.ui.util.WithKeylineScroll
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
 private const val PREFETCH_ITEMS = 3
@@ -59,6 +60,7 @@ private const val REPLY_BODY_LINES = 6
 private const val FIRST_PAGE_SKELETONS = 4
 private const val NEXT_PAGE_SKELETONS = 2
 private val REPLY_INDENT = 28.dp
+private val ROW_GAP = 8.dp
 
 @Composable
 fun CommentsPanel(state: CommentsState, onClose: () -> Unit) {
@@ -87,17 +89,20 @@ fun CommentsPanel(state: CommentsState, onClose: () -> Unit) {
                 TextLabel(message, Type.Body.copy(color = Palette.TextHigh), maxLines = 2)
             }
         } else {
-            LazyColumn(state = listState, contentPadding = SheetContentPadding, verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                itemsIndexed(rows, key = { _, row -> row.key }) { index, row ->
-                    LaunchedEffect(index, state.comments.size) {
-                        if (index >= rows.size - PREFETCH_ITEMS) state.loadMore()
+            // The focused card's top sits one gap below the edge, so nothing of the card above shows.
+            WithKeylineScroll(ROW_GAP) {
+                LazyColumn(state = listState, contentPadding = SheetContentPadding, verticalArrangement = Arrangement.spacedBy(ROW_GAP)) {
+                    itemsIndexed(rows, key = { _, row -> row.key }) { index, row ->
+                        LaunchedEffect(index, state.comments.size) {
+                            if (index >= rows.size - PREFETCH_ITEMS) state.loadMore()
+                        }
+                        val focus = when {
+                            index == 0 -> Modifier.focusRequester(entry)
+                            row is CommentRow.Top && row.comment.id == restoreId -> Modifier.focusRequester(restore)
+                            else -> Modifier
+                        }
+                        RowContent(row, state, focus) { restoreId = it }
                     }
-                    val focus = when {
-                        index == 0 -> Modifier.focusRequester(entry)
-                        row is CommentRow.Top && row.comment.id == restoreId -> Modifier.focusRequester(restore)
-                        else -> Modifier
-                    }
-                    RowContent(row, state, focus) { restoreId = it }
                 }
             }
         }
@@ -196,16 +201,17 @@ private fun CommentCard(comment: Comment, repliesOpen: Boolean, modifier: Modifi
                     AsyncImage(still, null, Modifier.size(if (reply) 26.dp else 32.dp), contentScale = ContentScale.Crop)
                 }
             }
-            TextLabel(comment.author, Type.Title, Modifier.weight(1f), maxLines = 1)
+            TextLabel(comment.author, Type.Title, Modifier.weight(1f, fill = false), maxLines = 1)
+            if (comment.published.isNotBlank()) TextLabel(comment.published, Type.Meta, maxLines = 1)
+            Spacer(Modifier.weight(1f))
             if (comment.pinned) Glyph(Icons.Rounded.PushPin, Palette.AccentSoft, 18)
             if (comment.hearted) Glyph(Icons.Rounded.Favorite, Palette.Accent, 18)
         }
-        if (comment.published.isNotBlank()) TextLabel(comment.published, Type.Meta, maxLines = 1)
-        Spacer(Modifier.height(8.dp))
+        Spacer(Modifier.height(6.dp))
         TextLabel(comment.text, Type.Body.copy(color = Palette.TextHigh), maxLines = if (reply) REPLY_BODY_LINES else BODY_LINES)
         val footer = listOfNotNull(commentLikesLabel(comment), commentRepliesLabel(comment).takeIf { !reply })
         if (footer.isNotEmpty()) {
-            Spacer(Modifier.height(8.dp))
+            Spacer(Modifier.height(6.dp))
             Row(horizontalArrangement = Arrangement.spacedBy(14.dp), verticalAlignment = Alignment.CenterVertically) {
                 footer.forEach { TextLabel(it, Type.Meta, maxLines = 1) }
                 if (canOpen) {
