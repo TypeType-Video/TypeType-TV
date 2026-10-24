@@ -80,7 +80,11 @@ class RemoteContentRepository(
     override suspend fun related(id: String): List<Video> {
         if (filter.visibility().hideRelatedVideos) return emptyList()
         val now = clock()
-        return branding.apply(filter.allowed(stream(id).relatedStreams.mapNotNull { it.toVideo(now) }).take(RELATED_LIMIT))
+        val stream = stream(id)
+        val related = branding.apply(filter.allowed(stream.relatedStreams.mapNotNull { it.toVideo(now) }))
+        return relatedOrLatest(id, related, stream.uploaderUrl, RELATED_LIMIT) { url ->
+            channel(url, null, ChannelTab.Videos, null, null).videos
+        }
     }
 
     override suspend fun search(query: String, source: ContentSource, kind: SearchKind, page: String?): SearchResults = watch.watch {
