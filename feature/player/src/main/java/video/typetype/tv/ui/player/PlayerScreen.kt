@@ -42,23 +42,26 @@ fun PlayerScreen(
     LaunchedEffect(videoId) { comments = tryLoad({}) { repository.bulletComments(videoId) }.orEmpty() }
     DisposableEffect(controller) { onDispose { controller.release() } }
     when (val phase = controller.phase) {
-        is PlaybackPhase.Playing -> PlayerContent(
-            handle = phase.handle,
-            video = controller.video ?: preview,
-            queue = queue,
-            startWithControls = startWithControls,
-            setup = controller.setup,
-            qualityCap = controller.qualityCap,
-            choices = choices,
-            bulletComments = comments,
-            repository = repository,
-            onQualityChange = controller::setQuality,
-            onAudioChange = controller::setAudioTrack,
-            onPlayerError = { error -> controller.onPlayerError(phase.handle, error) },
-            onOpenNext = onOpenNext,
-            modifier = modifier,
-            onOpenChannel = onOpenChannel,
-        )
+        is PlaybackPhase.Playing -> {
+            FrameDropWatch(phase.handle.player) { controller.framesStruggling(phase.handle) }
+            PlayerContent(
+                handle = phase.handle,
+                video = controller.video ?: preview,
+                queue = queue,
+                startWithControls = startWithControls,
+                setup = controller.setup,
+                qualityCap = controller.qualityCap,
+                choices = choices,
+                bulletComments = comments,
+                repository = repository,
+                onQualityChange = controller::setQuality,
+                onAudioChange = controller::setAudioTrack,
+                onPlayerError = { error -> controller.onPlayerError(phase.handle, error) },
+                onOpenNext = onOpenNext,
+                modifier = modifier,
+                onOpenChannel = onOpenChannel,
+            )
+        }
         is PlaybackPhase.Reconnecting -> ReconnectingPanel(phase.attempt, phase.offline, modifier)
         is PlaybackPhase.Failed -> PlayerFailure(phase.message, onRetry = controller::retry, modifier = modifier)
         PlaybackPhase.Opening -> OpeningPoster(controller.video ?: preview, visible = true, modifier = modifier)

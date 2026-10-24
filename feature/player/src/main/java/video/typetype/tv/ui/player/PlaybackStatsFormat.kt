@@ -31,6 +31,12 @@ object PlaybackStatsFormat {
         return if (parts.isEmpty()) UNKNOWN else parts.joinToString("  ")
     }
 
+    // Android's own decoders run on the processor; the others belong to the box's video hardware.
+    fun isSoftwareDecoder(name: String?): Boolean =
+        name != null && SOFTWARE_PREFIXES.any { name.startsWith(it, ignoreCase = true) }
+
+    private val SOFTWARE_PREFIXES = listOf("OMX.google.", "c2.android.", "c2.google.")
+
     fun speed(multiplier: Float): String = "${multiplier}x".replace(".0x", "x")
 
     const val UNKNOWN = "-"

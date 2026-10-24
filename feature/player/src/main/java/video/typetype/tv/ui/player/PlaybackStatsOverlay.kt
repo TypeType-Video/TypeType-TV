@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -43,10 +44,20 @@ data class PlaybackStatsSnapshot(
 @Composable
 fun PlaybackStatsOverlay(player: ExoPlayer, modifier: Modifier = Modifier) {
     var bandwidth by remember(player) { mutableLongStateOf(0L) }
+    var decoder by remember(player) { mutableStateOf<String?>(null) }
     DisposableEffect(player) {
         val listener = object : AnalyticsListener {
             override fun onBandwidthEstimate(eventTime: AnalyticsListener.EventTime, totalLoadTimeMs: Int, totalBytesLoaded: Long, bitrateEstimate: Long) {
                 bandwidth = bitrateEstimate
+            }
+
+            override fun onVideoDecoderInitialized(
+                eventTime: AnalyticsListener.EventTime,
+                decoderName: String,
+                initializedTimestampMs: Long,
+                initializationDurationMs: Long,
+            ) {
+                decoder = decoderName
             }
         }
         player.addAnalyticsListener(listener)
@@ -63,6 +74,8 @@ fun PlaybackStatsOverlay(player: ExoPlayer, modifier: Modifier = Modifier) {
     Column(modifier.clip(Shapes.Panel).background(Palette.Scrim).padding(horizontal = 16.dp, vertical = 12.dp)) {
         TextLabel("${stringResource(R.string.stats_video)}  ${snapshot.video}", style, maxLines = 2)
         TextLabel("${stringResource(R.string.stats_audio)}  ${snapshot.audio}", style, maxLines = 2)
+        val kind = stringResource(if (PlaybackStatsFormat.isSoftwareDecoder(decoder)) R.string.stats_decoder_software else R.string.stats_decoder_hardware)
+        TextLabel("${stringResource(R.string.stats_decoder)}  ${decoder?.let { "$it  $kind" } ?: PlaybackStatsFormat.UNKNOWN}", style, maxLines = 2)
         TextLabel("${stringResource(R.string.stats_dropped)}  ${snapshot.droppedFrames}", style, maxLines = 1)
         TextLabel("${stringResource(R.string.stats_buffer)}  ${PlaybackStatsFormat.seconds(snapshot.bufferMillis)}", style, maxLines = 1)
         TextLabel("${stringResource(R.string.stats_network)}  ${PlaybackStatsFormat.bitrate(snapshot.bandwidthBitsPerSecond)}", style, maxLines = 1)
