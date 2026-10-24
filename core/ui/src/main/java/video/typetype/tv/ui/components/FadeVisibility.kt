@@ -13,12 +13,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.graphicsLayer
 
-/**
- * Fades content in and out without an offscreen layer: the alpha is applied to each draw call
- * (ModulateAlpha) instead of rendering the subtree into a full-size texture first, which costs a
- * whole extra pass on the TV GPU for every frame of the fade. Overlapping translucent children
- * show through each other while the fade runs, which is invisible at this speed.
- */
+// Fades content in and out without an offscreen layer: the alpha is applied to each draw call (ModulateAlpha) instead
+// of rendering the subtree into a full-size texture first, which costs a whole extra pass on the TV GPU for every frame
+// of the fade. Overlapping translucent children show through each other while the fade runs, which is invisible at this
+// speed.
 @Composable
 fun FadeVisibility(
     visible: Boolean,

@@ -13,13 +13,11 @@ import androidx.media3.exoplayer.SeekParameters
 import androidx.media3.exoplayer.text.TextOutput
 import androidx.media3.exoplayer.text.TextRenderer
 
-/**
- * Every player of the app is built here. ExoPlayer's defaults wait for 2.5 s of media before starting and 5 s after a
- * stall and keep 50 s ahead with no memory cap: slow starts and recoveries, and an out-of-memory risk on TV boxes whose
- * Java heap (where the media buffer lives) is often 128 MB. Here the player keeps 10 to 20 s ahead and 10 s behind,
- * capped in bytes by the device memory class, starts after 1 s and resumes 2 s after a stall. Seeks land on the
- * nearest key frame, as on the web player.
- */
+// Every player of the app is built here. ExoPlayer's defaults wait for 2.5 s of media before starting and 5 s after a
+// stall and keep 50 s ahead with no memory cap: slow starts and recoveries, and an out-of-memory risk on TV boxes whose
+// Java heap (where the media buffer lives) is often 128 MB. Here the player keeps 10 to 20 s ahead and 10 s behind,
+// capped in bytes by the device memory class, starts after 1 s and resumes 2 s after a stall. Seeks land on the nearest
+// key frame, as on the web player.
 @UnstableApi
 object TvPlayers {
     fun create(context: Context, preview: Boolean = false): ExoPlayer {

@@ -27,7 +27,7 @@ object PlaybackRequests {
         trace = trace,
     )
 
-    // Where a video starts: its resume point when it was left part way, the beginning otherwise.
+    // The same rule as the progress bar on cards: a video barely started or nearly finished starts from the beginning.
     suspend fun resumeStart(repository: VideoActivityRepository, video: Video?): Long {
         if (video == null) return 0L
         val position = try {

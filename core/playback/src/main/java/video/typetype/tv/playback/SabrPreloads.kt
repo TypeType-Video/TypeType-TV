@@ -33,7 +33,7 @@ internal class SabrPreloads<K, T : Any>(
 
     private val entries = LinkedHashMap<K, Entry>()
 
-    // Starts preparing the target, unless it is already prepared or on its way.
+    // With two preparations already waiting, the oldest is released to make room for the new one.
     @Synchronized
     fun reserve(target: K, prepare: suspend () -> T) {
         dropExpired()

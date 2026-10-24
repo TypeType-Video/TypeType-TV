@@ -27,8 +27,8 @@ import java.io.IOException
 private const val PREVIEW_MAX_HEIGHT = 480
 
 // A muted, low-quality playback behind a browse screen. Nothing is recorded: no history, no progress.
-// One PlayerView serves every preview of a screen: on the emulator a second SurfaceView created in the same
-// place never received frames (the player decoded, video size stayed 0), so only the player is swapped.
+// One PlayerView serves every preview of a screen: a second SurfaceView created in the same place never received
+// frames (the player decoded, the video size stayed 0), so only the player is swapped.
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
 fun MutedPreview(video: Video?, playback: PlaybackProvider, onPlaying: (Boolean) -> Unit, modifier: Modifier = Modifier) {
@@ -38,8 +38,8 @@ fun MutedPreview(video: Video?, playback: PlaybackProvider, onPlaying: (Boolean)
     LaunchedEffect(video?.id) {
         handle = null
         if (video == null) return@LaunchedEffect
-        // Previews start at the beginning, as on YouTube's TV home. A resume point inside a long video gave the
-        // SABR preview audio but no video frames on the emulator with the small preview buffer.
+        // Previews start at the beginning, as on YouTube's TV home. With the small preview buffer, a resume point
+        // inside a long video gave the SABR preview audio but no video frames.
         val request = PlaybackRequest(maxHeight = PREVIEW_MAX_HEIGHT, preview = true)
         handle = try {
             playback.open(context, video.id, request)

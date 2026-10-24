@@ -42,11 +42,8 @@ import video.typetype.tv.theme.Palette
 import video.typetype.tv.ui.components.DurationBadge
 import video.typetype.tv.ui.util.formatMillis
 
-/**
- * The playback position changes five times a second, so it is passed as lambdas and read only
- * where it is drawn or placed: a tick redraws the track and moves the badge without recomposing
- * the bar or the controls around it.
- */
+// The playback position changes five times a second, so it is passed as lambdas and read only where it is drawn or
+// placed: a tick redraws the track and moves the badge without recomposing the bar or the controls around it.
 @Composable
 fun SeekBar(
     positionMillis: () -> Long,

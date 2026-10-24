@@ -9,12 +9,10 @@ import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import java.io.IOException
 import java.util.concurrent.ConcurrentHashMap
 
-/**
- * Retries failed media loads inside the player, so a network hiccup or a busy server never throws the buffer away:
- * SABR "not ready yet" answers follow the server's pace, temporary server errors back off, and a lost connection
- * is waited out (up to ten minutes offline) instead of failing. Only what cannot get better by waiting reaches the
- * player as an error.
- */
+// Retries failed media loads inside the player, so a network hiccup or a busy server never throws the buffer away: SABR
+// "not ready yet" answers follow the server's pace, temporary server errors back off, and a lost connection is waited
+// out (up to ten minutes offline) instead of failing. Only what cannot get better by waiting reaches the player as an
+// error.
 @UnstableApi
 class MediaLoadErrorPolicy(
     private val online: () -> Boolean = { true },

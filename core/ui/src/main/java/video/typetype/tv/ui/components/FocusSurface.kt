@@ -29,10 +29,8 @@ import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.ui.util.LocalPerformance
 
-/**
- * Focus animations are read only in the layer and draw phases, so moving the focus never
- * recomposes the surface or its content; scale, lift, clip and shadow share one render node.
- */
+// Focus animations are read only in the layer and draw phases, so moving the focus never recomposes the surface or its
+// content; scale, lift, clip and shadow share one render node.
 @Composable
 fun FocusSurface(
     onClick: () -> Unit,

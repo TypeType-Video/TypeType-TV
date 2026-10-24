@@ -6,7 +6,6 @@ import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.Video
 import java.io.IOException
 
-// Builds the request the player will make for a video and hands it to the provider to prepare.
 class PlaybackPreloader(
     private val repository: ContentRepository,
     private val provider: PlaybackProvider,
