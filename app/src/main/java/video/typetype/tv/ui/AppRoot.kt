@@ -72,6 +72,10 @@ import video.typetype.tv.ui.util.LocalPerformance
 import video.typetype.tv.data.device.Performance
 import video.typetype.tv.ui.player.MutedPreview
 import video.typetype.tv.ui.components.StreamPrewarm
+import video.typetype.tv.ui.util.RemoteActivity
+import video.typetype.tv.ui.util.SettleRemote
+import video.typetype.tv.ui.util.LocalRemoteActivity
+import android.os.SystemClock
 
 @Composable
 fun AppRoot(
@@ -112,9 +116,12 @@ fun AppRoot(
     var navFocused by remember { mutableStateOf(false) }
     BackHandler(enabled = activeTab != null && !navigator.canPop() && !navFocused) { navEntry.requestFocus() }
     val focusManager = LocalFocusManager.current
+    val remote = remember { RemoteActivity() }
+    SettleRemote(remote)
     val appKeys = Modifier.onPreviewKeyEvent { event ->
         val code = event.nativeKeyEvent.keyCode
         val fresh = event.type == KeyEventType.KeyDown && event.nativeKeyEvent.repeatCount == 0
+        if (event.type == KeyEventType.KeyDown) remote.keyPressed(SystemClock.uptimeMillis())
         when {
             // The remote's search or microphone key, from any screen: the search opens listening.
             code == AndroidKeyEvent.KEYCODE_SEARCH -> {
@@ -181,6 +188,7 @@ fun AppRoot(
         LocalPlaybackPreload provides playbackPreload,
         LocalVideoPreviews provides previews,
         LocalPerformance provides performance,
+        LocalRemoteActivity provides remote,
         LocalVideoMenu provides videoMenu,
     ) {
         Box(Modifier.fillMaxSize().then(appKeys)) {

@@ -56,6 +56,7 @@ import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.util.LocalPerformance
+import video.typetype.tv.ui.util.LocalRemoteActivity
 
 @OptIn(ExperimentalComposeUiApi::class)
 @Composable
@@ -111,7 +112,7 @@ fun TopNav(
                 )
             }
         }
-        Avatar(account, animated = LocalPerformance.current.animatedAvatar, Modifier.align(Alignment.CenterEnd))
+        Avatar(account, animated = LocalPerformance.current.animatedAvatar && LocalRemoteActivity.current.idle, Modifier.align(Alignment.CenterEnd))
     }
 }
 
