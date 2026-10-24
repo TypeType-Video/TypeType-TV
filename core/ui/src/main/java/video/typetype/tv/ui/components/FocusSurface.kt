@@ -3,6 +3,7 @@ package video.typetype.tv.ui.components
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.combinedClickable
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
+import video.typetype.tv.ui.util.LocalPerformance
 
 /**
  * Focus animations are read only in the layer and draw phases, so moving the focus never
@@ -45,18 +47,21 @@ fun FocusSurface(
     content: @Composable BoxScope.(focused: Boolean) -> Unit,
 ) {
     val focused by interactionSource.collectIsFocusedAsState()
+    // Without smooth animations the focus jumps at once and casts no shadow: a slow box redraws the whole screen
+    // for every frame of an animation, and a shadow is drawn again each time.
+    val smooth = LocalPerformance.current.smoothAnimations
     val scale = animateFloatAsState(
         targetValue = if (focused) focusedScale else 1f,
-        animationSpec = spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow),
+        animationSpec = if (smooth) spring(dampingRatio = 0.78f, stiffness = Spring.StiffnessMediumLow) else snap(),
         label = "focus-scale",
     )
     val ring = animateFloatAsState(
         targetValue = if (focused) 1f else 0f,
-        animationSpec = tween(durationMillis = 170),
+        animationSpec = if (smooth) tween(durationMillis = 170) else snap(),
         label = "focus-ring",
     )
     val lift = animateDpAsState(
-        targetValue = if (focused) focusLift else 0.dp,
+        targetValue = if (focused && smooth) focusLift else 0.dp,
         animationSpec = tween(durationMillis = 220),
         label = "focus-lift",
     )

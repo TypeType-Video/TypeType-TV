@@ -129,7 +129,7 @@ class RemoteContentRepository(
             .distinct()
             .take(IDEA_LIMIT)
 
-    override suspend fun settings(): List<SettingsGroup> = performance.addTo(watch.watch { settingsSource.groups(api) })
+    override suspend fun settings(): List<SettingsGroup> = performance.addTo(watch.watch { settingsSource.groups(api) }, texts)
 
     override suspend fun startupPreferences(): StartupPreferences = userSettings.startupPreferences()
 

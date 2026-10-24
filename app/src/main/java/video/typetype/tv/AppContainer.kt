@@ -5,7 +5,7 @@ import androidx.media3.common.util.UnstableApi
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.PresenceReport
 import video.typetype.tv.data.device.PerformanceSettings
-import video.typetype.tv.data.device.PreferencesFlagStore
+import video.typetype.tv.data.device.PreferencesDeviceStore
 import video.typetype.tv.data.dto.UserProfileDto
 import video.typetype.tv.data.net.AndroidConnectivity
 import video.typetype.tv.data.net.Connectivity
@@ -36,7 +36,7 @@ class AppContainer(context: Context) {
     }
 
     private val deviceProfile by lazy { DeviceProfileStore(appContext, appVersion) }
-    val performance by lazy { PerformanceSettings(PreferencesFlagStore(appContext)) }
+    val performance by lazy { PerformanceSettings(PreferencesDeviceStore(appContext)) }
 
     fun warmUp() {
         Thread({ secrets.warmUp() }, "secrets-warmup").start()

@@ -4,6 +4,7 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
+import androidx.compose.animation.core.snap
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,6 +36,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Palette
+import video.typetype.tv.ui.util.LocalPerformance
 
 @Composable
 fun Backdrop(
@@ -63,14 +65,15 @@ fun Backdrop(
         if (surfaceShown && previews != null) {
             previews.Show(candidate?.takeIf { started }, onPlaying = { playing = it }, modifier = Modifier.fillMaxSize())
         }
+        val performance = LocalPerformance.current
         AnimatedVisibility(
-            visible = !playing,
+            visible = !playing && performance.backdrop,
             enter = fadeIn(tween(BACKDROP_FADE_MILLIS)),
             exit = fadeOut(tween(BACKDROP_FADE_MILLIS)),
         ) {
             Crossfade(
                 targetState = artwork to focusY,
-                animationSpec = tween(durationMillis = BACKDROP_FADE_MILLIS),
+                animationSpec = if (performance.smoothAnimations) tween(durationMillis = BACKDROP_FADE_MILLIS) else snap(),
                 label = "backdrop-image",
             ) { (resource, bias) ->
                 AsyncImage(

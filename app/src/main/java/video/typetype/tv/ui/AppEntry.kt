@@ -36,6 +36,7 @@ import video.typetype.tv.ui.auth.LoginScreen
 import video.typetype.tv.ui.auth.ReconnectScreen
 import video.typetype.tv.ui.auth.SetupScreen
 import video.typetype.tv.ui.components.InkBackground
+import video.typetype.tv.data.device.Intro
 import video.typetype.tv.ui.splash.StartupSplash
 
 @OptIn(UnstableApi::class)
@@ -46,7 +47,8 @@ fun AppEntry(container: AppContainer) {
     val scope = rememberCoroutineScope()
     val state by session.state.collectAsStateWithLifecycle()
     LaunchedEffect(Unit) { session.restore() }
-    var splash by rememberSaveable { mutableStateOf(true) }
+    val intro = remember { container.performance.current.value.intro }
+    var splash by rememberSaveable { mutableStateOf(intro != Intro.Off) }
     // Changing the server opens the setup screen over the app, which stays as it was below: Back returns to it
     // and gives the focus back to what had it, such as the Change instance row of the settings.
     val appFocus = remember { FocusRequester() }
@@ -78,7 +80,7 @@ fun AppEntry(container: AppContainer) {
                 )
             }
         }
-        if (splash) StartupSplash(onFinished = { splash = false })
+        if (splash) StartupSplash(onFinished = { splash = false }, short = intro == Intro.Short)
     }
 }
 

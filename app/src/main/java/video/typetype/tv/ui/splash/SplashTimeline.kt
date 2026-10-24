@@ -17,6 +17,9 @@ internal object SplashTimeline {
     private const val HOP = 210f
     private const val HOP_MOTION = 0.85f
     const val BURST = TRACE_START + (HOPS - 1) * HOP + HOP * HOP_MOTION
+
+    // The short intro starts on the last hop, so it keeps the burst, the settle and the written name.
+    const val SHORT_START = TRACE_START + (HOPS - 1) * HOP
     private const val BURST_RISE = 90f
     private const val BURST_FALL = 900f
     private const val PUNCH_RISE = 80f

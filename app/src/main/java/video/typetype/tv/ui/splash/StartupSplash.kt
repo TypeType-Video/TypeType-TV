@@ -49,13 +49,16 @@ private val Prism = listOf(
 // The whole splash is one Canvas reading one clock in the draw phase: it never recomposes while it plays,
 // and the box GPU only redraws.
 @Composable
-fun StartupSplash(onFinished: () -> Unit, modifier: Modifier = Modifier) {
+fun StartupSplash(onFinished: () -> Unit, modifier: Modifier = Modifier, short: Boolean = false) {
     val context = LocalContext.current.applicationContext
-    val clock = remember { Animatable(0f) }
+    val start = if (short) SplashTimeline.SHORT_START else 0f
+    val clock = remember { Animatable(start) }
     LaunchedEffect(Unit) {
-        // The picture waits for the sound to be ready: each hop of the mark lands on one of its notes.
-        StartupChime.play(context)
-        clock.animateTo(SplashTimeline.TOTAL.toFloat(), tween(SplashTimeline.TOTAL, easing = LinearEasing))
+        // The picture waits for the sound to be ready: each hop of the mark lands on one of its notes. The short
+        // intro plays silently.
+        if (!short) StartupChime.play(context)
+        val left = (SplashTimeline.TOTAL - start).toInt()
+        clock.animateTo(SplashTimeline.TOTAL.toFloat(), tween(left, easing = LinearEasing))
         onFinished()
     }
     val mark = remember { SplashMark() }

@@ -26,6 +26,8 @@ import androidx.compose.material.icons.rounded.Person
 import androidx.compose.material.icons.rounded.PersonOff
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.SmartDisplay
+import androidx.compose.material.icons.rounded.MovieFilter
+import androidx.compose.material.icons.rounded.Wallpaper
 import androidx.compose.material.icons.rounded.Smartphone
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.SwapHoriz
@@ -55,6 +57,9 @@ internal fun SettingItem.icon(): ImageVector = when {
         "blocked-count" -> Icons.Rounded.Block
         "animated-avatar" -> Icons.Rounded.Animation
         "video-previews" -> Icons.Rounded.SmartDisplay
+        "smooth-animations" -> Icons.Rounded.Speed
+        "backdrop" -> Icons.Rounded.Wallpaper
+        "intro" -> Icons.Rounded.MovieFilter
         "guest", "name" -> Icons.Rounded.Person
         "email" -> Icons.Rounded.AlternateEmail
         "role" -> Icons.Rounded.Badge

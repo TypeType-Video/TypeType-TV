@@ -186,7 +186,7 @@ fun AppRoot(
         Box(Modifier.fillMaxSize().then(appKeys)) {
             AnimatedContent(
                 targetState = navigator.current,
-                transitionSpec = { routeTransition(initialState, targetState) },
+                transitionSpec = { routeTransition(initialState, targetState, performance.smoothAnimations) },
                 label = "routes",
             ) { route ->
                 when (route) {

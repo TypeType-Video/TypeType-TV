@@ -290,6 +290,15 @@
     <string name="settings_animated_avatar_summary">Plays an animated picture in the top bar. Turn it off on a slow box.</string>
     <string name="settings_video_previews">Video previews</string>
     <string name="settings_video_previews_summary">Plays a muted preview behind the home page. Turn it off on a slow box.</string>
+    <string name="settings_smooth_animations">Smooth animations</string>
+    <string name="settings_smooth_animations_summary">Zooms and fades between screens, and shadows under the focused card. Turn it off on a slow box.</string>
+    <string name="settings_backdrop">Background picture</string>
+    <string name="settings_backdrop_summary">Shows the selected video\'s picture behind the home and video pages. Turn it off on a slow box.</string>
+    <string name="settings_intro">Startup intro</string>
+    <string name="settings_intro_summary">The animation and sound when the app opens.</string>
+    <string name="settings_intro_full">Full</string>
+    <string name="settings_intro_short">Short</string>
+    <string name="settings_intro_off">Off</string>
     <string name="settings_blocked_count">Blocked channels</string>
     <string name="settings_blocked_unblock">Select to unblock this channel</string>
     <string name="channel_block">Block channel</string>
