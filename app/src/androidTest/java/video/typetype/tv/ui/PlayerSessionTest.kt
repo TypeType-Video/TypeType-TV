@@ -154,4 +154,34 @@ class PlayerSessionTest {
         assertFalse(press(AndroidKeyEvent.KEYCODE_DPAD_RIGHT))
         assertFalse(session.scrub.active)
     }
+
+    @Test
+    fun aScrubHoldsThePictureThenPlaysFromTheChosenPoint() {
+        onUi {
+            player.play()
+            session.controlsVisible = false
+        }
+        press(AndroidKeyEvent.KEYCODE_DPAD_RIGHT)
+        onUi { assertFalse(player.playWhenReady) }
+        press(AndroidKeyEvent.KEYCODE_DPAD_CENTER)
+        onUi { assertTrue(player.playWhenReady) }
+    }
+
+    @Test
+    fun aCancelledScrubPlaysAgainAndAPausedVideoStaysPaused() {
+        onUi {
+            player.play()
+            session.controlsVisible = false
+        }
+        press(AndroidKeyEvent.KEYCODE_DPAD_LEFT)
+        onUi { session.back(upNextVisible = false) }
+        onUi { assertTrue(player.playWhenReady) }
+        onUi {
+            player.pause()
+            session.controlsVisible = false
+        }
+        press(AndroidKeyEvent.KEYCODE_DPAD_LEFT)
+        press(AndroidKeyEvent.KEYCODE_DPAD_CENTER)
+        onUi { assertFalse(player.playWhenReady) }
+    }
 }

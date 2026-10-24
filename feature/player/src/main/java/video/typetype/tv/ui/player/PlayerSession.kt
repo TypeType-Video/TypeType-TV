@@ -51,13 +51,31 @@ class PlayerSession(
         player.seekTo(SeekMath.target(player.currentPosition, deltaMillis, state.durationMillis))
     }
 
+    // The picture holds still while the thumb moves, as on YouTube, and plays again from the chosen point.
+    private var resumeAfterScrub = false
+
     fun scrubBy(deltaMillis: Long) {
+        if (!scrub.active) {
+            resumeAfterScrub = player.playWhenReady
+            player.pause()
+        }
         scrub.move(state.positionMillis, deltaMillis, state.durationMillis)
         controlsVisible = true
     }
 
     fun commitScrub() {
         scrub.commit()?.let(player::seekTo)
+        resumeScrubbedPlayback()
+    }
+
+    private fun cancelScrub() {
+        scrub.cancel()
+        resumeScrubbedPlayback()
+    }
+
+    private fun resumeScrubbedPlayback() {
+        if (resumeAfterScrub) player.play()
+        resumeAfterScrub = false
     }
 
     fun undoSkip(): Boolean {
@@ -96,7 +114,7 @@ class PlayerSession(
 
     fun back(upNextVisible: Boolean) {
         when {
-            scrub.active -> scrub.cancel()
+            scrub.active -> cancelScrub()
             upNextVisible -> upNext.dismiss()
             relatedOpen -> relatedOpen = false
             controlsVisible -> controlsVisible = false
