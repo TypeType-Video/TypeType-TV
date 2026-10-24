@@ -89,6 +89,11 @@ object HttpClients {
         .addInterceptor(UserAgentInterceptor(USER_AGENT))
         .build()
 
+    // Release checks and downloads go to GitHub, never to the instance, so they carry no account and no pin.
+    fun updates(): OkHttpClient = base(PinTrust())
+        .addInterceptor(UserAgentInterceptor(USER_AGENT))
+        .build()
+
     fun subtitles(): OkHttpClient = base(PinTrust())
         .addInterceptor(UserAgentInterceptor(USER_AGENT))
         .build()
