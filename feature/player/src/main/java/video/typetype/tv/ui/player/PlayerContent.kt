@@ -180,7 +180,7 @@ fun PlayerContent(
                 horizontalAlignment = Alignment.End,
                 verticalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                if (choices.statsOn) PlaybackStatsOverlay(player)
+                if (choices.statsOn) PlaybackStatsOverlay(player, decoder = { handle.videoDecoder })
                 SponsorLabelBadge(sponsorLabel.takeIf { preferences.showCurrentSegment && session.panel == null })
             }
         }

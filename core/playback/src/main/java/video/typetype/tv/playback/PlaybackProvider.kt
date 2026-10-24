@@ -2,7 +2,9 @@ package video.typetype.tv.playback
 
 import android.content.Context
 import androidx.media3.common.C
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
+import androidx.media3.exoplayer.analytics.AnalyticsListener
 import video.typetype.tv.data.SubtitleTrack
 import video.typetype.tv.data.dto.StreamDto
 
@@ -19,6 +21,7 @@ data class PlaybackRequest(
     val preview: Boolean = false,
 )
 
+@androidx.annotation.OptIn(UnstableApi::class)
 class PlayerHandle(
     val player: ExoPlayer,
     val heights: List<Int> = emptyList(),
@@ -28,6 +31,24 @@ class PlayerHandle(
     val audioTrackId: String? = null,
     private val onRelease: () -> Unit = {},
 ) {
+    // The decoder starts once media arrives, after the handle exists; the statistics can be opened at any time.
+    @Volatile
+    var videoDecoder: String? = null
+        private set
+
+    init {
+        player.addAnalyticsListener(object : AnalyticsListener {
+            override fun onVideoDecoderInitialized(
+                eventTime: AnalyticsListener.EventTime,
+                decoderName: String,
+                initializedTimestampMs: Long,
+                initializationDurationMs: Long,
+            ) {
+                videoDecoder = decoderName
+            }
+        })
+    }
+
     fun selectCaption(language: String?) {
         player.trackSelectionParameters = player.trackSelectionParameters.buildUpon()
             .setTrackTypeDisabled(C.TRACK_TYPE_TEXT, language == null)

@@ -7,7 +7,6 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
@@ -37,27 +36,18 @@ data class PlaybackStatsSnapshot(
     val bufferMillis: Long = 0L,
     val bandwidthBitsPerSecond: Long = 0L,
     val speed: Float = 1f,
+    val decoder: String? = null,
 )
 
 @UnstableApi
 @androidx.annotation.OptIn(UnstableApi::class)
 @Composable
-fun PlaybackStatsOverlay(player: ExoPlayer, modifier: Modifier = Modifier) {
+fun PlaybackStatsOverlay(player: ExoPlayer, decoder: () -> String?, modifier: Modifier = Modifier) {
     var bandwidth by remember(player) { mutableLongStateOf(0L) }
-    var decoder by remember(player) { mutableStateOf<String?>(null) }
     DisposableEffect(player) {
         val listener = object : AnalyticsListener {
             override fun onBandwidthEstimate(eventTime: AnalyticsListener.EventTime, totalLoadTimeMs: Int, totalBytesLoaded: Long, bitrateEstimate: Long) {
                 bandwidth = bitrateEstimate
-            }
-
-            override fun onVideoDecoderInitialized(
-                eventTime: AnalyticsListener.EventTime,
-                decoderName: String,
-                initializedTimestampMs: Long,
-                initializationDurationMs: Long,
-            ) {
-                decoder = decoderName
             }
         }
         player.addAnalyticsListener(listener)
@@ -66,7 +56,7 @@ fun PlaybackStatsOverlay(player: ExoPlayer, modifier: Modifier = Modifier) {
     val currentBandwidth by rememberUpdatedState(bandwidth)
     val snapshot by produceState(PlaybackStatsSnapshot(), player) {
         while (true) {
-            value = readStats(player, currentBandwidth)
+            value = readStats(player, currentBandwidth, decoder())
             delay(REFRESH_MILLIS)
         }
     }
@@ -74,8 +64,8 @@ fun PlaybackStatsOverlay(player: ExoPlayer, modifier: Modifier = Modifier) {
     Column(modifier.clip(Shapes.Panel).background(Palette.Scrim).padding(horizontal = 16.dp, vertical = 12.dp)) {
         TextLabel("${stringResource(R.string.stats_video)}  ${snapshot.video}", style, maxLines = 2)
         TextLabel("${stringResource(R.string.stats_audio)}  ${snapshot.audio}", style, maxLines = 2)
-        val kind = stringResource(if (PlaybackStatsFormat.isSoftwareDecoder(decoder)) R.string.stats_decoder_software else R.string.stats_decoder_hardware)
-        TextLabel("${stringResource(R.string.stats_decoder)}  ${decoder?.let { "$it  $kind" } ?: PlaybackStatsFormat.UNKNOWN}", style, maxLines = 2)
+        val kind = stringResource(if (PlaybackStatsFormat.isSoftwareDecoder(snapshot.decoder)) R.string.stats_decoder_software else R.string.stats_decoder_hardware)
+        TextLabel("${stringResource(R.string.stats_decoder)}  ${snapshot.decoder?.let { "$it  $kind" } ?: PlaybackStatsFormat.UNKNOWN}", style, maxLines = 2)
         TextLabel("${stringResource(R.string.stats_dropped)}  ${snapshot.droppedFrames}", style, maxLines = 1)
         TextLabel("${stringResource(R.string.stats_buffer)}  ${PlaybackStatsFormat.seconds(snapshot.bufferMillis)}", style, maxLines = 1)
         TextLabel("${stringResource(R.string.stats_network)}  ${PlaybackStatsFormat.bitrate(snapshot.bandwidthBitsPerSecond)}", style, maxLines = 1)
@@ -85,7 +75,7 @@ fun PlaybackStatsOverlay(player: ExoPlayer, modifier: Modifier = Modifier) {
 
 @UnstableApi
 @androidx.annotation.OptIn(UnstableApi::class)
-private fun readStats(player: ExoPlayer, bandwidth: Long): PlaybackStatsSnapshot {
+private fun readStats(player: ExoPlayer, bandwidth: Long, decoder: String?): PlaybackStatsSnapshot {
     val video = player.videoFormat
     val audio = player.audioFormat
     val counters = player.videoDecoderCounters
@@ -99,6 +89,7 @@ private fun readStats(player: ExoPlayer, bandwidth: Long): PlaybackStatsSnapshot
         bufferMillis = player.totalBufferedDuration,
         bandwidthBitsPerSecond = bandwidth,
         speed = player.playbackParameters.speed,
+        decoder = decoder,
     )
 }
 
