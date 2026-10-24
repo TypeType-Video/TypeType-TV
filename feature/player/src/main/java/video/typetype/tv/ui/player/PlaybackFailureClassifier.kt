@@ -45,6 +45,9 @@ object PlaybackFailureClassifier {
         }
     }
 
+    // The decoder itself gave up: opening the same picture again fails the same way.
+    fun isDecoder(error: PlaybackException): Boolean = error.errorCode in DECODER_ERRORS
+
     fun isPermanent(status: Int): Boolean = status in 400..499 && status !in RETRYABLE_CLIENT_STATUSES
 
     fun requestId(body: ByteArray): String? =
@@ -53,4 +56,5 @@ object PlaybackFailureClassifier {
         }.getOrNull()
 
     private const val MAX_DEPTH = 8
+    private val DECODER_ERRORS = PlaybackException.ERROR_CODE_DECODER_INIT_FAILED..PlaybackException.ERROR_CODE_DECODING_RESOURCES_RECLAIMED
 }

@@ -21,7 +21,9 @@ import video.typetype.tv.data.session.DeviceProfileStore
 import video.typetype.tv.data.session.SessionManager
 import video.typetype.tv.data.session.StreamAccess
 import video.typetype.tv.playback.CodecSupport
+import video.typetype.tv.playback.DecoderFailures
 import video.typetype.tv.playback.DeviceCodecSupport
+import video.typetype.tv.playback.LearnedCodecSupport
 import video.typetype.tv.playback.PlaybackProvider
 import video.typetype.tv.playback.RoutingPlaybackProvider
 
@@ -83,11 +85,13 @@ class AppContainer(context: Context) {
     @OptIn(UnstableApi::class)
     @androidx.annotation.OptIn(UnstableApi::class)
     private fun playback(backend: Backend, access: StreamAccess): PlaybackProvider =
-        RoutingPlaybackProvider(backend, codecs, access) { connectivity.online.value }
+        RoutingPlaybackProvider(backend, codecs, access, decoderFailures) { connectivity.online.value }
 
     @OptIn(UnstableApi::class)
     @androidx.annotation.OptIn(UnstableApi::class)
-    private fun deviceCodecs(): CodecSupport = DeviceCodecSupport(appContext)
+    private fun deviceCodecs(): CodecSupport = LearnedCodecSupport(DeviceCodecSupport(appContext), decoderFailures)
+
+    val decoderFailures by lazy { DecoderFailures(PreferencesDeviceStore(appContext, PreferencesDeviceStore.DECODERS)) }
 }
 
 class SignedInServices(val repository: ContentRepository, val playback: PlaybackProvider)

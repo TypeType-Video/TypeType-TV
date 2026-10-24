@@ -56,4 +56,7 @@ interface PlaybackProvider {
 
     // Prepares what open() will need for this request, in the background; providers with nothing to prepare ignore it.
     fun preload(videoUrl: String, request: PlaybackRequest) = Unit
+
+    // A decoder of this codec failed while playing. Returns true when the next open will use another codec.
+    fun decoderFailed(mimeType: String): Boolean = false
 }

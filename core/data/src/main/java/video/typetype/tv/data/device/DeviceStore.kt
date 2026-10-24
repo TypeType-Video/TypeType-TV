@@ -13,8 +13,8 @@ interface DeviceStore {
     fun putText(key: String, value: String)
 }
 
-class PreferencesDeviceStore(context: Context) : DeviceStore {
-    private val preferences = context.getSharedPreferences(PREFERENCES, Context.MODE_PRIVATE)
+class PreferencesDeviceStore(context: Context, name: String = PERFORMANCE) : DeviceStore {
+    private val preferences = context.getSharedPreferences(name, Context.MODE_PRIVATE)
 
     override fun flag(key: String, fallback: Boolean) = preferences.getBoolean(key, fallback)
 
@@ -24,7 +24,8 @@ class PreferencesDeviceStore(context: Context) : DeviceStore {
 
     override fun putText(key: String, value: String) = preferences.edit().putString(key, value).apply()
 
-    private companion object {
-        const val PREFERENCES = "performance"
+    companion object {
+        const val PERFORMANCE = "performance"
+        const val DECODERS = "decoders"
     }
 }

@@ -22,14 +22,18 @@ fun interface CodecSupport {
 
 // Asks Media3 which decoders accept each format, size and frame rate included, as TypeType-Android does.
 // HDR formats are kept out unless the screen can show HDR: decoded on an SDR screen they look washed out.
+// Pictures larger than the largest mode the box can send to the screen are kept out too: they cost decoding and
+// memory for nothing, and some decoders that claim 4K fail on it.
 @UnstableApi
 class DeviceCodecSupport(context: Context) : CodecSupport {
     private val appContext = context.applicationContext
     private val hdrScreen: Boolean by lazy { screenSupportsHdr(appContext) }
+    private val screenLines: Int? by lazy { screenShortSide(appContext) }
     private val cache = ConcurrentHashMap<String, DecoderSupport>()
 
     override fun video(stream: VideoStreamDto): DecoderSupport {
         if (VideoCodecs.isHdr(stream.codec) && !hdrScreen) return DecoderSupport.Unsupported
+        if (!ScreenFit.fits(stream.width, stream.height, screenLines)) return DecoderSupport.Unsupported
         val key = "${stream.codec}|${stream.width}|${stream.height}|${stream.fps}"
         return cache.getOrPut(key) { query(stream) }
     }
@@ -56,10 +60,23 @@ class DeviceCodecSupport(context: Context) : CodecSupport {
         }
     }
 
+    private fun screenShortSide(context: Context): Int? {
+        val display = context.getSystemService(DisplayManager::class.java)?.getDisplay(Display.DEFAULT_DISPLAY) ?: return null
+        return display.supportedModes.maxOfOrNull { minOf(it.physicalWidth, it.physicalHeight) }?.takeIf { it > 0 }
+    }
+
     private fun screenSupportsHdr(context: Context): Boolean {
         if (Build.VERSION.SDK_INT < Build.VERSION_CODES.N) return false
         val display = context.getSystemService(DisplayManager::class.java)?.getDisplay(Display.DEFAULT_DISPLAY) ?: return false
         return display.hdrCapabilities?.supportedHdrTypes?.isNotEmpty() == true
+    }
+}
+
+object ScreenFit {
+    // Compares the short sides, so a vertical video is measured like a horizontal one.
+    fun fits(width: Int, height: Int, screenLines: Int?): Boolean {
+        if (screenLines == null || width <= 0 || height <= 0) return true
+        return minOf(width, height) <= screenLines
     }
 }
 

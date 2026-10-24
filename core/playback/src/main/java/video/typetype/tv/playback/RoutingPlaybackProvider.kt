@@ -14,6 +14,7 @@ class RoutingPlaybackProvider(
     backend: Backend,
     codecs: CodecSupport,
     access: StreamAccess,
+    private val failures: DecoderFailures? = null,
     online: () -> Boolean = { true },
 ) : PlaybackProvider {
     private val youtube = SabrPlaybackProvider(backend, codecs, access, online)
@@ -23,6 +24,8 @@ class RoutingPlaybackProvider(
     override fun preload(videoUrl: String, request: PlaybackRequest) {
         if (request.liveManifest == null && ContentSource.of(videoUrl) == ContentSource.YouTube) youtube.preload(videoUrl, request)
     }
+
+    override fun decoderFailed(mimeType: String): Boolean = failures?.record(mimeType) ?: false
 
     override suspend fun open(context: Context, videoUrl: String, request: PlaybackRequest): PlayerHandle {
         request.liveManifest?.let { return live.open(context, it, request.maxHeight) }

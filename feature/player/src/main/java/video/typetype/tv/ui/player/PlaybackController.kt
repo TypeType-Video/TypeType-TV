@@ -7,6 +7,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
+import androidx.media3.exoplayer.ExoPlaybackException
 import java.io.IOException
 import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.CoroutineScope
@@ -72,8 +73,12 @@ class PlaybackController(
 
     fun start() = launch()
 
+    // A quality chosen by the viewer is kept; only Auto steps down when the box cannot keep up.
+    private var chosenQuality = false
+
     fun setQuality(cap: Int?) {
         qualityCap = cap
+        chosenQuality = cap != null
         val live = (phase as? PlaybackPhase.Playing)?.handle?.takeIf { it.isLive }
         if (live != null) {
             live.capVideoHeight(cap)
@@ -94,6 +99,7 @@ class PlaybackController(
     fun onPlayerError(failed: PlayerHandle, error: PlaybackException? = null) {
         val current = phase as? PlaybackPhase.Playing ?: return
         if (current.handle !== failed) return
+        if (error != null && recoverDecoder(failed, error)) return
         if (error != null && PlaybackFailureClassifier.isNetwork(error) && inPlaceAttempts < MAX_IN_PLACE_ATTEMPTS) {
             prepareAgain(failed)
             return
@@ -106,6 +112,33 @@ class PlaybackController(
             return
         }
         phase = PlaybackPhase.Reconnecting(0, offline = !connectivity.online.value)
+        launch()
+    }
+
+    // A decoder that fails while playing fails again on the same picture. The box first sets the codec aside and
+    // opens the video again in another one; when there is no other codec, it opens one quality lower and stays there
+    // for the rest of this video.
+    private fun recoverDecoder(failed: PlayerHandle, error: PlaybackException): Boolean {
+        if (failed.isLive || !PlaybackFailureClassifier.isDecoder(error)) return false
+        // The player forgets its format once the renderer failed; the error keeps the one that was playing.
+        val format = (error as? ExoPlaybackException)?.rendererFormat ?: failed.player.videoFormat
+        val otherCodec = format?.sampleMimeType?.let(provider::decoderFailed) == true
+        if (!otherCodec) {
+            val failedHeight = format?.height?.takeIf { it > 0 } ?: qualityCap ?: failed.heights.maxOrNull() ?: return false
+            qualityCap = QualitySteps.below(failed.heights, failedHeight) ?: return false
+        }
+        resumeFromMs = failed.player.currentPosition.coerceAtLeast(0L)
+        failed.release()
+        phase = PlaybackPhase.Reconnecting(0, offline = false)
+        launch()
+        return true
+    }
+
+    fun framesStruggling(handle: PlayerHandle) {
+        if (chosenQuality || handle.isLive || (phase as? PlaybackPhase.Playing)?.handle !== handle) return
+        val playing = handle.player.videoFormat?.height?.takeIf { it > 0 } ?: return
+        qualityCap = QualitySteps.below(handle.heights, playing) ?: return
+        resumeFromCurrent()
         launch()
     }
 

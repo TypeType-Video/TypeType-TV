@@ -30,7 +30,8 @@ object TvPlayers {
             .setPrioritizeTimeOverSizeThresholds(false)
             .setBackBuffer(budget.backBufferMs, true)
             .build()
-        return ExoPlayer.Builder(context, SideloadedTextRenderers(context))
+        // A decoder that refuses to start leaves the next one able to play the format, often the software one.
+        return ExoPlayer.Builder(context, SideloadedTextRenderers(context).setEnableDecoderFallback(true))
             .setLoadControl(loadControl)
             .setSeekParameters(SeekParameters.CLOSEST_SYNC)
             .build()
