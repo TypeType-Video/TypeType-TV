@@ -18,6 +18,8 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -68,6 +70,8 @@ fun TopNav(
     contentEntry: FocusRequester? = null,
     navEntry: FocusRequester? = null,
     onNavFocusChange: (Boolean) -> Unit = {},
+    updateVersion: String? = null,
+    onUpdate: () -> Unit = {},
 ) {
     Box(
         modifier = modifier
@@ -112,7 +116,24 @@ fun TopNav(
                 )
             }
         }
-        Avatar(account, animated = LocalPerformance.current.animatedAvatar && LocalRemoteActivity.current.idle, Modifier.align(Alignment.CenterEnd))
+        Row(
+            modifier = Modifier.align(Alignment.CenterEnd),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+        ) {
+            if (updateVersion != null) {
+                PillButton(
+                    label = stringResource(R.string.update_pill),
+                    icon = Icons.Rounded.SystemUpdate,
+                    onClick = onUpdate,
+                    emphasized = true,
+                    compact = true,
+                    description = stringResource(R.string.update_pill_description, updateVersion),
+                    modifier = Modifier.focusProperties { contentEntry?.let { down = it } },
+                )
+            }
+            Avatar(account, animated = LocalPerformance.current.animatedAvatar && LocalRemoteActivity.current.idle)
+        }
     }
 }
 

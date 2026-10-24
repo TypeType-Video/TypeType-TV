@@ -81,6 +81,7 @@ dependencies {
     implementation(project(":feature:collections"))
     implementation(project(":feature:detail"))
     implementation(project(":feature:player"))
+    implementation(project(":feature:update"))
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.hls)
     implementation(libs.androidx.media3.datasource.okhttp)

@@ -37,6 +37,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import kotlinx.coroutines.launch
 import video.typetype.tv.AppContainer
+import video.typetype.tv.data.device.UpdateSettings
 import video.typetype.tv.data.session.SessionState
 import video.typetype.tv.ui.auth.LoginScreen
 import video.typetype.tv.ui.auth.ReconnectScreen
@@ -144,10 +145,12 @@ private fun AppState(container: AppContainer, state: SessionState, scope: Corout
                             "forget-certificate" -> session.forgetCertificate()
                             "mark-notifications-read" -> tryLoad({}) { repository.markNotificationsRead() }
                             "forget-decoders" -> container.decoderFailures.forget()
+                            UpdateSettings.CHECK_NOW -> container.updates.checkNow()
                         }
                     }
                 },
                 performance = performance,
+                updates = container.updates,
             )
         }
     }
