@@ -30,6 +30,8 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
@@ -171,6 +173,7 @@ private fun ChannelLine(video: Video) {
                 video.channel.name.take(1),
                 style = Type.Title.copy(color = Palette.AccentSoft),
             )
+            video.channel.avatarUrl?.let { AsyncImage(it, null, Modifier.size(32.dp), contentScale = ContentScale.Crop) }
         }
         Column {
             TextLabel(video.channel.name, Type.Title, maxLines = 1)
