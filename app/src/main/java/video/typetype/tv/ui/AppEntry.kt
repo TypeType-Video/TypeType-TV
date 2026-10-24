@@ -9,6 +9,7 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.foundation.focusGroup
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import android.os.Build
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
@@ -69,15 +70,16 @@ fun AppEntry(container: AppContainer) {
         appFocus.restoreFocusedChild()
         restoreFocus = false
     }
-    // Keys are held back while the intro plays, so the remote cannot move focus into a field behind it. Back always
-    // goes to the back dispatcher: before Android 13 the key reaches Compose first, which turns it into "leave the
-    // focus group", so inside a panel the first press only moved the focus.
+    // Keys are held back while the intro plays, so the remote cannot move focus into a field behind it. Before
+    // Android 13 the Back key reaches Compose first, which turns it into "leave the focus group", so inside a panel
+    // the first press only moved the focus: there it goes to the back dispatcher. From Android 13 the system sends
+    // Back to the dispatcher itself, and doing it here as well would go back twice.
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     Box(
         Modifier.fillMaxSize().onPreviewKeyEvent { event ->
             when {
                 splash -> true
-                event.key == Key.Back && backDispatcher != null -> {
+                event.key == Key.Back && backDispatcher != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU -> {
                     if (event.type == KeyEventType.KeyUp) backDispatcher.onBackPressed()
                     true
                 }
