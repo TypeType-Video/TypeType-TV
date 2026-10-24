@@ -9,6 +9,11 @@ import androidx.compose.runtime.withFrameNanos
 import androidx.compose.foundation.focusGroup
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.input.key.onPreviewKeyEvent
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.type
+import androidx.activity.compose.LocalOnBackPressedDispatcherOwner
 import video.typetype.tv.ui.util.LocalIntroPlaying
 import video.typetype.tv.ui.util.tryLoad
 import video.typetype.tv.data.AccountBadge
@@ -64,8 +69,22 @@ fun AppEntry(container: AppContainer) {
         appFocus.restoreFocusedChild()
         restoreFocus = false
     }
-    // Keys are held back while the intro plays, so the remote cannot move focus into a field behind it.
-    Box(Modifier.fillMaxSize().onPreviewKeyEvent { splash }) {
+    // Keys are held back while the intro plays, so the remote cannot move focus into a field behind it. Back always
+    // goes to the back dispatcher: before Android 13 the key reaches Compose first, which turns it into "leave the
+    // focus group", so inside a panel the first press only moved the focus.
+    val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
+    Box(
+        Modifier.fillMaxSize().onPreviewKeyEvent { event ->
+            when {
+                splash -> true
+                event.key == Key.Back && backDispatcher != null -> {
+                    if (event.type == KeyEventType.KeyUp) backDispatcher.onBackPressed()
+                    true
+                }
+                else -> false
+            }
+        },
+    ) {
         CompositionLocalProvider(LocalIntroPlaying provides splash) {
             Box(Modifier.fillMaxSize().focusRequester(appFocus).focusGroup()) {
                 AppState(container, changing?.previous ?: state, scope, changeInstance)
