@@ -162,10 +162,10 @@ fun PlayerContent(
         val opening = !state.hasFirstFrame && !state.isPlaying && !choices.audioOnly
         // With the live chat on, the picture keeps the left part of the screen and the chat its own column,
         // as YouTube's TV app does, so no message covers the stream.
-        // The channel card takes the right of the screen and the picture shrinks into what is left, whole.
+        // A side panel takes the right of the screen and the picture shrinks into what is left, whole.
         val pictureEnd = when {
             chatUrl != null -> CHAT_WIDTH
-            session.panel == PlayerPanel.Channel -> SheetWidth
+            session.panel.let { it != null && it != PlayerPanel.Playlists } -> SheetWidth
             else -> 0.dp
         }
         Box(Modifier.fillMaxSize().padding(end = pictureEnd)) {
