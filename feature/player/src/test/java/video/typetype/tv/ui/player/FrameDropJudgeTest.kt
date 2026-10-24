@@ -5,32 +5,42 @@ import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class FrameDropJudgeTest {
-    @Test
-    fun aDecoderThatKeepsUpIsLeftAlone() {
-        val judge = FrameDropJudge()
+    private fun feed(judge: FrameDropJudge, renderedPerSample: Int, droppedPerSample: Int, samples: Int): Boolean {
         var rendered = 0
-        repeat(10) {
-            rendered += 60
-            assertFalse(judge.struggling(rendered, dropped = 2))
+        var dropped = 0
+        var verdict = false
+        repeat(samples) {
+            rendered += renderedPerSample
+            dropped += droppedPerSample
+            verdict = judge.struggling(rendered, dropped)
         }
+        return verdict
     }
 
     @Test
-    fun manyDroppedFramesOverSeveralSamplesMeanTheBoxStruggles() {
-        val judge = FrameDropJudge()
-        assertFalse(judge.struggling(0, 0))
-        assertFalse(judge.struggling(50, 8))
-        assertFalse(judge.struggling(100, 16))
-        assertTrue(judge.struggling(150, 24))
+    fun aDecoderThatKeepsUpIsLeftAlone() {
+        assertFalse(feed(FrameDropJudge(), renderedPerSample = 60, droppedPerSample = 2, samples = 10))
+    }
+
+    @Test
+    fun aQuarterOfTheFramesDroppedForTenSecondsMeansTheBoxStruggles() {
+        assertTrue(feed(FrameDropJudge(), renderedPerSample = 80, droppedPerSample = 30, samples = 6))
+    }
+
+    @Test
+    fun aFewDroppedFramesAreNotEnough() {
+        assertFalse(feed(FrameDropJudge(), renderedPerSample = 110, droppedPerSample = 10, samples = 6))
     }
 
     @Test
     fun aShortBurstIsNotEnough() {
         val judge = FrameDropJudge()
         judge.struggling(0, 0)
-        judge.struggling(60, 10)
-        judge.struggling(120, 10)
-        assertFalse(judge.struggling(180, 10))
+        judge.struggling(60, 80)
+        judge.struggling(120, 80)
+        judge.struggling(180, 80)
+        judge.struggling(240, 80)
+        assertFalse(judge.struggling(300, 80))
     }
 
     @Test

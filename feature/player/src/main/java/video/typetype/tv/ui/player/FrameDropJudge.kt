@@ -3,9 +3,9 @@ package video.typetype.tv.ui.player
 // Reads the decoder's cumulative rendered and dropped frame counts, sampled while the video plays, and says when the
 // box keeps failing to show the picture in time: then the quality is too heavy for it.
 class FrameDropJudge(
-    private val windowSamples: Int = 3,
-    private val minDropped: Int = 15,
-    private val dropRatio: Float = 0.1f,
+    private val windowSamples: Int = 5,
+    private val minDropped: Int = 60,
+    private val dropRatio: Float = 0.25f,
 ) {
     private val samples = ArrayDeque<Pair<Int, Int>>()
 

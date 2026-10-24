@@ -134,8 +134,12 @@ class PlaybackController(
         return true
     }
 
+    // Reopening costs the viewer a reload, so a box that drops frames is stepped down once per video at most.
+    private var steppedForFrames = false
+
     fun framesStruggling(handle: PlayerHandle) {
-        if (chosenQuality || handle.isLive || (phase as? PlaybackPhase.Playing)?.handle !== handle) return
+        if (chosenQuality || steppedForFrames || handle.isLive || (phase as? PlaybackPhase.Playing)?.handle !== handle) return
+        steppedForFrames = true
         val playing = handle.player.videoFormat?.height?.takeIf { it > 0 } ?: return
         qualityCap = QualitySteps.below(handle.heights, playing) ?: return
         resumeFromCurrent()
