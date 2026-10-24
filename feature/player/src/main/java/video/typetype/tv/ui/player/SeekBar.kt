@@ -52,7 +52,7 @@ fun SeekBar(
     positionMillis: () -> Long,
     bufferedMillis: () -> Long,
     durationMillis: Long,
-    onScrubBy: (Long) -> Unit,
+    onScrub: (direction: Int, repeatCount: Int) -> Unit,
     onTogglePlay: () -> Unit,
     modifier: Modifier = Modifier,
     markers: List<SeekMarker> = emptyList(),
@@ -82,10 +82,10 @@ fun SeekBar(
             }
             .onKeyEvent { event ->
                 if (event.type != KeyEventType.KeyDown) return@onKeyEvent false
-                val step = SeekMath.scrubStep(event.nativeKeyEvent.repeatCount, durationMillis)
+                val repeats = event.nativeKeyEvent.repeatCount
                 when (event.key) {
-                    Key.DirectionLeft -> { onScrubBy(-step); true }
-                    Key.DirectionRight -> { onScrubBy(step); true }
+                    Key.DirectionLeft -> { onScrub(-1, repeats); true }
+                    Key.DirectionRight -> { onScrub(1, repeats); true }
                     Key.DirectionCenter, Key.Enter -> { onTogglePlay(); true }
                     else -> false
                 }

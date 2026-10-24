@@ -69,7 +69,8 @@ class PlayerSessionTest {
         press(AndroidKeyEvent.KEYCODE_DPAD_RIGHT)
         press(AndroidKeyEvent.KEYCODE_DPAD_RIGHT)
         press(AndroidKeyEvent.KEYCODE_DPAD_LEFT)
-        assertEquals(105_000L, session.scrub.target)
+        // Each press of one scrub moves a little further: +5 s, +5.25 s, then -5.51 s.
+        assertEquals(104_738L, session.scrub.target)
     }
 
     @Test

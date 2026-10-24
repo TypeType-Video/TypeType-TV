@@ -62,12 +62,12 @@ class PlayerSession(
     // The picture holds still while the thumb moves, as on YouTube, and plays again from the chosen point.
     private var resumeAfterScrub = false
 
-    fun scrubBy(deltaMillis: Long) {
+    fun scrub(direction: Int, repeatCount: Int = 0) {
         if (!scrub.active) {
             resumeAfterScrub = player.playWhenReady
             player.pause()
         }
-        scrub.move(state.positionMillis, deltaMillis, state.durationMillis)
+        scrub.move(state.positionMillis, direction, state.durationMillis, repeatCount)
         controlsVisible = true
     }
 
@@ -96,19 +96,19 @@ class PlayerSession(
         if (panel != null) return false
         if (event.type != KeyEventType.KeyDown) return false
         interaction = SystemClock.elapsedRealtime()
-        val step = SeekMath.scrubStep(event.nativeKeyEvent.repeatCount, state.durationMillis)
+        val repeats = event.nativeKeyEvent.repeatCount
         val confirm = event.key == Key.DirectionCenter || event.key == Key.Enter
         return when {
             event.key == Key.MediaPlayPause -> { togglePlay(); showControls(); true }
             scrub.active && confirm -> { commitScrub(); true }
-            scrub.active && event.key == Key.DirectionLeft -> { scrubBy(-step); true }
-            scrub.active && event.key == Key.DirectionRight -> { scrubBy(step); true }
+            scrub.active && event.key == Key.DirectionLeft -> { scrub(-1, repeats); true }
+            scrub.active && event.key == Key.DirectionRight -> { scrub(1, repeats); true }
             controlsVisible || state.isEnded -> false
             upNextVisible && confirm -> { playNext(); true }
             confirm -> { togglePlay(); showControls(); true }
             event.key == Key.DirectionLeft && notice.segment != null -> undoSkip()
-            event.key == Key.DirectionLeft || event.key == Key.MediaRewind -> { scrubBy(-step); true }
-            event.key == Key.DirectionRight || event.key == Key.MediaFastForward -> { scrubBy(step); true }
+            event.key == Key.DirectionLeft || event.key == Key.MediaRewind -> { scrub(-1, repeats); true }
+            event.key == Key.DirectionRight || event.key == Key.MediaFastForward -> { scrub(1, repeats); true }
             event.key == Key.DirectionUp -> { showControls(); true }
             event.key == Key.DirectionDown -> { showControls(fromBelow = true); true }
             else -> false

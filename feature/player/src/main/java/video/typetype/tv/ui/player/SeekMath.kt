@@ -1,24 +1,23 @@
 package video.typetype.tv.ui.player
 
+import kotlin.math.pow
+
 object SeekMath {
-    const val SHORT_STEP_MILLIS = 5_000L
-    const val LONG_STEP_MILLIS = 10_000L
     const val JUMP_MILLIS = 10_000L
-    private const val REPEATS_BEFORE_LONG_STEP = 3
-    private const val REPEATS_FOR_MEDIUM_SCRUB = 8
-    private const val REPEATS_FOR_FAST_SCRUB = 20
-    private const val MEDIUM_SCRUB_DIVISOR = 200
-    private const val FAST_SCRUB_DIVISOR = 60
-    private const val MEDIUM_STEP_MILLIS = 15_000L
-    private const val MIN_FAST_STEP_MILLIS = 30_000L
+    private const val MIN_STEP_MILLIS = 5_000L
+    private const val MIN_CAP_MILLIS = 10_000L
+    private const val CAP_DIVISOR = 40
+    private const val GROWTH = 1.05
+    private const val MAX_GROWTH_PRESSES = 200
 
-    fun stepFor(repeatCount: Int): Long =
-        if (repeatCount >= REPEATS_BEFORE_LONG_STEP) LONG_STEP_MILLIS else SHORT_STEP_MILLIS
-
-    fun scrubStep(repeatCount: Int, durationMillis: Long): Long = when {
-        repeatCount >= REPEATS_FOR_FAST_SCRUB -> (durationMillis / FAST_SCRUB_DIVISOR).coerceAtLeast(MIN_FAST_STEP_MILLIS)
-        repeatCount >= REPEATS_FOR_MEDIUM_SCRUB -> (durationMillis / MEDIUM_SCRUB_DIVISOR).coerceAtLeast(MEDIUM_STEP_MILLIS)
-        else -> stepFor(repeatCount)
+    // Every scrub starts with five-second steps and each further press moves a little further than the last. A held key
+    // repeats about twenty times a second, so the growth is gentle: one second held moves about three minutes, and the
+    // step stops at a share of the video, fifteen seconds for ten minutes, fifteen minutes for a ten-hour stream, whose
+    // middle is then about five seconds of holding away.
+    fun scrubStep(press: Int, durationMillis: Long): Long {
+        val cap = (durationMillis / CAP_DIVISOR).coerceAtLeast(MIN_CAP_MILLIS)
+        val grown = MIN_STEP_MILLIS * GROWTH.pow(press.coerceIn(0, MAX_GROWTH_PRESSES))
+        return grown.toLong().coerceIn(MIN_STEP_MILLIS, cap)
     }
 
     fun target(currentMillis: Long, deltaMillis: Long, durationMillis: Long): Long {

@@ -14,41 +14,53 @@ class ScrubAndUpNextTest {
     fun aScrubStartsFromTheCurrentPositionAndAccumulates() {
         val scrub = ScrubState()
         assertFalse(scrub.active)
-        scrub.move(60_000, 5_000, hour)
-        scrub.move(60_000, 5_000, hour)
-        assertEquals(70_000L, scrub.target)
+        scrub.move(60_000, 1, hour)
+        scrub.move(60_000, 1, hour)
+        assertEquals(70_250L, scrub.target)
         assertTrue(scrub.active)
     }
 
     @Test
     fun aScrubIsClampedToTheVideo() {
         val scrub = ScrubState()
-        scrub.move(2_000, -10_000, hour)
+        scrub.move(2_000, -1, hour)
         assertEquals(0L, scrub.target)
-        scrub.move(0, hour * 2, hour)
-        assertEquals(hour, scrub.target)
+        val end = ScrubState()
+        end.move(hour - 1_000, 1, hour)
+        assertEquals(hour, end.target)
+    }
+
+    @Test
+    fun tappingAgainMovesFurtherEachTime() {
+        val scrub = ScrubState()
+        val steps = (1..16).map {
+            val before = scrub.target ?: 0L
+            scrub.move(0, 1, hour)
+            checkNotNull(scrub.target) - before
+        }
+        assertEquals(5_000L, steps.first())
+        assertTrue(steps.zipWithNext().all { (a, b) -> b >= a })
+        assertTrue(steps.last() in 10_000L..11_000L)
     }
 
     @Test
     fun commitReturnsTheTargetOnceAndCancelDropsIt() {
         val scrub = ScrubState()
-        scrub.move(10_000, 10_000, hour)
-        assertEquals(20_000L, scrub.commit())
+        scrub.move(10_000, 1, hour)
+        assertEquals(15_000L, scrub.commit())
         assertNull(scrub.commit())
-        scrub.move(10_000, 10_000, hour)
+        scrub.move(10_000, 1, hour)
+        assertEquals(15_000L, scrub.target)
         scrub.cancel()
         assertFalse(scrub.active)
         assertNull(scrub.commit())
     }
 
     @Test
-    fun scrubStepsGrowWithTheRepeatCountAndTheVideoLength() {
+    fun scrubStepsGrowWithThePressesUpToAShareOfTheVideo() {
         assertEquals(5_000L, SeekMath.scrubStep(0, hour))
-        assertEquals(10_000L, SeekMath.scrubStep(3, hour))
-        assertEquals(18_000L, SeekMath.scrubStep(8, hour))
-        assertEquals(60_000L, SeekMath.scrubStep(20, hour))
-        assertEquals(15_000L, SeekMath.scrubStep(8, 60_000L))
-        assertEquals(30_000L, SeekMath.scrubStep(20, 60_000L))
+        assertEquals(5_250L, SeekMath.scrubStep(1, hour))
+        assertEquals(90_000L, SeekMath.scrubStep(200, hour))
     }
 
     @Test

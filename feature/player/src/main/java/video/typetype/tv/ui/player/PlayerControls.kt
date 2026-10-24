@@ -64,7 +64,7 @@ data class PlayerControlActions(
     val onToggleComments: () -> Unit = {},
     val onOpenAudio: () -> Unit = {},
     val onOpenMenu: () -> Unit = {},
-    val onScrubBy: (Long) -> Unit = {},
+    val onScrub: (direction: Int, repeatCount: Int) -> Unit = { _, _ -> },
     val onOpenComments: () -> Unit = {},
     val onShowChannel: () -> Unit = {},
     val onOpenDescription: () -> Unit = {},
@@ -200,7 +200,7 @@ private fun TimeLine(
             positionMillis = { state.positionMillis },
             bufferedMillis = { state.bufferedMillis },
             durationMillis = state.durationMillis,
-            onScrubBy = actions.onScrubBy,
+            onScrub = actions.onScrub,
             onTogglePlay = actions.onTogglePlay,
             modifier = Modifier
                 .weight(1f)

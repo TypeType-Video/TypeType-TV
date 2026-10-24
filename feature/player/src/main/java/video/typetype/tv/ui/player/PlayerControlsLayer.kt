@@ -40,7 +40,7 @@ internal fun PlayerControlsLayer(
                 onToggleComments = onToggleComments,
                 onOpenAudio = { session.openPanel(PlayerPanel.Audio, fromMenu = false, from = ControlOrigin.Audio) },
                 onOpenMenu = { session.openPanel(PlayerPanel.Menu, fromMenu = true, from = ControlOrigin.Menu) },
-                onScrubBy = session::scrubBy,
+                onScrub = session::scrub,
                 onOpenComments = { session.openPanel(PlayerPanel.Comments, fromMenu = false, from = ControlOrigin.Comments) },
                 onShowChannel = { session.openPanel(PlayerPanel.Channel, fromMenu = false, from = ControlOrigin.Channel) },
                 onOpenDescription = { session.openPanel(PlayerPanel.Info, fromMenu = false, from = ControlOrigin.Description) },
