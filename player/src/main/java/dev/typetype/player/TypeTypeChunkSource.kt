@@ -59,14 +59,7 @@ internal class TypeTypeChunkSource(
     override fun getAdjustedSeekPositionUs(
         positionUs: Long,
         seekParameters: SeekParameters,
-    ): Long {
-        val segments = track.segments
-        val nextIndex = segments.indexOfFirst { it.endPositionUs > positionUs }
-            .takeIf { it >= 0 } ?: return positionUs
-        val first = segments[nextIndex].startPositionUs
-        val second = segments.getOrNull(nextIndex + 1)?.startPositionUs ?: first
-        return seekParameters.resolveSeekPositionUs(positionUs, first, second)
-    }
+    ): Long = adjustedSeekPositionUs(track.segments, positionUs, seekParameters)
 
     override fun maybeThrowError() {
         coordinator.maybeThrowError()
@@ -159,6 +152,22 @@ internal class TypeTypeChunkSource(
     private companion object {
         const val TIMELINE_TOLERANCE_US = PLAYBACK_TIMELINE_TOLERANCE_US
     }
+}
+
+// A seek lands on a segment start only inside the segments the window knows. A target outside them, before the window
+// or after it, is kept as asked: the window is fetched again around it. Snapping it to the nearest known segment would
+// pull a seek back to the window that was playing, which made seeking backwards impossible.
+@UnstableApi
+internal fun adjustedSeekPositionUs(
+    segments: List<PlaybackSegment>,
+    positionUs: Long,
+    seekParameters: SeekParameters,
+): Long {
+    val index = segments.indexOfFirst { positionUs >= it.startPositionUs && positionUs < it.endPositionUs }
+        .takeIf { it >= 0 } ?: return positionUs
+    val first = segments[index].startPositionUs
+    val second = segments.getOrNull(index + 1)?.startPositionUs ?: first
+    return seekParameters.resolveSeekPositionUs(positionUs, first, second)
 }
 
 internal fun selectPlaybackSegment(

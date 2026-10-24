@@ -110,7 +110,8 @@ internal class TypeTypeMediaPeriod(
             streams.map { it.chunkSource.bufferedStartPositionUs },
         )
         val bufferedEndUs = loader.bufferedPositionUs
-        if (!canSeekWithinPlaybackBuffer(bufferedStartUs, positionUs, bufferedEndUs)) {
+        val inBuffer = canSeekWithinPlaybackBuffer(bufferedStartUs, positionUs, bufferedEndUs)
+        if (!inBuffer || !windowCovers(coordinator.window, positionUs)) {
             coordinator.seek(positionUs)
         }
         streams.forEach { it.seekToUs(positionUs) }
@@ -293,6 +294,14 @@ internal fun canSeekWithinPlaybackBuffer(
     return targetPositionUs >= bufferedStartUs &&
         targetPositionUs <= bufferedEndUs - LOCAL_SEEK_END_MARGIN_US
 }
+
+// What a stream reloads after a seek it cannot serve from its samples comes from the window's segments: a target
+// before them would load the window's first segment instead, after the target. Such a seek asks the server for a
+// window around it.
+internal fun windowCovers(window: PlaybackWindow?, positionUs: Long): Boolean =
+    window != null && listOfNotNull(window.audio, window.video).all { track ->
+        track.segments.first().startPositionUs <= positionUs
+    }
 
 internal fun retainedPlaybackStartUs(trackStartsUs: List<Long>): Long =
     trackStartsUs
