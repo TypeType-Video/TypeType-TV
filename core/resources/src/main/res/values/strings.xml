@@ -58,6 +58,7 @@
     <string name="player_comments_off_description">Scrolling comments off</string>
     <string name="player_quality_description">Video quality, %1$s</string>
     <string name="player_speed_description">Playback speed, %1$s</string>
+    <string name="player_open_channel">Open channel</string>
     <string name="player_seek_description">Seek bar</string>
     <string name="player_up_next">UP NEXT</string>
     <string name="player_more_videos">More videos</string>
