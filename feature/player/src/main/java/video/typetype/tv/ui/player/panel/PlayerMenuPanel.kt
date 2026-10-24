@@ -3,6 +3,7 @@ package video.typetype.tv.ui.player.panel
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Analytics
 import androidx.compose.material.icons.rounded.BookmarkAdd
@@ -68,9 +69,15 @@ private class MenuEntry(
 )
 
 @Composable
-fun PlayerMenuPanel(model: PlayerMenuModel, actions: PlayerMenuActions, onClose: () -> Unit) {
+fun PlayerMenuPanel(
+    model: PlayerMenuModel,
+    actions: PlayerMenuActions,
+    onClose: () -> Unit,
+    initialEntry: String? = null,
+    onEntry: (String) -> Unit = {},
+) {
     val entry = remember { FocusRequester() }
-    LaunchedEffect(Unit) { entry.requestFocusWhenReady() }
+    val listState = rememberLazyListState()
     val on = stringResource(R.string.menu_toggle_on)
     val off = stringResource(R.string.menu_toggle_off)
     val entries = buildList {
@@ -114,15 +121,24 @@ fun PlayerMenuPanel(model: PlayerMenuModel, actions: PlayerMenuActions, onClose:
         }
         add(MenuEntry("stats", stringResource(R.string.menu_stats), Icons.Rounded.Analytics, if (model.statsOn) on else off, actions.onStats))
     }
+    // Coming back from a section, the row that opened it has the focus again.
+    val start = entries.indexOfFirst { it.key == initialEntry }.coerceAtLeast(0)
+    LaunchedEffect(Unit) {
+        listState.scrollToItem(start)
+        entry.requestFocusWhenReady()
+    }
     PlayerSheet(stringResource(R.string.menu_title), onClose) {
-        LazyColumn(contentPadding = SheetContentPadding, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+        LazyColumn(state = listState, contentPadding = SheetContentPadding, verticalArrangement = Arrangement.spacedBy(8.dp)) {
             itemsIndexed(entries, key = { _, item -> item.key }) { index, item ->
                 SheetRow(
                     label = item.label,
                     value = item.value,
                     icon = item.icon,
-                    onClick = item.onClick,
-                    modifier = if (index == 0) Modifier.focusRequester(entry) else Modifier,
+                    onClick = {
+                        onEntry(item.key)
+                        item.onClick()
+                    },
+                    modifier = if (index == start) Modifier.focusRequester(entry) else Modifier,
                 )
             }
         }

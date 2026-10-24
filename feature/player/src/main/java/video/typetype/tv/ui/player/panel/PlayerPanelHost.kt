@@ -32,6 +32,8 @@ class PanelScene(
     val onSeek: (Long) -> Unit,
     val onOpenVideo: (Video) -> Unit,
     val onOpenChannel: (String) -> Unit,
+    val menuEntry: String?,
+    val onMenuEntry: (String) -> Unit,
     val qualityHeights: List<Int>,
     val qualitySelected: Int?,
     val playingHeight: Int?,
@@ -75,6 +77,8 @@ fun PlayerPanelHost(panel: PlayerPanel?, onPanel: (PlayerPanel?) -> Unit, scene:
                 onStats = { scene.choices.statsOn = !scene.choices.statsOn },
             ),
             onClose = { onPanel(null) },
+            initialEntry = scene.menuEntry,
+            onEntry = scene.onMenuEntry,
         )
         PlayerPanel.Chapters -> ChaptersPanel(
             chapters = video.chapters,

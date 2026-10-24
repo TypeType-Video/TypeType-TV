@@ -104,6 +104,7 @@ fun PlayerControls(
     scrubMillis: Long? = null,
     storyboard: Storyboard? = null,
     related: RelatedVideos = RelatedVideos(),
+    originFocus: Map<ControlOrigin, FocusRequester> = remember { ControlOrigin.entries.associateWith { FocusRequester() } },
 ) {
     val markers = remember(video.chapters, sponsorSegments, state.durationMillis) {
         SeekMarkers.build(video.chapters, sponsorSegments, state.durationMillis)

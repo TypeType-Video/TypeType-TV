@@ -6,6 +6,7 @@ import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
@@ -93,6 +94,15 @@ class PlayerPanelsTest {
         rule.waitForIdle()
         rule.onAllNodes(isFocused()).onFirst().performKeyInput { pressKey(Key.DirectionCenter) }
         assertEquals(listOf("chapters"), log)
+    }
+
+    @Test
+    fun theMenuOpensOnTheRowItWasLeftOnAndRemembersTheNextOne() {
+        val chosen = mutableListOf<String>()
+        rule.setContent { PlayerMenuPanel(menuModel, menuActions(), onClose = {}, initialEntry = "comments", onEntry = { chosen += it }) }
+        rule.waitForIdle()
+        rule.onAllNodes(isFocused()).onFirst().assert(hasContentDescription("Comments")).performKeyInput { pressKey(Key.DirectionCenter) }
+        assertEquals(listOf("comments"), chosen)
     }
 
     @Test

@@ -277,6 +277,7 @@ fun PlayerContent(
                 panel = session.panel,
                 onPanel = {
                     if (session.panel == PlayerPanel.Menu) session.panelFromMenu = true
+                    if (it == null) session.menuEntry = null
                     session.panel = it
                     if (it == null) session.controlsVisible = true
                 },
@@ -299,6 +300,8 @@ fun PlayerContent(
                     onSeek = { player.seekTo(it) },
                     onOpenVideo = onOpenNext,
                     onOpenChannel = onOpenChannel,
+                    menuEntry = session.menuEntry,
+                    onMenuEntry = { session.menuEntry = it },
                     qualityHeights = heights,
                     qualitySelected = qualityCap ?: preferences.maxHeight,
                     playingHeight = player.videoSize.height.takeIf { it > 0 },

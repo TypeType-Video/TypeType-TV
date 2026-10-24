@@ -14,6 +14,8 @@ import androidx.compose.material.icons.rounded.ChatBubbleOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.resources.R
@@ -27,8 +29,10 @@ internal fun PreferenceRow(
     preferences: PlayerPreferences,
     actions: PlayerControlActions,
     channel: Channel?,
+    originFocus: Map<ControlOrigin, FocusRequester>,
     modifier: Modifier = Modifier,
 ) {
+    fun opens(origin: ControlOrigin) = Modifier.focusRequester(originFocus.getValue(origin))
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
@@ -54,6 +58,7 @@ internal fun PreferenceRow(
                 label = label,
                 icon = Icons.Rounded.Language,
                 onClick = actions.onOpenAudio,
+                modifier = opens(ControlOrigin.Audio),
                 description = stringResource(R.string.player_audio_description, label),
                 maxLabelWidth = AUDIO_LABEL_MAX_WIDTH,
             )
@@ -74,6 +79,7 @@ internal fun PreferenceRow(
                 label = preferences.qualityLabel,
                 icon = Icons.Rounded.HighQuality,
                 onClick = actions.onOpenQuality,
+                modifier = opens(ControlOrigin.Quality),
                 description = stringResource(R.string.player_quality_description, preferences.qualityLabel),
             )
         }
@@ -83,6 +89,7 @@ internal fun PreferenceRow(
                 label = stringResource(R.string.menu_comments),
                 icon = Icons.Rounded.ChatBubbleOutline,
                 onClick = actions.onOpenComments,
+                modifier = opens(ControlOrigin.Comments),
                 description = stringResource(R.string.player_open_comments_description),
             )
         }
@@ -92,10 +99,17 @@ internal fun PreferenceRow(
                 name = channel.name,
                 description = stringResource(R.string.player_open_channel_description, channel.name),
                 onClick = actions.onShowChannel,
+                modifier = opens(ControlOrigin.Channel),
             )
         }
-        CircleButton(Icons.Rounded.Info, stringResource(R.string.menu_description), actions.onOpenDescription, labelOnFocus = true)
-        CircleButton(Icons.Rounded.MoreHoriz, stringResource(R.string.player_more_description), actions.onOpenMenu, labelOnFocus = true)
+        CircleButton(
+            Icons.Rounded.Info, stringResource(R.string.menu_description), actions.onOpenDescription,
+            modifier = opens(ControlOrigin.Description), labelOnFocus = true,
+        )
+        CircleButton(
+            Icons.Rounded.MoreHoriz, stringResource(R.string.player_more_description), actions.onOpenMenu,
+            modifier = opens(ControlOrigin.Menu), labelOnFocus = true,
+        )
     }
 }
 

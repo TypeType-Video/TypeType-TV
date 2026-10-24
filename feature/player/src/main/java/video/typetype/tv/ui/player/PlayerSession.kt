@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
@@ -25,7 +26,14 @@ class PlayerSession(
     var relatedOpen by mutableStateOf(false)
     var panelFromMenu by mutableStateOf(true)
 
-    fun openPanel(target: PlayerPanel, fromMenu: Boolean) {
+    // Where the focus goes back once the panels close, and the options row last chosen, so coming back from a
+    // section lands where the viewer left instead of at the top.
+    var origin by mutableStateOf<ControlOrigin?>(null)
+    val originFocus: Map<ControlOrigin, FocusRequester> = ControlOrigin.entries.associateWith { FocusRequester() }
+    var menuEntry by mutableStateOf<String?>(null)
+
+    fun openPanel(target: PlayerPanel, fromMenu: Boolean, from: ControlOrigin? = null) {
+        origin = from
         panelFromMenu = fromMenu
         relatedOpen = false
         controlsVisible = false

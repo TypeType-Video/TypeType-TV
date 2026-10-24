@@ -26,9 +26,14 @@ fun ControlsTimingEffects(
     }
     LaunchedEffect(session.controlsVisible, state.isEnded, session.panel, session.relatedOpen) {
         if (!session.controlsVisible) session.relatedOpen = false
+        val opener = session.origin?.let(session.originFocus::getValue)
         when {
             session.panel != null || session.relatedOpen -> Unit
             state.isEnded -> Unit
+            session.controlsVisible && opener != null -> {
+                session.origin = null
+                if (!opener.requestFocusWhenReady()) seek.requestFocusWhenReady()
+            }
             session.controlsVisible && session.controlsFromBelow -> play.requestFocusWhenReady()
             session.controlsVisible -> seek.requestFocusWhenReady()
             else -> root.requestFocusWhenReady()
