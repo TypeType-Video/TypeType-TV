@@ -17,7 +17,7 @@ import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.data.MockContentRepository
 import video.typetype.tv.data.net.AlwaysOnline
 import video.typetype.tv.data.net.ApiException

@@ -28,12 +28,12 @@ class PlayerControlDescriptionsTest {
         rule.setContent {
             PlayerControls(
                 video, remember { PlayerUiState() },
-                PlayerPreferences(true, true, "English", true, "720p", "1.5x", commentsAvailable = true, commentsOn = true, audioLabel = "French"),
-                PlayerControlActions({}, {}, {}, {}, {}, {}, {}),
+                PlayerPreferences(true, true, "English", true, "720p", commentsAvailable = true, commentsOn = true, audioLabel = "French"),
+                PlayerControlActions({}, {}, {}, {}, {}, {}),
                 remember { FocusRequester() },
             )
         }
-        listOf("Video quality, 720p", "Playback speed, 1.5x", "Audio language, French", "Scrolling comments on").forEach {
+        listOf("Video quality, 720p", "Audio language, French", "Scrolling comments on").forEach {
             rule.onNode(hasContentDescription(it)).assertIsDisplayed()
         }
     }

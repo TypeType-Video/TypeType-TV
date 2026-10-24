@@ -8,8 +8,8 @@ import androidx.test.platform.app.InstrumentationRegistry
 import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
-import video.typetype.tv.R
-import video.typetype.tv.ui.auth.UiMessage
+import video.typetype.tv.resources.R
+import video.typetype.tv.ui.util.UiMessage
 import video.typetype.tv.ui.components.ScreenFailure
 
 class ScreenFailureTest {

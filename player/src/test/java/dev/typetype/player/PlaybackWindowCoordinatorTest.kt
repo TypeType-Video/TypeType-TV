@@ -3,6 +3,7 @@ package dev.typetype.player
 import java.io.IOException
 import kotlin.random.Random
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -75,7 +76,7 @@ class PlaybackWindowCoordinatorTest {
     }
 
     @Test
-    fun `release cancels active seek`() {
+    fun `release cancels the active seek and leaves the loader to its owner`() {
         val loader = RecordingLoader()
         val dispatcher = RecordingDispatcher()
         val coordinator = PlaybackWindowCoordinator(loader, dispatcher)
@@ -86,7 +87,18 @@ class PlaybackWindowCoordinatorTest {
         dispatcher.runDelayed()
         assertEquals(listOf(10_000L), loader.seekPositions)
         assertTrue(loader.cancellations.all { it.cancelled })
-        assertTrue(loader.released)
+        assertFalse(loader.released)
+    }
+
+    @Test
+    fun `a coordinator made after a release can still load through the same loader`() {
+        val loader = RecordingLoader()
+        val dispatcher = RecordingDispatcher()
+        PlaybackWindowCoordinator(loader, dispatcher).release()
+
+        PlaybackWindowCoordinator(loader, dispatcher).load(30_000L)
+
+        assertEquals(1, loader.loadCount)
     }
 
     @Test

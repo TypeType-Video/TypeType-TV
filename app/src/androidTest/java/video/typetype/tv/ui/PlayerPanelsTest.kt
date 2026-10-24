@@ -6,13 +6,15 @@ import androidx.compose.ui.semantics.SemanticsNode
 import androidx.compose.ui.semantics.SemanticsProperties
 import androidx.compose.ui.semantics.getOrNull
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assert
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasClickAction
 import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.hasScrollAction
 import androidx.compose.ui.test.isFocused
 import androidx.compose.ui.test.junit4.accessibility.enableAccessibilityChecks
-import androidx.compose.ui.test.junit4.createComposeRule
+import androidx.activity.ComponentActivity
+import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.onRoot
 import androidx.compose.ui.test.performKeyInput
@@ -40,7 +42,7 @@ import video.typetype.tv.ui.player.panel.QueuePanel
 @OptIn(ExperimentalTestApi::class)
 class PlayerPanelsTest {
     @get:Rule
-    val rule = createComposeRule()
+    val rule = createAndroidComposeRule<ComponentActivity>()
 
     private val chapters = listOf(Chapter("Intro", 0), Chapter("Part one", 60), Chapter("Part two", 300))
 
@@ -70,12 +72,13 @@ class PlayerPanelsTest {
     private val menuModel = PlayerMenuModel(
         hasChapters = true, queueSize = 3, captionsAvailable = true, activity = VideoActivity(favorite = true),
         channelName = "Channel", canSubscribe = true, audioOnly = false, statsOn = true,
+        speedLabel = "1.5x",
     )
 
     private fun menuActions(log: MutableList<String> = mutableListOf()) = PlayerMenuActions(
         onChapters = { log += "chapters" }, onDescription = { log += "description" }, onComments = { log += "comments" }, onQueue = { log += "queue" },
         onFavorite = { log += "favorite" }, onWatchLater = { log += "watch-later" }, onSubscribe = { log += "subscribe" },
-        onPlaylists = { log += "playlists" }, onAudioOnly = { log += "audio-only" },
+        onPlaylists = { log += "playlists" }, onSpeed = { log += "speed" }, onAudioOnly = { log += "audio-only" },
         onCaptionStyle = { log += "caption-style" }, onStats = { log += "stats" },
     )
 
@@ -94,6 +97,15 @@ class PlayerPanelsTest {
     }
 
     @Test
+    fun theMenuOpensOnTheRowItWasLeftOnAndRemembersTheNextOne() {
+        val chosen = mutableListOf<String>()
+        rule.setContent { PlayerMenuPanel(menuModel, menuActions(), onClose = {}, initialEntry = "comments", onEntry = { chosen += it }) }
+        rule.waitForIdle()
+        rule.onAllNodes(isFocused()).onFirst().assert(hasContentDescription("Comments")).performKeyInput { pressKey(Key.DirectionCenter) }
+        assertEquals(listOf("comments"), chosen)
+    }
+
+    @Test
     fun theMenuReportsTheStateOfEachToggle() {
         rule.setContent { PlayerMenuPanel(menuModel, menuActions(), onClose = {}) }
         rule.waitForIdle()
@@ -101,6 +113,8 @@ class PlayerPanelsTest {
         rule.onNode(hasContentDescription("Subscribe to Channel")).assertExists()
         rule.onNode(hasScrollAction()).performScrollToNode(hasContentDescription("Playback statistics, On"))
         rule.onNode(hasContentDescription("Playback statistics, On")).assertExists()
+        rule.onNode(hasScrollAction()).performScrollToNode(hasContentDescription("Playback speed, 1.5x"))
+        rule.onNode(hasContentDescription("Playback speed, 1.5x")).assertExists()
     }
 
     @Test
@@ -159,7 +173,7 @@ class PlayerPanelsTest {
         var closed = 0
         rule.setContent { InfoPanel(video, onClose = { closed++ }) }
         rule.waitForIdle()
-        rule.onAllNodes(isFocused()).onFirst().performKeyInput { pressKey(Key.Back) }
+        rule.runOnUiThread { rule.activity.onBackPressedDispatcher.onBackPressed() }
         rule.waitForIdle()
         assertEquals(1, closed)
     }

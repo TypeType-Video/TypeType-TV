@@ -11,7 +11,7 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Rule
 import org.junit.Test
-import video.typetype.tv.R
+import video.typetype.tv.resources.R
 import video.typetype.tv.ui.player.SeekBar
 
 class SeekBarKeysTest {
@@ -28,7 +28,7 @@ class SeekBarKeysTest {
                 positionMillis = { 30_000 },
                 bufferedMillis = { 60_000 },
                 durationMillis = 600_000,
-                onScrubBy = { seeks += it },
+                onScrub = { direction, _ -> seeks += direction.toLong() },
                 onTogglePlay = { toggles++ },
             )
         }

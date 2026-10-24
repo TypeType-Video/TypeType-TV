@@ -31,20 +31,23 @@ synchronization. It supports YouTube, Bilibili, and NicoNico.
 
 | Home | Video details | Player |
 | --- | --- | --- |
-| ![TypeType TV home screen](assets/screenshots/tv-home.png) | ![TypeType TV video details](assets/screenshots/tv-detail.png) | ![TypeType TV player](assets/screenshots/tv-player.png) |
+| ![TypeType TV home with a muted preview](assets/screenshots/tv-home.png) | ![TypeType TV video details](assets/screenshots/tv-detail.png) | ![TypeType TV player](assets/screenshots/tv-player.png) |
 
-| Comments | Search | Settings |
+| Live chat | More videos | Search |
 | --- | --- | --- |
-| ![TypeType TV comments panel](assets/screenshots/tv-comments.png) | ![TypeType TV search with the on-screen keyboard](assets/screenshots/tv-search.png) | ![TypeType TV playback settings](assets/screenshots/tv-settings.png) |
+| ![TypeType TV live stream with its chat](assets/screenshots/tv-live-chat.png) | ![TypeType TV related videos under the player](assets/screenshots/tv-related.png) | ![TypeType TV search with the on-screen keyboard](assets/screenshots/tv-search.png) |
 
 ## Features
 
-- Browse the home feed, search videos and channels, and open channels and playlists.
+- Browse the home feed, search videos, playlists and channels, and open channels and playlists.
+- Rest on a video for two seconds to see a muted preview behind the home screen and the video details.
 - Resume videos and find your history, favorites, and Watch Later in the library.
+- Play up to 4K with AVC, VP9, AV1 or HEVC, chosen from the decoders of your device; HDR on HDR screens.
 - Choose the quality, audio language, captions and their style, and the playback speed.
 - Use chapters, SponsorBlock, the description, comments and their replies, and the Up next queue.
-- Show scrolling comments on Bilibili and NicoNico videos.
-- Watch live streams, or keep only the audio.
+- Press Down twice in the player to browse more videos without leaving playback.
+- Watch YouTube live streams with their chat beside the picture, the live audience, and the quality of your choice.
+- Show scrolling comments on Bilibili and NicoNico videos, or keep only the audio.
 - Subscribe to channels and add videos to your playlists from the player.
 
 ## Build
@@ -52,12 +55,14 @@ synchronization. It supports YouTube, Bilibili, and NicoNico.
 Requirements: JDK 17 and the Android SDK (`ANDROID_HOME` set).
 
 ```sh
-./gradlew :app:testDebugUnitTest :app:assembleDebug
+./gradlew testDebugUnitTest :app:assembleDebug
 ```
 
-The project has two modules:
+The project is split into modules:
 
-- `app`: the TV interface, built with Compose for remote-control focus, and the client for the TypeType Server API.
+- `app`: the TV application, its navigation and startup.
+- `core:*`: shared resources, the TypeType Server client, playback, the design system, and test fakes.
+- `feature:*`: one module per screen family (home, search, library, settings, collections, details, player, sign-in).
 - `player`: the Media3 source for TypeType SABR playback.
 
 ## Acknowledgements

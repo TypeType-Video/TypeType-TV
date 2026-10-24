@@ -1,0 +1,161 @@
+name: Release
+
+# A push to beta publishes a prerelease, a push to main a stable release. The version comes from app/build.gradle.kts
+# and the text from release-notes/v<version>.md, which must be in the pushed commit.
+on:
+  push:
+    branches:
+      - beta
+      - main
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: release-${{ github.ref_name }}
+  cancel-in-progress: false
+
+env:
+  CI: true
+  APPLICATION_ID: video.typetype.tv
+  ANDROID_PLATFORM: platforms;android-37.0
+  ANDROID_BUILD_TOOLS: build-tools;36.0.0
+  BUILD_TOOLS_VERSION: 36.0.0
+
+jobs:
+  verify:
+    uses: ./.github/workflows/ci.yml
+
+  publish:
+    needs: verify
+    if: ${{ github.ref_name == 'beta' || github.ref_name == 'main' }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    # The signing key lives in this environment, which only the beta and main branches can use.
+    environment: release
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v7.0.1
+
+      - name: Set up Java
+        uses: actions/setup-java@v6.0.1
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Set up Gradle
+        uses: gradle/actions/setup-gradle@v6.4.0
+
+      - name: Install Android SDK packages
+        run: yes | "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" --install "$ANDROID_PLATFORM" "$ANDROID_BUILD_TOOLS" > /dev/null
+
+      - name: Check the version
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          version="$(sed -nE 's/^val appVersion = "([^"]+)"$/\1/p' app/build.gradle.kts)"
+          case "$GITHUB_REF_NAME" in
+            beta) pattern='^[0-9]+\.[0-9]+\.[0-9]+-beta\.[1-9][0-9]?$'; channel=beta ;;
+            main) pattern='^[0-9]+\.[0-9]+\.[0-9]+$'; channel=stable ;;
+          esac
+          if [[ ! "$version" =~ $pattern ]]; then
+            echo "::error::Version '$version' does not fit the $GITHUB_REF_NAME branch"
+            exit 1
+          fi
+          tag="v$version"
+          if [ ! -f "release-notes/$tag.md" ]; then
+            echo "::error::release-notes/$tag.md is missing"
+            exit 1
+          fi
+          if gh api "repos/$GITHUB_REPOSITORY/git/ref/tags/$tag" > /dev/null 2>&1; then
+            echo "::error::Tag $tag already exists: raise the version before publishing"
+            exit 1
+          fi
+          {
+            echo "RELEASE_VERSION=$version"
+            echo "RELEASE_TAG=$tag"
+            echo "RELEASE_CHANNEL=$channel"
+          } >> "$GITHUB_ENV"
+
+      - name: Build
+        run: ./gradlew --stacktrace :app:assembleRelease
+
+      - name: Sign
+        env:
+          KEYSTORE_BASE64: ${{ secrets.TV_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.TV_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.TV_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          test -n "$KEYSTORE_BASE64" && test -n "$KEYSTORE_PASSWORD" && test -n "$KEY_ALIAS"
+          tools="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION"
+          keystore="$RUNNER_TEMP/release.jks"
+          trap 'rm -f "$keystore"' EXIT
+          printf '%s' "$KEYSTORE_BASE64" | base64 --decode > "$keystore"
+          mkdir -p artifacts
+          "$tools/zipalign" -f -P 16 4 app/build/outputs/apk/release/app-release-unsigned.apk "$RUNNER_TEMP/aligned.apk"
+          "$tools/apksigner" sign --ks "$keystore" --ks-key-alias "$KEY_ALIAS" --v4-signing-enabled false \
+            --ks-pass env:KEYSTORE_PASSWORD --key-pass env:KEYSTORE_PASSWORD \
+            --out "artifacts/TypeType-TV-$RELEASE_TAG.apk" "$RUNNER_TEMP/aligned.apk"
+
+      - name: Check the APK
+        run: |
+          set -euo pipefail
+          tools="$ANDROID_HOME/build-tools/$BUILD_TOOLS_VERSION"
+          apk="artifacts/TypeType-TV-$RELEASE_TAG.apk"
+          "$tools/zipalign" -c -P 16 4 "$apk"
+          "$tools/apksigner" verify --print-certs "$apk" | grep -E 'Signer #1 certificate (DN|SHA-256)'
+          badging="$("$tools/aapt2" dump badging "$apk" | head -n 1)"
+          echo "$badging"
+          package="$(sed -nE "s/^package: name='([^']+)'.*/\1/p" <<< "$badging")"
+          code="$(sed -nE "s/.*versionCode='([0-9]+)'.*/\1/p" <<< "$badging")"
+          name="$(sed -nE "s/.*versionName='([^']+)'.*/\1/p" <<< "$badging")"
+          test "$package" = "$APPLICATION_ID"
+          test "$name" = "$RELEASE_VERSION"
+          echo "RELEASE_CODE=$code" >> "$GITHUB_ENV"
+
+      - name: Write checksum and update manifest
+        run: |
+          set -euo pipefail
+          cd artifacts
+          apk="TypeType-TV-$RELEASE_TAG.apk"
+          sha256sum "$apk" > "$apk.sha256"
+          jq -n \
+            --arg channel "$RELEASE_CHANNEL" \
+            --arg packageName "$APPLICATION_ID" \
+            --arg versionName "$RELEASE_VERSION" \
+            --argjson versionCode "$RELEASE_CODE" \
+            --arg apkAsset "$apk" \
+            --arg sha256 "$(cut -d ' ' -f 1 "$apk.sha256")" \
+            '{schemaVersion: 1, channel: $channel, packageName: $packageName, versionName: $versionName,
+              versionCode: $versionCode, apkAsset: $apkAsset, sha256: $sha256}' > typetype-update.json
+          cat typetype-update.json
+
+      - name: Keep the files with the run
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: typetype-tv-${{ env.RELEASE_TAG }}
+          path: artifacts/
+          if-no-files-found: error
+          compression-level: 0
+          retention-days: 30
+
+      - name: Publish the release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          set -euo pipefail
+          if [ "$RELEASE_CHANNEL" = beta ]; then
+            flags=(--prerelease --latest=false)
+          else
+            flags=(--latest)
+          fi
+          gh release create "$RELEASE_TAG" artifacts/* \
+            --target "$GITHUB_SHA" \
+            --title "TypeType TV $RELEASE_VERSION" \
+            --notes-file "release-notes/$RELEASE_TAG.md" \
+            "${flags[@]}"

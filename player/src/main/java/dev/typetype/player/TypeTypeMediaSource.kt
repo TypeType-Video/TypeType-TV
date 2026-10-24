@@ -36,7 +36,7 @@ class TypeTypeMediaSource(
         val playbackCoordinator = PlaybackWindowCoordinator(windowLoader, handler)
         coordinator = playbackCoordinator
         playbackCoordinator.addListener(this)
-        val seededWindow = initialWindow
+        val seededWindow = window ?: initialWindow
         if (seededWindow == null) {
             playbackCoordinator.load(initialPositionUs)
         } else {
@@ -79,7 +79,6 @@ class TypeTypeMediaSource(
         coordinator?.release()
         coordinator = null
         transferListener = null
-        window = null
     }
 
     override fun onWindowAvailable(window: PlaybackWindow) {

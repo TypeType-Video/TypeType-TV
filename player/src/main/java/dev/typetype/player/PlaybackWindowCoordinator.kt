@@ -85,7 +85,6 @@ internal class PlaybackWindowCoordinator(
         deferredSeek = null
         isSeeking = false
         listeners.clear()
-        loader.release()
     }
 
     private fun accept(result: Result<PlaybackWindow>) {

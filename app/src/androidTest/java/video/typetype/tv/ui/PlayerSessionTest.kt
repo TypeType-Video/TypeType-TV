@@ -69,7 +69,8 @@ class PlayerSessionTest {
         press(AndroidKeyEvent.KEYCODE_DPAD_RIGHT)
         press(AndroidKeyEvent.KEYCODE_DPAD_RIGHT)
         press(AndroidKeyEvent.KEYCODE_DPAD_LEFT)
-        assertEquals(105_000L, session.scrub.target)
+        // Each press of one scrub moves a little further: +5 s, +5.25 s, then -5.51 s.
+        assertEquals(104_738L, session.scrub.target)
     }
 
     @Test
@@ -80,26 +81,42 @@ class PlayerSessionTest {
         assertFalse(session.scrub.active)
         onUi { session.controlsVisible = false }
         press(AndroidKeyEvent.KEYCODE_DPAD_LEFT)
-        assertTrue(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_DOWN))
-        assertTrue(session.scrub.active)
-        assertTrue(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_UP))
+        assertTrue(session.handlesBack(upNextVisible = false))
+        onUi { session.back(upNextVisible = false) }
         assertFalse(session.scrub.active)
     }
 
     @Test
     fun backHidesVisibleControlsBeforeLeaving() {
-        assertTrue(session.controlsVisible)
-        assertTrue(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_DOWN))
-        assertTrue(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_UP))
+        assertTrue(session.handlesBack(upNextVisible = false))
+        onUi { session.back(upNextVisible = false) }
         assertFalse(session.controlsVisible)
-        assertFalse(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_DOWN))
+        assertFalse(session.handlesBack(upNextVisible = false))
+    }
+
+    @Test
+    fun backClosesTheRelatedRowBeforeTheControls() {
+        onUi { session.relatedOpen = true }
+        onUi { session.back(upNextVisible = false) }
+        assertFalse(session.relatedOpen)
+        assertTrue(session.controlsVisible)
+    }
+
+    @Test
+    fun downFromPlaybackLandsOnTheButtons() {
+        onUi { session.controlsVisible = false }
+        assertTrue(press(AndroidKeyEvent.KEYCODE_DPAD_DOWN))
+        assertTrue(session.controlsVisible)
+        assertTrue(session.controlsFromBelow)
+        onUi { session.controlsVisible = false }
+        press(AndroidKeyEvent.KEYCODE_DPAD_UP)
+        assertFalse(session.controlsFromBelow)
     }
 
     @Test
     fun backWithNothingToCancelIsLeftToTheScreen() {
         onUi { session.controlsVisible = false }
-        assertFalse(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_DOWN))
-        assertFalse(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_UP))
+        assertFalse(session.handlesBack(upNextVisible = false))
     }
 
     @Test
@@ -107,7 +124,8 @@ class PlayerSessionTest {
         onUi { session.controlsVisible = false }
         assertTrue(press(AndroidKeyEvent.KEYCODE_DPAD_CENTER, visible = true))
         assertEquals(1, playedNext)
-        assertTrue(press(AndroidKeyEvent.KEYCODE_BACK, AndroidKeyEvent.ACTION_UP, visible = true))
+        assertTrue(session.handlesBack(upNextVisible = true))
+        onUi { session.back(upNextVisible = true) }
         assertTrue(session.upNext.dismissed)
     }
 
@@ -136,5 +154,35 @@ class PlayerSessionTest {
         onUi { session.controlsVisible = true }
         assertFalse(press(AndroidKeyEvent.KEYCODE_DPAD_RIGHT))
         assertFalse(session.scrub.active)
+    }
+
+    @Test
+    fun aScrubHoldsThePictureThenPlaysFromTheChosenPoint() {
+        onUi {
+            player.play()
+            session.controlsVisible = false
+        }
+        press(AndroidKeyEvent.KEYCODE_DPAD_RIGHT)
+        onUi { assertFalse(player.playWhenReady) }
+        press(AndroidKeyEvent.KEYCODE_DPAD_CENTER)
+        onUi { assertTrue(player.playWhenReady) }
+    }
+
+    @Test
+    fun aCancelledScrubPlaysAgainAndAPausedVideoStaysPaused() {
+        onUi {
+            player.play()
+            session.controlsVisible = false
+        }
+        press(AndroidKeyEvent.KEYCODE_DPAD_LEFT)
+        onUi { session.back(upNextVisible = false) }
+        onUi { assertTrue(player.playWhenReady) }
+        onUi {
+            player.pause()
+            session.controlsVisible = false
+        }
+        press(AndroidKeyEvent.KEYCODE_DPAD_LEFT)
+        press(AndroidKeyEvent.KEYCODE_DPAD_CENTER)
+        onUi { assertFalse(player.playWhenReady) }
     }
 }

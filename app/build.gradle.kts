@@ -4,6 +4,22 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
 }
 
+// The release workflow reads this line: "x.y.z-beta.n" is published from the beta branch, "x.y.z" from main.
+val appVersion = "0.1.1-beta.1"
+
+// The version code follows from the name, so each release installs over the one before, and a beta sits under the
+// stable release that ends it: 0.3.0-beta.2 is 30002 and 0.3.0 is 30099.
+fun versionCodeOf(name: String): Int {
+    val match = requireNotNull(Regex("""(\d+)\.(\d+)\.(\d+)(?:-beta\.(\d+))?""").matchEntire(name)) {
+        "Version $name is neither x.y.z nor x.y.z-beta.n"
+    }
+    val (major, minor, patch, beta) = match.destructured
+    require(minor.toInt() < 100 && patch.toInt() < 100) { "Minor and patch of $name stay under 100" }
+    val step = if (beta.isEmpty()) 99 else beta.toInt()
+    require(beta.isEmpty() || step in 1..98) { "The beta number of $name is 1 to 98" }
+    return major.toInt() * 1_000_000 + minor.toInt() * 10_000 + patch.toInt() * 100 + step
+}
+
 android {
     namespace = "video.typetype.tv"
     compileSdk = 37
@@ -12,8 +28,8 @@ android {
         applicationId = "video.typetype.tv"
         minSdk = 23
         targetSdk = 37
-        versionCode = 1
-        versionName = "0.2.0"
+        versionCode = versionCodeOf(appVersion)
+        versionName = appVersion
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
@@ -41,10 +57,6 @@ android {
         unitTests.isReturnDefaultValues = true
     }
 
-    sourceSets {
-        getByName("test").kotlin.srcDir("src/sharedTest/java")
-        getByName("androidTest").kotlin.srcDir("src/sharedTest/java")
-    }
 }
 
 dependencies {
@@ -57,7 +69,18 @@ dependencies {
     implementation(libs.androidx.concurrent.futures)
     implementation(libs.androidx.lifecycle.runtime.compose)
 
-    implementation(project(":player"))
+    implementation(project(":core:resources"))
+    implementation(project(":core:data"))
+    implementation(project(":core:playback"))
+    implementation(project(":core:ui"))
+    implementation(project(":feature:auth"))
+    implementation(project(":feature:home"))
+    implementation(project(":feature:search"))
+    implementation(project(":feature:library"))
+    implementation(project(":feature:settings"))
+    implementation(project(":feature:collections"))
+    implementation(project(":feature:detail"))
+    implementation(project(":feature:player"))
     implementation(libs.androidx.media3.exoplayer)
     implementation(libs.androidx.media3.exoplayer.hls)
     implementation(libs.androidx.media3.datasource.okhttp)
@@ -77,6 +100,7 @@ dependencies {
     testImplementation(libs.okhttp.mockwebserver)
     testImplementation(libs.okhttp.tls)
 
+    androidTestImplementation(project(":core:testing"))
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.compose.ui.test.junit4)
     androidTestImplementation(libs.androidx.compose.ui.test.accessibility)
