@@ -26,26 +26,27 @@ internal fun playerPreferences(
     qualityCap: Int?,
     defaultCap: Int?,
     captionIndex: Int,
-    speedIndex: Int,
     commentsAvailable: Boolean,
     commentsOn: Boolean,
     commentsAreChat: Boolean = false,
+    commentsPanelAvailable: Boolean = false,
 ): PlayerPreferences {
     val effective = qualityCap ?: defaultCap
-    val speed = SPEED_CHOICES[speedIndex]
     return PlayerPreferences(
         captionsAvailable = handle.captionLanguages.isNotEmpty(),
         captionsOn = captionIndex > 0,
         captionLabel = handle.captionLanguages.getOrNull(captionIndex - 1)?.label.orEmpty(),
         qualityAvailable = heights.size > 1,
         qualityLabel = effective?.takeIf { it in heights }?.let { "${it}p" } ?: "Auto",
-        speedLabel = "${speed}x".replace(".0x", "x"),
         commentsAvailable = commentsAvailable,
         commentsOn = commentsOn,
         commentsAreChat = commentsAreChat,
         audioLabel = audioLabel(handle.audioTracks, handle.audioTrackId),
+        commentsPanelAvailable = commentsPanelAvailable,
     )
 }
+
+internal fun speedLabel(speedIndex: Int): String = "${SPEED_CHOICES[speedIndex]}x".replace(".0x", "x")
 
 internal val SPEED_CHOICES = listOf(0.75f, 1f, 1.25f, 1.5f, 2f)
 

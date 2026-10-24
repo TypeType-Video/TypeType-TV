@@ -71,12 +71,13 @@ class PlayerPanelsTest {
     private val menuModel = PlayerMenuModel(
         hasChapters = true, queueSize = 3, captionsAvailable = true, activity = VideoActivity(favorite = true),
         channelName = "Channel", canSubscribe = true, audioOnly = false, statsOn = true,
+        speedLabel = "1.5x",
     )
 
     private fun menuActions(log: MutableList<String> = mutableListOf()) = PlayerMenuActions(
         onChapters = { log += "chapters" }, onDescription = { log += "description" }, onComments = { log += "comments" }, onQueue = { log += "queue" },
         onFavorite = { log += "favorite" }, onWatchLater = { log += "watch-later" }, onSubscribe = { log += "subscribe" },
-        onPlaylists = { log += "playlists" }, onAudioOnly = { log += "audio-only" },
+        onPlaylists = { log += "playlists" }, onSpeed = { log += "speed" }, onAudioOnly = { log += "audio-only" },
         onCaptionStyle = { log += "caption-style" }, onStats = { log += "stats" },
     )
 
@@ -102,6 +103,8 @@ class PlayerPanelsTest {
         rule.onNode(hasContentDescription("Subscribe to Channel")).assertExists()
         rule.onNode(hasScrollAction()).performScrollToNode(hasContentDescription("Playback statistics, On"))
         rule.onNode(hasContentDescription("Playback statistics, On")).assertExists()
+        rule.onNode(hasScrollAction()).performScrollToNode(hasContentDescription("Playback speed, 1.5x"))
+        rule.onNode(hasContentDescription("Playback speed, 1.5x")).assertExists()
     }
 
     @Test

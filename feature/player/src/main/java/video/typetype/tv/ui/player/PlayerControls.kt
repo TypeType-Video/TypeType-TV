@@ -60,12 +60,14 @@ data class PlayerControlActions(
     val onNext: () -> Unit,
     val onToggleCaptions: () -> Unit,
     val onOpenQuality: () -> Unit,
-    val onCycleSpeed: () -> Unit,
     val onGoLive: () -> Unit = {},
     val onToggleComments: () -> Unit = {},
     val onOpenAudio: () -> Unit = {},
     val onOpenMenu: () -> Unit = {},
     val onScrubBy: (Long) -> Unit = {},
+    val onOpenComments: () -> Unit = {},
+    val onShowChannel: () -> Unit = {},
+    val onOpenDescription: () -> Unit = {},
 )
 
 class RelatedVideos(
@@ -82,11 +84,11 @@ data class PlayerPreferences(
     val captionLabel: String,
     val qualityAvailable: Boolean,
     val qualityLabel: String,
-    val speedLabel: String,
     val commentsAvailable: Boolean = false,
     val commentsOn: Boolean = false,
     val commentsAreChat: Boolean = false,
     val audioLabel: String? = null,
+    val commentsPanelAvailable: Boolean = false,
 )
 
 @Composable
@@ -139,7 +141,7 @@ fun PlayerControls(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TransportRow(state, actions, playRequester)
-                    PreferenceRow(preferences, actions, Modifier.weight(1f, fill = false))
+                    PreferenceRow(preferences, actions, video.channel.takeIf { it.url.isNotBlank() }, Modifier.weight(1f, fill = false))
                 }
             }
             if (related.open) {

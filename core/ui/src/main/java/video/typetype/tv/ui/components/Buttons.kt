@@ -4,6 +4,10 @@ import androidx.compose.ui.unit.Constraints
 import androidx.compose.ui.layout.layout
 import androidx.compose.ui.semantics.clearAndSetSemantics
 import androidx.compose.foundation.background
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
+import coil3.compose.AsyncImage
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -22,6 +26,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorProducer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
@@ -114,6 +119,40 @@ fun CircleButton(
     onFocused: (() -> Unit)? = null,
     labelOnFocus: Boolean = false,
 ) {
+    CircleSurface(description, onClick, modifier, diameter, emphasized, onFocused, description.takeIf { labelOnFocus }) { tint ->
+        Glyph(icon, tint, (diameter * 0.5f).toInt())
+    }
+}
+
+// A round button showing a picture, such as a channel's avatar; the focused one names itself underneath.
+@Composable
+fun AvatarButton(
+    imageUrl: String?,
+    name: String,
+    description: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    diameter: Int = 44,
+) {
+    CircleSurface(description, onClick, modifier, diameter, emphasized = false, onFocused = null, label = name) { tint ->
+        BasicText(name.take(1).uppercase(), style = Type.Label, color = { tint() }, maxLines = 1)
+        if (imageUrl != null) {
+            AsyncImage(imageUrl, null, Modifier.size(diameter.dp).padding(3.dp).clip(CircleShape), contentScale = ContentScale.Crop)
+        }
+    }
+}
+
+@Composable
+private fun CircleSurface(
+    description: String,
+    onClick: () -> Unit,
+    modifier: Modifier,
+    diameter: Int,
+    emphasized: Boolean,
+    onFocused: (() -> Unit)?,
+    label: String?,
+    content: @Composable (() -> Color) -> Unit,
+) {
     val source = remember { MutableInteractionSource() }
     val focused by source.collectIsFocusedAsState()
     val container = animateColorAsState(
@@ -150,20 +189,20 @@ fun CircleButton(
                     .drawBehind { drawRect(container.value) },
                 contentAlignment = Alignment.Center,
             ) {
-                Glyph(icon, { tint.value }, (diameter * 0.5f).toInt())
+                content { tint.value }
             }
         }
         // An icon alone does not say what it does from the sofa; the focused one names itself underneath. The
         // label takes no room in the layout, so the row never moves.
-        if (labelOnFocus && focused) {
+        if (label != null && focused) {
             BasicText(
-                description,
+                label,
                 style = Type.Meta.copy(color = Palette.TextHigh),
                 maxLines = 1,
                 modifier = Modifier
                     .layout { measurable, _ ->
-                        val label = measurable.measure(Constraints())
-                        layout(0, 0) { label.place(-label.width / 2, (diameter + LABEL_GAP).dp.roundToPx()) }
+                        val text = measurable.measure(Constraints())
+                        layout(0, 0) { text.place(-text.width / 2, (diameter + LABEL_GAP).dp.roundToPx()) }
                     }
                     .background(Palette.Scrim, Shapes.Chip)
                     .padding(horizontal = 8.dp, vertical = 3.dp)

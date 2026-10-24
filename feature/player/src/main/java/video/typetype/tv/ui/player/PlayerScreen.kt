@@ -25,6 +25,7 @@ fun PlayerScreen(
     connectivity: Connectivity,
     onOpenNext: (Video) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenChannel: (String) -> Unit = {},
     startWithControls: Boolean = true,
     preview: Video? = null,
 ) {
@@ -56,6 +57,7 @@ fun PlayerScreen(
             onPlayerError = { error -> controller.onPlayerError(phase.handle, error) },
             onOpenNext = onOpenNext,
             modifier = modifier,
+            onOpenChannel = onOpenChannel,
         )
         is PlaybackPhase.Reconnecting -> ReconnectingPanel(phase.attempt, phase.offline, modifier)
         is PlaybackPhase.Failed -> PlayerFailure(phase.message, onRetry = controller::retry, modifier = modifier)

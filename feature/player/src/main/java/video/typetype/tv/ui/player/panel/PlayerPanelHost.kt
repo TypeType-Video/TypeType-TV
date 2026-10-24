@@ -14,6 +14,8 @@ import video.typetype.tv.ui.detail.VideoActivityController
 import video.typetype.tv.ui.player.ChapterPosition
 import video.typetype.tv.ui.player.PlayerChoices
 import video.typetype.tv.ui.player.PlayerPanel
+import video.typetype.tv.ui.player.SPEED_CHOICES
+import video.typetype.tv.ui.player.speedLabel
 
 class PanelScene(
     val video: Video,
@@ -29,6 +31,7 @@ class PanelScene(
     val onCaptionStyles: (CaptionStyles) -> Unit,
     val onSeek: (Long) -> Unit,
     val onOpenVideo: (Video) -> Unit,
+    val onOpenChannel: (String) -> Unit,
     val qualityHeights: List<Int>,
     val qualitySelected: Int?,
     val playingHeight: Int?,
@@ -55,6 +58,7 @@ fun PlayerPanelHost(panel: PlayerPanel?, onPanel: (PlayerPanel?) -> Unit, scene:
                 canSubscribe = video.channel.url.isNotBlank(),
                 audioOnly = scene.choices.audioOnly,
                 statsOn = scene.choices.statsOn,
+                speedLabel = speedLabel(scene.choices.speedIndex),
             ),
             actions = PlayerMenuActions(
                 onChapters = { onPanel(PlayerPanel.Chapters) },
@@ -65,6 +69,7 @@ fun PlayerPanelHost(panel: PlayerPanel?, onPanel: (PlayerPanel?) -> Unit, scene:
                 onWatchLater = { scene.activity.setWatchLater(video, !scene.activity.activity.watchLater) },
                 onSubscribe = { scene.activity.setSubscribed(video, !scene.activity.activity.subscribed) },
                 onPlaylists = { onPanel(PlayerPanel.Playlists) },
+                onSpeed = { scene.choices.speedIndex = (scene.choices.speedIndex + 1) % SPEED_CHOICES.size },
                 onAudioOnly = { scene.choices.audioOnly = !scene.choices.audioOnly },
                 onCaptionStyle = { onPanel(PlayerPanel.CaptionStyle) },
                 onStats = { scene.choices.statsOn = !scene.choices.statsOn },
@@ -81,6 +86,17 @@ fun PlayerPanelHost(panel: PlayerPanel?, onPanel: (PlayerPanel?) -> Unit, scene:
             onClose = backToMenu,
         )
         PlayerPanel.Info -> InfoPanel(video, onClose = backToMenu)
+        PlayerPanel.Channel -> ChannelPanel(
+            channel = video.channel,
+            repository = scene.repository,
+            actions = ChannelCardActions(
+                subscribed = scene.activity.activity.subscribed,
+                canSubscribe = video.channel.url.isNotBlank(),
+                onSubscribe = { scene.activity.setSubscribed(video, it) },
+                onOpenChannel = { scene.onOpenChannel(video.channel.url) },
+            ),
+            onClose = { onPanel(null) },
+        )
         PlayerPanel.Comments -> CommentsPanel(
             state = scene.comments,
             onClose = backToMenu,

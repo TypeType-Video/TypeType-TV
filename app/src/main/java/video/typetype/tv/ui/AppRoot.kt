@@ -244,6 +244,7 @@ fun AppRoot(
                         startWithControls = !route.continued,
                         preview = route.preview,
                         onOpenNext = { navigator.replaceTop(Route.Player(it.id, continued = true, preview = it)) },
+                        onOpenChannel = { navigator.push(Route.Channel(it)) },
                     )
                 }
             }

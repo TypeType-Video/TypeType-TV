@@ -4,6 +4,7 @@ import android.view.KeyEvent as AndroidKeyEvent
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.type
+import androidx.media3.common.Player
 
 class RemoteKeyActions(
     val play: () -> Unit,
@@ -13,6 +14,28 @@ class RemoteKeyActions(
     val toggleCaptions: () -> Unit,
     val openPanel: (PlayerPanel) -> Unit,
     val seekToFraction: (Float) -> Unit,
+)
+
+internal fun remoteKeyActions(
+    player: Player,
+    state: PlayerUiState,
+    session: PlayerSession,
+    choices: PlayerChoices,
+    captionCount: Int,
+    playNext: () -> Unit,
+) = RemoteKeyActions(
+    play = player::play,
+    pause = player::pause,
+    next = playNext,
+    startOver = { player.seekTo(0L) },
+    toggleCaptions = { choices.captionIndex = (choices.captionIndex + 1) % (captionCount + 1) },
+    openPanel = { session.openPanel(it, fromMenu = it == PlayerPanel.Menu) },
+    seekToFraction = { fraction ->
+        if (!state.isLive && state.durationMillis > 0) {
+            player.seekTo((state.durationMillis * fraction).toLong())
+            session.showControls()
+        }
+    },
 )
 
 // The dedicated keys many remotes carry: they reach their target in one press wherever the focus is.

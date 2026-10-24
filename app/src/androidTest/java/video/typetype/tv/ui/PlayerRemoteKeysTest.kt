@@ -54,10 +54,9 @@ class PlayerRemoteKeysTest {
     }
 
     @Test
-    fun shortcutsOfferChaptersOnlyWhenThereAreSomeAndNoCommentsOnLive() {
+    fun shortcutsOfferChaptersOnlyWhenThereAreSome() {
         val video = Video("v", "Title", Channel("c", "C", "", ""), 60, "", "", "", "")
-        assertEquals(2, playerShortcuts(video) {}.size)
-        assertEquals(3, playerShortcuts(video.copy(chapters = listOf(Chapter("Intro", 0)))) {}.size)
-        assertEquals(1, playerShortcuts(video.copy(isLive = true)) {}.size)
+        assertEquals(0, playerShortcuts(video) {}.size)
+        assertEquals(1, playerShortcuts(video.copy(chapters = listOf(Chapter("Intro", 0)))) {}.size)
     }
 }

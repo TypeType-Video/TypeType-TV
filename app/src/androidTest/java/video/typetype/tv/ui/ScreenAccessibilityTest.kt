@@ -60,8 +60,8 @@ class ScreenAccessibilityTest {
             val requester = remember { FocusRequester() }
             PlayerControls(
                 video, state,
-                PlayerPreferences(true, true, "English", true, "720p", "1x", commentsAvailable = true, commentsOn = true, audioLabel = "English"),
-                PlayerControlActions({}, {}, {}, {}, {}, {}, {}),
+                PlayerPreferences(true, true, "English", true, "720p", commentsAvailable = true, commentsOn = true, audioLabel = "English"),
+                PlayerControlActions({}, {}, {}, {}, {}, {}),
                 requester,
             )
         }

@@ -17,6 +17,7 @@ import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.NotificationsNone
 import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.PlaylistPlay
+import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.Subtitles
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -40,6 +41,7 @@ data class PlayerMenuModel(
     val canSubscribe: Boolean,
     val audioOnly: Boolean,
     val statsOn: Boolean,
+    val speedLabel: String,
 )
 
 class PlayerMenuActions(
@@ -51,6 +53,7 @@ class PlayerMenuActions(
     val onWatchLater: () -> Unit,
     val onSubscribe: () -> Unit,
     val onPlaylists: () -> Unit,
+    val onSpeed: () -> Unit,
     val onAudioOnly: () -> Unit,
     val onCaptionStyle: () -> Unit,
     val onStats: () -> Unit,
@@ -104,6 +107,7 @@ fun PlayerMenuPanel(model: PlayerMenuModel, actions: PlayerMenuActions, onClose:
             )
         }
         add(MenuEntry("playlists", stringResource(R.string.menu_playlists), Icons.Rounded.PlaylistAdd, onClick = actions.onPlaylists))
+        add(MenuEntry("speed", stringResource(R.string.menu_speed), Icons.Rounded.Speed, model.speedLabel, actions.onSpeed))
         add(MenuEntry("audio-only", stringResource(R.string.menu_audio_only), Icons.Rounded.Headphones, if (model.audioOnly) on else off, actions.onAudioOnly))
         if (model.captionsAvailable) {
             add(MenuEntry("caption-style", stringResource(R.string.menu_caption_style), Icons.Rounded.Subtitles, onClick = actions.onCaptionStyle))

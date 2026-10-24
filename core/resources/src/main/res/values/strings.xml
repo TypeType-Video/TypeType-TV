@@ -57,7 +57,8 @@
     <string name="player_comments_on_description">Scrolling comments on</string>
     <string name="player_comments_off_description">Scrolling comments off</string>
     <string name="player_quality_description">Video quality, %1$s</string>
-    <string name="player_speed_description">Playback speed, %1$s</string>
+    <string name="player_open_comments_description">Comments, opens the comments on this video</string>
+    <string name="player_open_channel_description">%1$s, shows the channel</string>
     <string name="player_open_channel">Open channel</string>
     <string name="player_seek_description">Seek bar</string>
     <string name="player_up_next">UP NEXT</string>
@@ -336,6 +337,7 @@
     <string name="menu_subscribed">Subscribed to %1$s</string>
     <string name="menu_audio_only">Audio only</string>
     <string name="menu_stats">Playback statistics</string>
+    <string name="menu_speed">Playback speed</string>
     <string name="menu_caption_style">Subtitle style</string>
     <string name="menu_toggle_on">On</string>
     <string name="menu_toggle_off">Off</string>

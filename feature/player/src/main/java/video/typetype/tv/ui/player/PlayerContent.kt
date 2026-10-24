@@ -49,6 +49,7 @@ import video.typetype.tv.ui.detail.VideoActivityController
 import video.typetype.tv.ui.player.danmaku.DanmakuOverlay
 import video.typetype.tv.ui.player.panel.PanelScene
 import video.typetype.tv.ui.player.panel.PlayerPanelHost
+import video.typetype.tv.ui.player.panel.SheetWidth
 
 private const val NOTICE_VISIBLE_MILLIS = 5_000L
 private val CHAT_WIDTH = 320.dp
@@ -70,6 +71,7 @@ fun PlayerContent(
     onPlayerError: (PlaybackException) -> Unit,
     onOpenNext: (Video) -> Unit,
     modifier: Modifier = Modifier,
+    onOpenChannel: (String) -> Unit = {},
     startWithControls: Boolean = true,
 ) {
     val player = handle.player
@@ -141,20 +143,7 @@ fun PlayerContent(
     }
 
     BackHandler(enabled = session.handlesBack(upNextVisible)) { session.back(upNextVisible) }
-    val remoteKeys = RemoteKeyActions(
-        play = player::play,
-        pause = player::pause,
-        next = { next?.let(onOpenNext) },
-        startOver = { player.seekTo(0L) },
-        toggleCaptions = { choices.captionIndex = (captionIndex + 1) % (handle.captionLanguages.size + 1) },
-        openPanel = { session.openPanel(it, fromMenu = it == PlayerPanel.Menu) },
-        seekToFraction = { fraction ->
-            if (!state.isLive && state.durationMillis > 0) {
-                player.seekTo((state.durationMillis * fraction).toLong())
-                session.showControls()
-            }
-        },
-    )
+    val remoteKeys = remoteKeyActions(player, state, session, choices, handle.captionLanguages.size) { next?.let(onOpenNext) }
     Box(
         // The window has no background of its own; with the chat column the picture is letterboxed, and the
         // strips around it would otherwise keep whatever was drawn there before (the hidden controls).
@@ -173,7 +162,13 @@ fun PlayerContent(
         val opening = !state.hasFirstFrame && !state.isPlaying && !choices.audioOnly
         // With the live chat on, the picture keeps the left part of the screen and the chat its own column,
         // as YouTube's TV app does, so no message covers the stream.
-        Box(Modifier.fillMaxSize().padding(end = if (chatUrl != null) CHAT_WIDTH else 0.dp)) {
+        // The channel card takes the right of the screen and the picture shrinks into what is left, whole.
+        val pictureEnd = when {
+            chatUrl != null -> CHAT_WIDTH
+            session.panel == PlayerPanel.Channel -> SheetWidth
+            else -> 0.dp
+        }
+        Box(Modifier.fillMaxSize().padding(end = pictureEnd)) {
             PlayerVideoSurface(player, captionStyles)
             AudioOnlyPoster(video, choices.audioOnly)
             if (commentsOn && bulletComments.isNotEmpty()) {
@@ -205,10 +200,11 @@ fun PlayerContent(
                     video = current,
                     state = state,
                     preferences = playerPreferences(
-                        handle, heights, qualityCap, preferences.maxHeight, captionIndex, speedIndex,
+                        handle, heights, qualityCap, preferences.maxHeight, captionIndex,
                         commentsAvailable = bulletComments.isNotEmpty() || chatAvailable,
                         commentsOn = if (chatAvailable) choices.chatOn else commentsOn,
                         commentsAreChat = chatAvailable,
+                        commentsPanelAvailable = !current.isLive,
                     ),
                     actions = PlayerControlActions(
                         onTogglePlay = session::togglePlay,
@@ -220,7 +216,6 @@ fun PlayerContent(
                             session.controlsVisible = false
                             session.panel = PlayerPanel.Quality
                         },
-                        onCycleSpeed = { choices.speedIndex = (speedIndex + 1) % SPEED_CHOICES.size },
                         onToggleComments = { if (chatAvailable) choices.chatOn = !choices.chatOn else commentsOn = !commentsOn },
                         onOpenAudio = {
                             session.controlsVisible = false
@@ -228,6 +223,9 @@ fun PlayerContent(
                         },
                         onOpenMenu = { session.openPanel(PlayerPanel.Menu, fromMenu = true) },
                         onScrubBy = session::scrubBy,
+                        onOpenComments = { session.openPanel(PlayerPanel.Comments, fromMenu = false) },
+                        onShowChannel = { session.openPanel(PlayerPanel.Channel, fromMenu = false) },
+                        onOpenDescription = { session.openPanel(PlayerPanel.Info, fromMenu = false) },
                         onGoLive = {
                             player.seekToDefaultPosition()
                             player.play()
@@ -300,6 +298,7 @@ fun PlayerContent(
                     },
                     onSeek = { player.seekTo(it) },
                     onOpenVideo = onOpenNext,
+                    onOpenChannel = onOpenChannel,
                     qualityHeights = heights,
                     qualitySelected = qualityCap ?: preferences.maxHeight,
                     playingHeight = player.videoSize.height.takeIf { it > 0 },

@@ -6,21 +6,29 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.ClosedCaption
 import androidx.compose.material.icons.rounded.ClosedCaptionOff
 import androidx.compose.material.icons.rounded.Forum
+import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Language
 import androidx.compose.material.icons.rounded.MoreHoriz
 import androidx.compose.material.icons.rounded.HighQuality
-import androidx.compose.material.icons.rounded.Speed
+import androidx.compose.material.icons.rounded.ChatBubbleOutline
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.resources.R
+import video.typetype.tv.data.Channel
+import video.typetype.tv.ui.components.AvatarButton
 import video.typetype.tv.ui.components.CircleButton
 import video.typetype.tv.ui.components.PillButton
 
 @Composable
-internal fun PreferenceRow(preferences: PlayerPreferences, actions: PlayerControlActions, modifier: Modifier = Modifier) {
+internal fun PreferenceRow(
+    preferences: PlayerPreferences,
+    actions: PlayerControlActions,
+    channel: Channel?,
+    modifier: Modifier = Modifier,
+) {
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.End),
@@ -69,13 +77,24 @@ internal fun PreferenceRow(preferences: PlayerPreferences, actions: PlayerContro
                 description = stringResource(R.string.player_quality_description, preferences.qualityLabel),
             )
         }
-        PillButton(
-            compact = true,
-            label = preferences.speedLabel,
-            icon = Icons.Rounded.Speed,
-            onClick = actions.onCycleSpeed,
-            description = stringResource(R.string.player_speed_description, preferences.speedLabel),
-        )
+        if (preferences.commentsPanelAvailable) {
+            PillButton(
+                compact = true,
+                label = stringResource(R.string.menu_comments),
+                icon = Icons.Rounded.ChatBubbleOutline,
+                onClick = actions.onOpenComments,
+                description = stringResource(R.string.player_open_comments_description),
+            )
+        }
+        if (channel != null) {
+            AvatarButton(
+                imageUrl = channel.avatarUrl,
+                name = channel.name,
+                description = stringResource(R.string.player_open_channel_description, channel.name),
+                onClick = actions.onShowChannel,
+            )
+        }
+        CircleButton(Icons.Rounded.Info, stringResource(R.string.menu_description), actions.onOpenDescription, labelOnFocus = true)
         CircleButton(Icons.Rounded.MoreHoriz, stringResource(R.string.player_more_description), actions.onOpenMenu, labelOnFocus = true)
     }
 }
