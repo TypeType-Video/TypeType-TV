@@ -143,7 +143,7 @@ private fun DetailContent(
             }
             if (video.chapters.isNotEmpty()) {
                 item(key = "chapters") {
-                    ChapterRow(video.chapters, onPlay = { onPlay(video) })
+                    ChapterRow(video.chapters, onSelect = { onPlay(video) })
                 }
             }
             item(key = "related") { RelatedRow(related, relatedTitle, onOpen) }

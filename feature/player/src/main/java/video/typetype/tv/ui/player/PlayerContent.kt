@@ -15,12 +15,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.rememberUpdatedState
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -43,13 +41,14 @@ import video.typetype.tv.data.Video
 import video.typetype.tv.playback.PlayerHandle
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.data.ContentSource
-import video.typetype.tv.ui.components.FadeVisibility
 import video.typetype.tv.ui.detail.CommentsState
 import video.typetype.tv.ui.detail.VideoActivityController
 import video.typetype.tv.ui.player.danmaku.DanmakuOverlay
 import video.typetype.tv.ui.player.panel.PanelScene
 import video.typetype.tv.ui.player.panel.PlayerPanelHost
 import video.typetype.tv.ui.player.panel.SheetWidth
+import androidx.compose.runtime.setValue
+import androidx.compose.runtime.getValue
 
 private const val NOTICE_VISIBLE_MILLIS = 5_000L
 private val CHAT_WIDTH = 320.dp
@@ -195,59 +194,26 @@ fun PlayerContent(
         OpeningPoster(video, opening)
         val current = video
         if (current != null) {
-            FadeVisibility(visible = session.controlsVisible) {
-                PlayerControls(
-                    video = current,
-                    state = state,
-                    preferences = playerPreferences(
-                        handle, heights, qualityCap, preferences.maxHeight, captionIndex,
-                        commentsAvailable = bulletComments.isNotEmpty() || chatAvailable,
-                        commentsOn = if (chatAvailable) choices.chatOn else commentsOn,
-                        commentsAreChat = chatAvailable,
-                        commentsPanelAvailable = !current.isLive,
-                    ),
-                    actions = PlayerControlActions(
-                        onTogglePlay = session::togglePlay,
-                        onSeekBy = session::seekBy,
-                        onPrevious = { player.seekTo(0L) },
-                        onNext = { next?.let(onOpenNext) },
-                        onToggleCaptions = { choices.captionIndex = (captionIndex + 1) % (handle.captionLanguages.size + 1) },
-                        onOpenQuality = {
-                            session.controlsVisible = false
-                            session.panel = PlayerPanel.Quality
-                        },
-                        onToggleComments = { if (chatAvailable) choices.chatOn = !choices.chatOn else commentsOn = !commentsOn },
-                        onOpenAudio = {
-                            session.controlsVisible = false
-                            session.panel = PlayerPanel.Audio
-                        },
-                        onOpenMenu = { session.openPanel(PlayerPanel.Menu, fromMenu = true) },
-                        onScrubBy = session::scrubBy,
-                        onOpenComments = { session.openPanel(PlayerPanel.Comments, fromMenu = false) },
-                        onShowChannel = { session.openPanel(PlayerPanel.Channel, fromMenu = false) },
-                        onOpenDescription = { session.openPanel(PlayerPanel.Info, fromMenu = false) },
-                        onGoLive = {
-                            player.seekToDefaultPosition()
-                            player.play()
-                        },
-                    ),
-                    seekRequester = seek,
-                    playRequester = play,
-                    related = RelatedVideos(
-                        videos = queue,
-                        open = session.relatedOpen,
-                        onOpenChange = { open ->
-                            session.relatedOpen = open
-                            if (!open) session.controlsFromBelow = true
-                        },
-                        onPlay = onOpenNext,
-                        shortcuts = playerShortcuts(current, open = { session.openPanel(it, fromMenu = false) }),
-                    ),
-                    sponsorSegments = setup.sponsorSegments,
-                    scrubMillis = session.scrub.target,
-                    storyboard = setup.storyboard,
-                )
-            }
+            PlayerControlsLayer(
+                video = current,
+                handle = handle,
+                state = state,
+                session = session,
+                choices = choices,
+                preferences = playerPreferences(
+                    handle, heights, qualityCap, preferences.maxHeight, captionIndex,
+                    commentsAvailable = bulletComments.isNotEmpty() || chatAvailable,
+                    commentsOn = if (chatAvailable) choices.chatOn else commentsOn,
+                    commentsAreChat = chatAvailable,
+                    commentsPanelAvailable = !current.isLive,
+                ),
+                onToggleComments = { if (chatAvailable) choices.chatOn = !choices.chatOn else commentsOn = !commentsOn },
+                queue = queue,
+                onOpenNext = onOpenNext,
+                setup = setup,
+                seek = seek,
+                play = play,
+            )
         }
         SponsorSkipNotice(
             segment = session.notice.segment.takeIf { noticeVisible },

@@ -19,7 +19,12 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
-import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.itemsIndexed
+import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.unit.Dp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -43,13 +48,20 @@ import video.typetype.tv.ui.components.FocusSurface
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.util.formatDuration
 
+// The chapters as a row of cards. On the video page OK plays the video; in the player it jumps to the chapter, and the
+// row opens on the chapter being watched.
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun ChapterRow(
     chapters: List<Chapter>,
-    onPlay: () -> Unit,
+    onSelect: (Chapter) -> Unit,
     modifier: Modifier = Modifier,
+    cardWidth: Dp = Dimens.WideCardWidth,
+    current: Int? = null,
+    currentRequester: FocusRequester? = null,
 ) {
+    val listState = rememberLazyListState()
+    LaunchedEffect(current) { current?.let { listState.scrollToItem(it) } }
     Column(modifier) {
         TextLabel(
             stringResource(R.string.detail_chapters),
@@ -58,6 +70,7 @@ fun ChapterRow(
         )
         Spacer(Modifier.height(10.dp))
         LazyRow(
+            state = listState,
             modifier = Modifier.focusRestorer().focusGroup(),
             contentPadding = PaddingValues(
                 start = Dimens.SafeStart,
@@ -67,8 +80,9 @@ fun ChapterRow(
             ),
             horizontalArrangement = Arrangement.spacedBy(Dimens.CardGap),
         ) {
-            items(chapters, key = { it.startSeconds }) { chapter ->
-                ChapterCard(chapter, onClick = onPlay, modifier = Modifier.width(Dimens.WideCardWidth))
+            itemsIndexed(chapters, key = { _, chapter -> chapter.startSeconds }) { index, chapter ->
+                val focus = if (index == current && currentRequester != null) Modifier.focusRequester(currentRequester) else Modifier
+                ChapterCard(chapter, onClick = { onSelect(chapter) }, modifier = Modifier.width(cardWidth).then(focus))
             }
         }
     }

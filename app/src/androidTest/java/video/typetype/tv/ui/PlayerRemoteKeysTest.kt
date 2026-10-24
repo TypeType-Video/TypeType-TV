@@ -6,13 +6,9 @@ import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import video.typetype.tv.data.Chapter
-import video.typetype.tv.data.Channel
-import video.typetype.tv.data.Video
 import video.typetype.tv.ui.player.PlayerPanel
 import video.typetype.tv.ui.player.RemoteKeyActions
 import video.typetype.tv.ui.player.handleRemoteKey
-import video.typetype.tv.ui.player.playerShortcuts
 
 class PlayerRemoteKeysTest {
     private val calls = mutableListOf<String>()
@@ -51,12 +47,5 @@ class PlayerRemoteKeysTest {
         assertFalse(press(AndroidKeyEvent.KEYCODE_DPAD_DOWN))
         assertFalse(press(AndroidKeyEvent.KEYCODE_CAPTIONS, panelOpen = true))
         assertTrue(calls.isEmpty())
-    }
-
-    @Test
-    fun shortcutsOfferChaptersOnlyWhenThereAreSome() {
-        val video = Video("v", "Title", Channel("c", "C", "", ""), 60, "", "", "", "")
-        assertEquals(0, playerShortcuts(video) {}.size)
-        assertEquals(1, playerShortcuts(video.copy(chapters = listOf(Chapter("Intro", 0)))) {}.size)
     }
 }

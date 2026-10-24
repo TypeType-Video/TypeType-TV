@@ -20,7 +20,6 @@ import androidx.compose.material.icons.rounded.SkipNext
 import androidx.compose.material.icons.rounded.SkipPrevious
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import video.typetype.tv.data.Chapter
 import video.typetype.tv.data.SponsorSegment
@@ -52,6 +51,7 @@ import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.util.formatMillis
 import video.typetype.tv.ui.components.LiveBadge
 import video.typetype.tv.ui.util.metaLine
+import androidx.compose.runtime.getValue
 
 data class PlayerControlActions(
     val onTogglePlay: () -> Unit,
@@ -75,7 +75,7 @@ class RelatedVideos(
     val open: Boolean = false,
     val onOpenChange: (Boolean) -> Unit = {},
     val onPlay: (Video) -> Unit = {},
-    val shortcuts: List<PlayerShortcut> = emptyList(),
+    val onChapter: (Chapter) -> Unit = {},
 )
 
 data class PlayerPreferences(
@@ -134,7 +134,7 @@ fun PlayerControls(
                 Spacer(Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth().onPreviewKeyEvent { event ->
-                        val opens = event.key == Key.DirectionDown && (related.videos.isNotEmpty() || related.shortcuts.isNotEmpty())
+                        val opens = event.key == Key.DirectionDown && (related.videos.isNotEmpty() || video.chapters.isNotEmpty())
                         if (opens && event.type == KeyEventType.KeyDown) related.onOpenChange(true)
                         opens
                     },
@@ -142,12 +142,19 @@ fun PlayerControls(
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
                     TransportRow(state, actions, playRequester)
-                    PreferenceRow(preferences, actions, video.channel.takeIf { it.url.isNotBlank() }, Modifier.weight(1f, fill = false))
+                    PreferenceRow(preferences, actions, video.channel.takeIf { it.url.isNotBlank() }, originFocus, Modifier.weight(1f, fill = false))
                 }
             }
             if (related.open) {
                 Spacer(Modifier.height(22.dp))
-                RelatedShelf(related.videos, related.shortcuts, onOpen = related.onPlay, onClose = { related.onOpenChange(false) })
+                RelatedShelf(
+                    videos = related.videos,
+                    chapters = video.chapters,
+                    currentChapter = remember(video.chapters) { ChapterPosition.currentIndex(state.positionMillis, video.chapters) },
+                    onChapter = related.onChapter,
+                    onOpen = related.onPlay,
+                    onClose = { related.onOpenChange(false) },
+                )
             }
         }
     }
