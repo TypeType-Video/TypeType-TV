@@ -8,6 +8,8 @@ android {
 
 dependencies {
     implementation(project(":core:ui"))
+    implementation(libs.zxing.core)
+    implementation(libs.androidx.lifecycle.runtime.compose)
 
     testImplementation(project(":core:testing"))
     testImplementation(libs.junit)
