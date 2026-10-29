@@ -58,11 +58,13 @@ internal class SplashWordmark {
         for (piece in pieces) {
             val part = left.coerceIn(0f, piece.length)
             when (piece) {
-                is Ink -> if (part > 0f) {
+                is Ink -> if (part >= piece.length) {
+                    drawPath(piece.path, color, style = LINE)
+                } else if (part > 0f) {
                     segment.reset()
                     piece.measure.getSegment(0f, part, segment, true)
                     drawPath(segment, color, style = LINE)
-                    if (part < piece.length) pen = piece.measure.getPosition(part)
+                    pen = piece.measure.getPosition(part)
                 }
                 is Glide -> if (part > 0f && part < piece.length) pen = lerp(piece.from, piece.to, part / piece.length)
             }
