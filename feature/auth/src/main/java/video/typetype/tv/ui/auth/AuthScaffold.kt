@@ -13,6 +13,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.ui.brand.BrandLogo
 import video.typetype.tv.theme.Palette
@@ -26,12 +27,13 @@ fun AuthScaffold(
     title: String,
     subtitle: String,
     modifier: Modifier = Modifier,
+    width: Dp = 520.dp,
     content: @Composable () -> Unit,
 ) {
     Box(modifier.fillMaxSize()) {
         InkBackground()
         Column(
-            modifier = Modifier.align(Alignment.Center).width(520.dp),
+            modifier = Modifier.align(Alignment.Center).width(width),
             horizontalAlignment = Alignment.Start,
         ) {
             BrandLogo()
