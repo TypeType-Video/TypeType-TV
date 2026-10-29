@@ -170,6 +170,8 @@ class SessionManager(private val store: SecretStore) : AccessTokens, TokenRefres
 
     suspend fun guest() = authenticate { it.auth.guest() }
 
+    suspend fun signInWithDevice(accessToken: String) = authenticate { accessToken }
+
     suspend fun signOut() {
         val current = backend ?: return
         try {
