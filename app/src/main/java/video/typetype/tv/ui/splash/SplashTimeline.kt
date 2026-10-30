@@ -34,6 +34,10 @@ internal object SplashTimeline {
     private const val BLINK = 200f
     private const val EXIT_START = 5_600f
 
+    // The first screen starts drawing under the still opaque splash while only the cursor blinks: its first frame
+    // sends every image to the GPU and is slow, and it must not land on the fade.
+    const val REVEAL = EXIT_START - 400f
+
     private val Glide: Easing = CubicBezierEasing(0.2f, 0f, 0f, 1f)
     private val Hop: Easing = CubicBezierEasing(0.4f, 0f, 0.2f, 1f)
     private val Pen: Easing = CubicBezierEasing(0.45f, 0f, 0.3f, 1f)
