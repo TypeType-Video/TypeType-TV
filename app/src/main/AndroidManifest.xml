@@ -12,6 +12,7 @@
     <application
         android:name=".TypeTypeApp"
         android:allowBackup="false"
+        android:usesCleartextTraffic="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="false"
         android:banner="@drawable/tv_banner"

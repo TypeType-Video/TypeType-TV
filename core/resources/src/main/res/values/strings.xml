@@ -162,6 +162,8 @@
     <string name="setup_error_invalid_address">That address is not valid.</string>
     <string name="setup_error_network">The server cannot be reached. Check the address and the connection.</string>
     <string name="setup_error_tls">The secure connection could not be verified.</string>
+    <string name="setup_error_cleartext_only">This server only answers over unencrypted HTTP. On a trusted local network, type http:// before the address.</string>
+    <string name="setup_cleartext_warning">HTTP does not encrypt your password or account data. Use it only on a trusted local network.</string>
     <string name="setup_error_not_typetype">This address does not look like a TypeType server.</string>
     <string name="setup_error_unsupported">This server uses an API version the app does not support yet.</string>
     <string name="login_title">Sign in to %1$s</string>
