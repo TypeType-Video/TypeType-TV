@@ -47,7 +47,8 @@ import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.Glyph
 import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.TextLabel
-import video.typetype.tv.ui.components.rememberShimmerBrush
+import video.typetype.tv.ui.components.rememberShimmer
+import video.typetype.tv.ui.components.shimmer
 import video.typetype.tv.ui.util.requestFocusWhenReady
 import video.typetype.tv.ui.util.tryLoad
 
@@ -148,10 +149,10 @@ private fun ChannelAvatar(channel: Channel) {
 
 @Composable
 private fun DescriptionSkeleton() {
-    val brush = rememberShimmerBrush(base = Palette.SurfaceRaised, highlight = Palette.Outline)
+    val shimmer = rememberShimmer(base = Palette.SurfaceRaised, highlight = Palette.Outline)
     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
         listOf(1f, 0.92f, 0.6f).forEach { width ->
-            Spacer(Modifier.fillMaxWidth(width).height(14.dp).clip(CircleShape).background(brush))
+            Spacer(Modifier.fillMaxWidth(width).height(14.dp).shimmer(shimmer, CircleShape))
         }
     }
 }
