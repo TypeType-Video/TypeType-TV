@@ -183,6 +183,17 @@
     <string name="login_error_generic">Something went wrong. Try again.</string>
     <string name="login_error_missing">Fill in every field first.</string>
     <string name="login_notice_expired">Your session expired. Sign in again.</string>
+    <string name="login_subtitle_qr">No typing: scan the code and confirm on your phone.</string>
+    <string name="login_qr_scan">Scan with your phone\'s camera</string>
+    <string name="login_qr_or_visit">Or open %1$s on your phone and enter</string>
+    <string name="login_qr_preparing">Preparing a code…</string>
+    <string name="login_qr_scanned">Code scanned. Confirm on your phone.</string>
+    <string name="login_qr_refused">Refused on the phone. Here is a new code.</string>
+    <string name="login_qr_description">QR code to sign in to this TV from your phone</string>
+    <string name="login_qr_code_description">Code %1$s</string>
+    <string name="login_use_password">Use a password</string>
+    <string name="login_use_qr">Use a QR code</string>
+    <string name="login_device_name">TypeType TV · %1$s</string>
     <string name="reconnect_title">Connecting to your server</string>
     <string name="reconnect_checking">Checking your session.</string>
     <string name="reconnect_waiting">The server is not answering. The app keeps trying and continues as soon as it is back.</string>

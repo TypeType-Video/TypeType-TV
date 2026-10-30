@@ -16,6 +16,7 @@ import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.geometry.lerp
 import androidx.compose.ui.graphics.BlendMode
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.CompositingStrategy
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -26,9 +27,11 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.async
 import video.typetype.tv.resources.R
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.ui.util.requestFocusWhenReady
+import kotlin.coroutines.cancellation.CancellationException
 
 private val TraceSize = 250.dp
 private val FinalSize = 104.dp
@@ -56,7 +59,15 @@ fun StartupSplash(onFinished: () -> Unit, modifier: Modifier = Modifier, short: 
     LaunchedEffect(Unit) {
         // The picture waits for the sound to be ready: each hop of the mark lands on one of its notes. The short
         // intro plays silently.
-        if (!short) StartupChime.play(context)
+        val steady = async { awaitSteadyFrames() }
+        val chime = if (short) null else StartupChime.prepare(context)
+        try {
+            steady.await()
+        } catch (cancelled: CancellationException) {
+            chime?.release()
+            throw cancelled
+        }
+        chime?.start()
         val left = (SplashTimeline.TOTAL - start).toInt()
         clock.animateTo(SplashTimeline.TOTAL.toFloat(), tween(left, easing = LinearEasing))
         onFinished()
@@ -74,7 +85,10 @@ fun StartupSplash(onFinished: () -> Unit, modifier: Modifier = Modifier, short: 
             .focusRequester(focus)
             .focusable()
             .semantics { contentDescription = description }
-            .graphicsLayer { alpha = SplashTimeline.exitAlpha(clock.value) },
+            .graphicsLayer {
+                alpha = SplashTimeline.exitAlpha(clock.value)
+                compositingStrategy = CompositingStrategy.ModulateAlpha
+            },
     ) {
         drawSplashFrame(clock.value, mark, wordmark)
     }

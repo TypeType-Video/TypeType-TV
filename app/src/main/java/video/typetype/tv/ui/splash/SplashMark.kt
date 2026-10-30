@@ -47,7 +47,8 @@ internal class SplashMark {
         arcTo(Rect(17f, 17f, 21f, 21f), 0f, 90f, false)
         lineTo(16.2f, 21f)
     }
-    private val measures = listOf(antennas, divider, screen).map { path -> PathMeasure().apply { setPath(path, false) } }
+    private val strokes = listOf(antennas, divider, screen)
+    private val measures = strokes.map { path -> PathMeasure().apply { setPath(path, false) } }
     private val lowerButton = Offset(18.7f, 15.6f)
     private val upperButton = Offset(18.7f, 11.4f)
 
@@ -80,16 +81,27 @@ internal class SplashMark {
         val step = progress.toInt().coerceAtMost(moves.size)
         val fraction = progress - step
         revealed.fill(0f)
-        moves.take(step).forEach { move -> if (move is Move.Trace) revealed[move.stroke] = move.to }
+        for (index in 0 until step) {
+            val move = moves[index]
+            if (move is Move.Trace) revealed[move.stroke] = move.to
+        }
         val current = moves.getOrNull(step)
         if (current is Move.Trace) revealed[current.stroke] = current.from + (current.to - current.from) * fraction
-        measures.forEachIndexed { index, measure ->
-            if (revealed[index] <= 0f) return@forEachIndexed
-            segment.reset()
-            measure.getSegment(0f, measure.length * revealed[index], segment, true)
-            drawPath(segment, color, alpha, LINE, blendMode = blendMode)
+        for (index in measures.indices) {
+            val shown = revealed[index]
+            if (shown <= 0f) continue
+            // A finished stroke is drawn from its own path, which the renderer keeps tessellated between frames.
+            val path = if (shown >= 1f) {
+                strokes[index]
+            } else {
+                segment.reset()
+                measures[index].getSegment(0f, measures[index].length * shown, segment, true)
+                segment
+            }
+            drawPath(path, color, alpha, LINE, blendMode = blendMode)
         }
-        moves.take(step).forEach { move ->
+        for (index in 0 until step) {
+            val move = moves[index]
             if (move is Move.Jump && move.becomesDot) drawCircle(color, BUTTON_RADIUS, move.to, alpha, blendMode = blendMode)
         }
         if (current != null) drawCursor(current, fraction, progress, appear, color, alpha, blendMode)

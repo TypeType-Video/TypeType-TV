@@ -9,11 +9,8 @@ import video.typetype.tv.resources.R
 import java.io.IOException
 
 object StartupChime {
-    suspend fun play(context: Context) {
-        val player = withContext(Dispatchers.IO) { prepared(context) } ?: return
-        player.setOnCompletionListener { it.release() }
-        player.start()
-    }
+    suspend fun prepare(context: Context): MediaPlayer? =
+        withContext(Dispatchers.IO) { prepared(context) }?.apply { setOnCompletionListener { it.release() } }
 
     private fun prepared(context: Context): MediaPlayer? {
         val player = MediaPlayer()
