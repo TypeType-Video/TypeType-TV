@@ -77,6 +77,7 @@ dependencies {
     implementation(project(":feature:home"))
     implementation(project(":feature:search"))
     implementation(project(":feature:library"))
+    implementation(project(":feature:subscriptions"))
     implementation(project(":feature:settings"))
     implementation(project(":feature:collections"))
     implementation(project(":feature:detail"))

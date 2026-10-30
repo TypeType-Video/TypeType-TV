@@ -59,6 +59,8 @@ import video.typetype.tv.ui.library.LibrarySession
 import video.typetype.tv.ui.player.PlayerScreen
 import video.typetype.tv.ui.search.SearchScreen
 import video.typetype.tv.ui.search.SearchSession
+import video.typetype.tv.ui.subscriptions.SubscriptionsScreen
+import video.typetype.tv.ui.subscriptions.SubscriptionsSession
 import video.typetype.tv.ui.settings.SettingsScreen
 import video.typetype.tv.ui.settings.SettingsSession
 import video.typetype.tv.ui.components.LocalStreamPrewarm
@@ -96,6 +98,7 @@ fun AppRoot(
     val homeSession = remember { HomeSession() }
     val searchSession = remember { SearchSession() }
     val librarySession = remember { LibrarySession() }
+    val subscriptionsSession = remember(repository) { SubscriptionsSession(repository) }
     val settingsSession = remember { SettingsSession() }
     var lastTab by remember { mutableStateOf(TopTab.Home) }
     val activeTab = navigator.current.topTab()
@@ -222,6 +225,11 @@ fun AppRoot(
                         session = librarySession,
                         onOpen = openDetail,
                     )
+                    Route.Subscriptions -> SubscriptionsScreen(
+                        session = subscriptionsSession,
+                        onOpen = openDetail,
+                        onOpenChannel = { navigator.push(Route.Channel(it.url)) },
+                    )
                     Route.Settings -> SettingsScreen(repository, settingsSession, onSettingsAction)
                     is Route.Detail -> DetailScreen(
                         videoId = route.videoId,
@@ -281,6 +289,7 @@ fun AppRoot(
                             homeSession.anchor = null
                             librarySession.restoreVideoId = null
                             searchSession.restoreVideoId = null
+                            if (it == TopTab.Subscriptions) subscriptionsSession.refresh()
                             navigator.selectTab(it.route)
                         },
                         account = account,

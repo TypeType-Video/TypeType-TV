@@ -27,6 +27,8 @@ import video.typetype.tv.ui.search.SearchScreen
 import video.typetype.tv.ui.search.SearchSession
 import video.typetype.tv.ui.settings.SettingsScreen
 import video.typetype.tv.ui.settings.SettingsSession
+import video.typetype.tv.ui.subscriptions.SubscriptionsScreen
+import video.typetype.tv.ui.subscriptions.SubscriptionsSession
 
 @OptIn(ExperimentalTestApi::class)
 class NavDownFromEveryTabTest {
@@ -61,6 +63,11 @@ class NavDownFromEveryTabTest {
     @Test
     fun libraryTab() = assertDownLeavesTheBar("Library", TopTab.Library) {
         LibraryScreen(repository, remember { LibrarySession() }, onOpen = {})
+    }
+
+    @Test
+    fun subscriptionsTab() = assertDownLeavesTheBar("Subscriptions", TopTab.Subscriptions) {
+        SubscriptionsScreen(remember { SubscriptionsSession(repository) }, onOpen = {}, onOpenChannel = {})
     }
 
     @Test
