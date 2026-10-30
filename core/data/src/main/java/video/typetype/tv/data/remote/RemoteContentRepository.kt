@@ -23,6 +23,8 @@ import video.typetype.tv.data.PublicPlaylistPage
 import video.typetype.tv.data.SavedPlaylist
 import video.typetype.tv.data.SearchKind
 import video.typetype.tv.data.SearchResults
+import video.typetype.tv.data.ChannelSummary
+import video.typetype.tv.data.SubscriptionFeedPage
 import video.typetype.tv.data.ContentSource
 import video.typetype.tv.data.PlaybackSetup
 import video.typetype.tv.data.CaptionStyles
@@ -60,6 +62,7 @@ class RemoteContentRepository(
     private val branding = DeArrowBranding(api, apiBase, userSettings, clock)
     private val homeLoader = HomeLoader(api, filter, branding, texts, clock)
     private val playlists = PublicPlaylistSource(api, library, filter, branding, clock)
+    private val subscriptions = RemoteSubscriptions(api, library, filter, branding, clock)
     private val activity = RemoteVideoActivity(library, api, userSettings) { homeCache.clear() }
 
     override suspend fun home(): HomeContent {
@@ -70,6 +73,10 @@ class RemoteContentRepository(
             homeCache.stale(HOME_KEY) ?: throw failure
         }
     }
+
+    override suspend fun subscriptionFeed(page: String?): SubscriptionFeedPage = watch.watch { subscriptions.subscriptionFeed(page) }
+
+    override suspend fun subscribedChannels(): List<ChannelSummary> = watch.watch { subscriptions.subscribedChannels() }
 
     override suspend fun video(id: String): Video? = watch.watch { branding.apply(listOf(stream(id).toVideo(id, clock()))).single() }
 

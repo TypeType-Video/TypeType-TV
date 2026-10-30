@@ -36,6 +36,7 @@ data class SubscriptionRequest(
 data class SubscriptionDto(
     val channelUrl: String = "",
     val name: String = "",
+    val avatarUrl: String = "",
 )
 
 @Serializable

@@ -33,6 +33,8 @@ data class HomeRecommendationsDto(
 data class SubscriptionFeedDto(
     val videos: List<VideoItemDto> = emptyList(),
     val nextpage: String? = null,
+    val code: String? = null,
+    val retryAfterMs: Long? = null,
 )
 
 @Serializable

@@ -2,7 +2,7 @@ package video.typetype.tv.data
 
 import kotlinx.coroutines.flow.Flow
 
-interface ContentRepository : VideoActivityRepository, PresenceSink {
+interface ContentRepository : VideoActivityRepository, PresenceSink, SubscriptionsRepository {
     suspend fun home(): HomeContent
 
     suspend fun video(id: String): Video?
