@@ -47,9 +47,14 @@ internal fun RestoreGridFocus(
 }
 
 @Composable
-internal fun EmptyPane(icon: ImageVector, @StringRes titleRes: Int, @StringRes bodyRes: Int) {
+internal fun EmptyPane(
+    icon: ImageVector,
+    @StringRes titleRes: Int,
+    @StringRes bodyRes: Int,
+    modifier: Modifier = Modifier.fillMaxSize(),
+) {
     Column(
-        modifier = Modifier.fillMaxSize(),
+        modifier = modifier,
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.Center,
     ) {

@@ -67,7 +67,7 @@ class NavDownFromEveryTabTest {
 
     @Test
     fun subscriptionsTab() = assertDownLeavesTheBar("Subscriptions", TopTab.Subscriptions) {
-        SubscriptionsScreen(remember { SubscriptionsSession(repository) }, onOpen = {}, onOpenChannel = {})
+        SubscriptionsScreen(remember { SubscriptionsSession(repository) }, onOpen = {})
     }
 
     @Test

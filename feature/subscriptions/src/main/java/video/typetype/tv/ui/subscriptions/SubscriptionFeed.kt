@@ -4,14 +4,14 @@ import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import video.typetype.tv.data.SubscriptionsRepository
+import video.typetype.tv.data.SubscriptionFeedPage
 import video.typetype.tv.data.Video
 import video.typetype.tv.ui.util.UiMessage
 import video.typetype.tv.ui.util.tryLoad
 import java.io.IOException
 
 @Stable
-class SubscriptionFeed(private val repository: SubscriptionsRepository) {
+class SubscriptionFeed(private val load: suspend (page: String?) -> SubscriptionFeedPage) {
     var videos by mutableStateOf<List<Video>?>(null)
         private set
 
@@ -26,7 +26,7 @@ class SubscriptionFeed(private val repository: SubscriptionsRepository) {
     suspend fun load() {
         if (videos != null) return
         failure = null
-        val first = tryLoad({ failure = it }) { repository.subscriptionFeed() } ?: return
+        val first = tryLoad({ failure = it }) { load(null) } ?: return
         nextPage = first.nextPage
         videos = first.videos
     }
@@ -37,7 +37,7 @@ class SubscriptionFeed(private val repository: SubscriptionsRepository) {
         if (loadingMore) return
         loadingMore = true
         try {
-            val more = repository.subscriptionFeed(page)
+            val more = load(page)
             val known = current.mapTo(HashSet()) { it.id }
             nextPage = more.nextPage
             videos = current + more.videos.filter { known.add(it.id) }

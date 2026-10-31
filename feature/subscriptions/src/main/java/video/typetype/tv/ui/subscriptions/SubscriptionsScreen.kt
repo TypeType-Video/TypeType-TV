@@ -1,15 +1,19 @@
 package video.typetype.tv.ui.subscriptions
 
-import androidx.compose.animation.Crossfade
-import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.GridItemSpan
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.rememberLazyGridState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.rounded.Groups
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -17,88 +21,76 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
-import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
-import video.typetype.tv.data.ChannelSummary
 import video.typetype.tv.data.Video
 import video.typetype.tv.resources.R
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.ui.components.InkBackground
-import video.typetype.tv.ui.components.RailEntry
-import video.typetype.tv.ui.components.SectionRail
 import video.typetype.tv.ui.util.requestFocusWhenReady
 import video.typetype.tv.ui.util.trapFocusDown
+
+private const val PREFETCH_ROWS = 2
 
 @Composable
 fun SubscriptionsScreen(
     session: SubscriptionsSession,
     onOpen: (Video) -> Unit,
-    onOpenChannel: (ChannelSummary) -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val selectedRequester = remember { FocusRequester() }
-    val restoreId = remember { session.restoreId }
-    var pendingRestore by remember { mutableStateOf(restoreId != null) }
-    var attempt by remember { mutableIntStateOf(0) }
     val feed = session.feed
     val channels = session.channels
-    LaunchedEffect(Unit) {
-        if (restoreId == null) selectedRequester.requestFocusWhenReady()
-    }
-    LaunchedEffect(session.selected, feed, channels, attempt) {
-        when (session.selected) {
-            SubscriptionsSection.Videos -> feed.load()
-            SubscriptionsSection.Channels -> channels.load()
-        }
-    }
-    val restore = restoreId?.takeIf { pendingRestore }
-    val onRestored = { pendingRestore = false }
+    var attempt by remember { mutableIntStateOf(0) }
+    val selectedChip = remember { FocusRequester() }
+    val restorer = remember { FocusRequester() }
+    val restoreId = remember { session.restoreId }
+    var pendingRestore by remember { mutableStateOf(restoreId != null) }
+    LaunchedEffect(channels, attempt) { channels.load() }
+    LaunchedEffect(feed, attempt) { feed.load() }
+    LaunchedEffect(Unit) { if (restoreId == null) selectedChip.requestFocusWhenReady() }
     Box(modifier.fillMaxSize()) {
         InkBackground()
-        Row(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(start = Dimens.SafeStart, end = Dimens.SafeEnd, top = Dimens.TabContentTop),
-            horizontalArrangement = Arrangement.spacedBy(36.dp),
-        ) {
-            SectionRail(
-                title = stringResource(R.string.subscriptions_title),
-                entries = SubscriptionsSection.entries.map { RailEntry(it.name, stringResource(it.labelRes), it.icon) },
-                selectedId = session.selected.name,
-                onSelect = { session.selected = SubscriptionsSection.valueOf(it) },
-                selectedRequester = selectedRequester,
+        if (channels.channels?.isEmpty() == true) {
+            EmptyPane(
+                icon = Icons.Rounded.Groups,
+                titleRes = R.string.subscriptions_empty_channels_title,
+                bodyRes = R.string.subscriptions_empty_channels_body,
+                modifier = Modifier.fillMaxSize().padding(top = Dimens.TabContentTop),
             )
-            Crossfade(
-                targetState = session.selected,
-                animationSpec = tween(240),
-                modifier = Modifier.weight(1f).fillMaxHeight().trapFocusDown(),
-                label = "subscriptions-content",
-            ) { section ->
-                when (section) {
-                    SubscriptionsSection.Videos -> FeedPane(
-                        feed = feed,
-                        onOpen = {
-                            session.restoreId = it.id
-                            onOpen(it)
-                        },
-                        onRetry = { attempt++ },
-                        restoreId = restore,
-                        fallback = selectedRequester,
-                        onRestored = onRestored,
-                    )
-                    SubscriptionsSection.Channels -> ChannelsPane(
-                        channels = channels,
-                        onOpen = {
-                            session.restoreId = it.url
-                            onOpenChannel(it)
-                        },
-                        onRetry = { attempt++ },
-                        restoreId = restore,
-                        fallback = selectedRequester,
-                        onRestored = onRestored,
-                    )
-                }
+            return@Box
+        }
+        val gridState = rememberLazyGridState()
+        val videos = feed.videos
+        val restore = restoreId?.takeIf { pendingRestore }
+        val restoreIndex = restore?.let { id -> videos?.indexOfFirst { it.id == id }?.let { if (it >= 0) it + 1 else -1 } }
+        RestoreGridFocus(gridState, restoreIndex, restorer, selectedChip) { pendingRestore = false }
+        val nearEnd by remember(videos?.size) {
+            derivedStateOf {
+                val last = gridState.layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
+                last >= gridState.layoutInfo.totalItemsCount - FEED_COLUMNS * PREFETCH_ROWS
             }
+        }
+        LaunchedEffect(nearEnd, videos?.size) { if (nearEnd) feed.loadMore() }
+        LazyVerticalGrid(
+            state = gridState,
+            columns = GridCells.Fixed(FEED_COLUMNS),
+            modifier = Modifier.fillMaxSize().padding(top = Dimens.TabContentTop).trapFocusDown(),
+            contentPadding = PaddingValues(start = Dimens.SafeStart, end = Dimens.SafeEnd, top = 8.dp, bottom = 48.dp),
+            horizontalArrangement = Arrangement.spacedBy(Dimens.CardGap),
+            verticalArrangement = Arrangement.spacedBy(28.dp),
+        ) {
+            item(key = "channels", span = { GridItemSpan(maxLineSpan) }) {
+                ChannelStrip(channels.channels, session.channel, session::select, selectedChip)
+            }
+            feedItems(
+                feed = feed,
+                onOpen = {
+                    session.restoreId = it.id
+                    onOpen(it)
+                },
+                onRetry = { attempt++ },
+                restoreId = restore,
+                restorer = restorer,
+            )
         }
     }
 }

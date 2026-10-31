@@ -32,7 +32,7 @@ class SubscriptionFeedTest {
     private val repository = Repository(
         mapOf(null to SubscriptionFeedPage(first, "p2"), "p2" to SubscriptionFeedPage(second, null)),
     )
-    private val feed = SubscriptionFeed(repository)
+    private val feed = SubscriptionFeed(repository::subscriptionFeed)
 
     @Test
     fun theNextPageAddsOnlyVideosNotShownYet() = runBlocking {

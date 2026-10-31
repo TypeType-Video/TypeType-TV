@@ -225,11 +225,7 @@ fun AppRoot(
                         session = librarySession,
                         onOpen = openDetail,
                     )
-                    Route.Subscriptions -> SubscriptionsScreen(
-                        session = subscriptionsSession,
-                        onOpen = openDetail,
-                        onOpenChannel = { navigator.push(Route.Channel(it.url)) },
-                    )
+                    Route.Subscriptions -> SubscriptionsScreen(session = subscriptionsSession, onOpen = openDetail)
                     Route.Settings -> SettingsScreen(repository, settingsSession, onSettingsAction)
                     is Route.Detail -> DetailScreen(
                         videoId = route.videoId,

@@ -88,9 +88,9 @@
     <string name="search_start_body">Type with the on-screen keyboard or pick a recent search.</string>
 
     <string name="library_title">Library</string>
-    <string name="subscriptions_title">Subscriptions</string>
-    <string name="subscriptions_videos">Videos</string>
-    <string name="subscriptions_channels">Channels</string>
+    <string name="subscriptions_all">All</string>
+    <string name="subscriptions_all_description">All channels, shows every new video</string>
+    <string name="subscriptions_channel_description">%1$s, shows only its videos</string>
     <string name="subscriptions_empty_videos_title">No videos yet</string>
     <string name="subscriptions_empty_videos_body">New videos from the channels you subscribe to appear here.</string>
     <string name="subscriptions_empty_channels_title">No subscriptions yet</string>
