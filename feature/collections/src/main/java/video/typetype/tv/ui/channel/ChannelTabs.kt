@@ -1,15 +1,5 @@
 package video.typetype.tv.ui.channel
 
-import androidx.compose.animation.core.Animatable
-import androidx.compose.animation.core.spring
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateMapOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.focus.onFocusChanged
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.layout.onGloballyPositioned
-import androidx.compose.ui.layout.positionInParent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -44,10 +34,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
-import androidx.compose.ui.semantics.role
-import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -64,16 +51,15 @@ import video.typetype.tv.ui.components.OptionWheel
 import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.QualityBadge
 import video.typetype.tv.ui.components.SkeletonBox
+import video.typetype.tv.ui.components.TabStrip
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.components.TvOverlay
 import video.typetype.tv.ui.components.WheelOption
-import video.typetype.tv.ui.util.focusEntersAt
 import video.typetype.tv.ui.util.metaLine
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
-// A tab opens with OK, not as the focus passes: the sort wheel sits after the tabs, and crossing them to reach it
-// keeps the videos open. Coming back up from the grid lands on the open tab. Videos of YouTube channels can be
-// sorted with the wheel, and searched: the search button shows the query while one is set, with a button to clear it.
+// The sort wheel sits after the tabs, so they open with OK. Videos of YouTube channels can be sorted with the wheel,
+// and searched: the search button shows the query while one is set, with a button to clear it.
 @Composable
 internal fun ChannelTabsRow(
     state: ChannelState,
@@ -82,56 +68,15 @@ internal fun ChannelTabsRow(
     onSearch: () -> Unit,
     onClearSearch: () -> Unit,
 ) {
-    // The red mark follows the focus along the tabs and settles back under the open one when the focus leaves
-    // them. It slides in the layer phase only, so following the focus never recomposes the row.
-    var focusedTab by remember { mutableStateOf<ChannelTab?>(null) }
-    val centers = remember { mutableStateMapOf<ChannelTab, Float>() }
-    val target = focusedTab ?: state.tab
-    val markX = remember { Animatable(0f) }
-    var placed by remember { mutableStateOf(false) }
-    LaunchedEffect(target, centers[target]) {
-        val x = centers[target] ?: return@LaunchedEffect
-        if (placed) {
-            markX.animateTo(x, spring(dampingRatio = 0.8f, stiffness = 500f))
-        } else {
-            markX.snapTo(x)
-            placed = true
-        }
-    }
     Row(verticalAlignment = Alignment.Top) {
-        Column {
-            Row(Modifier.focusEntersAt(openTab), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                state.tabs.forEach { tab ->
-                    val open = tab == state.tab
-                    PillButton(
-                        label = stringResource(tab.labelRes),
-                        icon = tab.icon(),
-                        onClick = { state.select(tab) },
-                        emphasized = open,
-                        modifier = (if (open) Modifier.focusRequester(openTab) else Modifier)
-                            .onGloballyPositioned { centers[tab] = it.positionInParent().x + it.size.width / 2f }
-                            .onFocusChanged { focus ->
-                                if (focus.hasFocus) focusedTab = tab else if (focusedTab == tab) focusedTab = null
-                            }
-                            .semantics {
-                                role = Role.Tab
-                                selected = open
-                            },
-                    )
-                }
-            }
-            Spacer(Modifier.height(6.dp))
-            Box(
-                Modifier
-                    .graphicsLayer {
-                        translationX = markX.value - MarkWidth.toPx() / 2
-                        alpha = if (placed) 1f else 0f
-                    }
-                    .size(width = MarkWidth, height = 3.dp)
-                    .clip(Shapes.Chip)
-                    .background(Palette.Accent),
-            )
-        }
+        TabStrip(
+            tabs = state.tabs,
+            open = state.tab,
+            onOpen = state::select,
+            label = { stringResource(it.labelRes) },
+            icon = { it.icon() },
+            openTab = openTab,
+        )
         val sort = state.sort
         if (state.tab == ChannelTab.Videos && sort != null && state.query == null) {
             Spacer(Modifier.width(24.dp))
@@ -161,8 +106,6 @@ internal fun ChannelTabsRow(
         }
     }
 }
-
-private val MarkWidth = 22.dp
 
 private fun ChannelTab.icon(): ImageVector = when (this) {
     ChannelTab.Videos -> Icons.Rounded.VideoLibrary

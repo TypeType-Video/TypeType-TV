@@ -281,7 +281,6 @@
     <string name="search_kind_videos">Videos</string>
     <string name="search_kind_playlists">Playlists</string>
     <string name="search_kind_channels">Channels</string>
-    <string name="search_kind">Type: %1$s</string>
     <string name="playlist_save">Save playlist</string>
     <string name="playlist_saved">Saved</string>
     <string name="playlist_video_count">%1$s videos</string>

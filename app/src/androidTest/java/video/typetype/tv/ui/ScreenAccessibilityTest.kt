@@ -9,7 +9,8 @@ import org.junit.Rule
 import org.junit.Test
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.Channel
-import video.typetype.tv.ui.search.SearchScope
+import video.typetype.tv.ui.search.SearchKindTabs
+import video.typetype.tv.ui.search.SourceButton
 import video.typetype.tv.ui.search.PlaylistResults
 import video.typetype.tv.ui.search.ChannelResults
 import video.typetype.tv.data.SearchKind
@@ -35,6 +36,7 @@ import video.typetype.tv.ui.settings.SettingsSession
 import androidx.compose.foundation.clickable
 import com.google.android.apps.common.testing.accessibility.framework.integrations.espresso.AccessibilityViewCheckException
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.Row
 import androidx.compose.runtime.remember
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.focus.FocusRequester
@@ -107,7 +109,12 @@ class ScreenAccessibilityTest {
 
     @Test
     fun searchScopePassesTheAccessibilityChecks() {
-        rule.setContent { SearchScope(ContentSource.YouTube, SearchKind.Playlists, {}, {}) }
+        rule.setContent {
+            Row {
+                SourceButton(ContentSource.YouTube) {}
+                SearchKindTabs(ContentSource.YouTube, SearchKind.Playlists, {}, remember { FocusRequester() })
+            }
+        }
         rule.onRoot().tryPerformAccessibilityChecks()
     }
 
