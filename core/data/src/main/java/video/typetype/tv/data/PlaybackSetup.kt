@@ -32,6 +32,7 @@ data class PlaybackPreferences(
     val hideComments: Boolean = false,
     val audioLanguage: String = "",
     val preferOriginalAudio: Boolean = false,
+    val seekbarIcon: SeekbarIcon = SeekbarIcon.TypeType,
 ) {
     companion object {
         const val DEFAULT_COUNTDOWN_SECONDS = 10

@@ -31,6 +31,7 @@ import video.typetype.tv.data.CaptionStyles
 import video.typetype.tv.data.PresenceReport
 import video.typetype.tv.data.StartupPreferences
 import video.typetype.tv.data.VideoActivity
+import video.typetype.tv.data.onInstance
 import video.typetype.tv.data.api.LibraryWriteApi
 import video.typetype.tv.data.api.TypeTypeApi
 import video.typetype.tv.data.dto.BlockChannelRequest
@@ -44,7 +45,7 @@ import video.typetype.tv.data.session.StreamAccess
 class RemoteContentRepository(
     private val api: TypeTypeApi,
     private val library: LibraryWriteApi,
-    apiBase: HttpUrl,
+    private val apiBase: HttpUrl,
     private val settingsSource: RemoteSettings,
     private val texts: TextProvider,
     private val presence: RemotePresence,
@@ -236,7 +237,7 @@ class RemoteContentRepository(
     }
 
     override suspend fun playbackSetup(videoId: String): PlaybackSetup {
-        val preferences = userSettings.playbackPreferences()
+        val preferences = userSettings.playbackPreferences().let { it.copy(seekbarIcon = it.seekbarIcon.onInstance(apiBase)) }
         val stream = runCatching { stream(videoId) }.getOrNull() ?: return PlaybackSetup(preferences)
         return PlaybackSetup(
             preferences = preferences,
