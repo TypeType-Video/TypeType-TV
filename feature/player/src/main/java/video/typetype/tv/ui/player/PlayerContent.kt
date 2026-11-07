@@ -206,6 +206,7 @@ fun PlayerContent(
                     commentsOn = if (chatAvailable) choices.chatOn else commentsOn,
                     commentsAreChat = chatAvailable,
                     commentsPanelAvailable = !current.isLive,
+                    seekbarIcon = preferences.seekbarIcon,
                 ),
                 onToggleComments = { if (chatAvailable) choices.chatOn = !choices.chatOn else commentsOn = !commentsOn },
                 queue = queue,
