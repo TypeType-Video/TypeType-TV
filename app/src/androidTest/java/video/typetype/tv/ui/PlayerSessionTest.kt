@@ -44,10 +44,15 @@ class PlayerSessionTest {
         rule.runOnUiThread { player.release() }
     }
 
-    private fun press(code: Int, action: Int = AndroidKeyEvent.ACTION_DOWN, visible: Boolean = false): Boolean {
+    private fun press(
+        code: Int,
+        action: Int = AndroidKeyEvent.ACTION_DOWN,
+        visible: Boolean = false,
+        endScreen: Boolean = false,
+    ): Boolean {
         var handled = false
         rule.runOnUiThread {
-            handled = session.onKey(KeyEvent(AndroidKeyEvent(action, code)), upNextVisible = visible) { playedNext++ }
+            handled = session.onKey(KeyEvent(AndroidKeyEvent(action, code)), visible, endScreen) { playedNext++ }
         }
         return handled
     }
@@ -111,6 +116,21 @@ class PlayerSessionTest {
         onUi { session.controlsVisible = false }
         press(AndroidKeyEvent.KEYCODE_DPAD_UP)
         assertFalse(session.controlsFromBelow)
+    }
+
+    @Test
+    fun upEntersTheEndScreenCardsAndBackLeavesThem() {
+        onUi { session.controlsVisible = false }
+        assertTrue(press(AndroidKeyEvent.KEYCODE_DPAD_UP, endScreen = true))
+        assertTrue(session.endScreenFocused)
+        assertTrue(session.upNext.dismissed)
+        assertFalse(session.controlsVisible)
+        assertFalse(press(AndroidKeyEvent.KEYCODE_DPAD_CENTER, endScreen = true))
+        assertTrue(session.handlesBack(upNextVisible = false))
+        onUi { session.back(upNextVisible = false) }
+        assertFalse(session.endScreenFocused)
+        assertTrue(press(AndroidKeyEvent.KEYCODE_DPAD_UP))
+        assertTrue(session.controlsVisible)
     }
 
     @Test
