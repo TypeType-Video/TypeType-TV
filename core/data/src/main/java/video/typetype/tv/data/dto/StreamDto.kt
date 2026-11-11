@@ -28,6 +28,21 @@ data class StreamDto(
     val sponsorBlockSegments: List<SponsorBlockSegmentDto> = emptyList(),
     val relatedStreams: List<VideoItemDto> = emptyList(),
     val previewFrames: List<PreviewFrameDto> = emptyList(),
+    val endScreenElements: List<EndScreenElementDto> = emptyList(),
+)
+
+@Serializable
+data class EndScreenElementDto(
+    val type: String = "",
+    val title: String = "",
+    val url: String = "",
+    val thumbnailUrl: String = "",
+    val startMs: Long = -1,
+    val endMs: Long = -1,
+    val left: Double = -1.0,
+    val top: Double = -1.0,
+    val width: Double = -1.0,
+    val aspectRatio: Double = -1.0,
 )
 
 @Serializable

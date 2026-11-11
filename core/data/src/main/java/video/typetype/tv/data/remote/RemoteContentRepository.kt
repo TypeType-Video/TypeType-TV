@@ -32,6 +32,7 @@ import video.typetype.tv.data.PresenceReport
 import video.typetype.tv.data.StartupPreferences
 import video.typetype.tv.data.VideoActivity
 import video.typetype.tv.data.onInstance
+import video.typetype.tv.data.toEndScreenElement
 import video.typetype.tv.data.api.LibraryWriteApi
 import video.typetype.tv.data.api.TypeTypeApi
 import video.typetype.tv.data.dto.BlockChannelRequest
@@ -247,6 +248,7 @@ class RemoteContentRepository(
                 durationMs = stream.duration * MILLIS_PER_SECOND,
                 streamCategory = stream.category,
             ),
+            endScreens = if (preferences.hideEndScreens) emptyList() else stream.endScreenElements.mapNotNull { it.toEndScreenElement() },
             liveManifest = stream.liveManifest(),
             storyboard = stream.toStoryboard(),
             stream = stream,

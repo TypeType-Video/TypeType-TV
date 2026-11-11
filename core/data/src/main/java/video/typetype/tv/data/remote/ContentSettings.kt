@@ -21,6 +21,7 @@ internal object ContentSettings {
         Shown("show-continue", "hideContinueWatching", R.string.settings_show_continue, R.string.settings_show_continue_summary),
         Shown("show-recommendations", "hideHomeRecommendations", R.string.settings_show_recommendations, R.string.settings_show_recommendations_summary),
         Shown("show-related", "hideRelatedVideos", R.string.settings_show_related, R.string.settings_show_related_summary),
+        Shown("show-end-screens", "hideEndScreens", R.string.settings_show_end_screens, R.string.settings_show_end_screens_summary),
         Shown("show-comments", "hideComments", R.string.settings_show_comments, R.string.settings_show_comments_summary),
         Shown("show-shorts", "hideShorts", R.string.settings_show_shorts, R.string.settings_show_shorts_summary),
     )

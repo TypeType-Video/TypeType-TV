@@ -38,6 +38,7 @@ import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material.icons.rounded.VideoLibrary
+import androidx.compose.material.icons.rounded.ViewQuilt
 import androidx.compose.ui.graphics.vector.ImageVector
 import video.typetype.tv.data.SettingActions
 import video.typetype.tv.data.SettingItem
@@ -56,6 +57,7 @@ internal fun SettingItem.icon(): ImageVector = when {
         "show-continue" -> Icons.Rounded.Replay
         "show-recommendations" -> Icons.Rounded.AutoAwesome
         "show-related" -> Icons.Rounded.VideoLibrary
+        "show-end-screens" -> Icons.Rounded.ViewQuilt
         "show-comments" -> Icons.Rounded.ChatBubbleOutline
         "show-shorts" -> Icons.Rounded.Smartphone
         "blocked-count" -> Icons.Rounded.Block
