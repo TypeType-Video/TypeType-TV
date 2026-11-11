@@ -24,6 +24,7 @@ class PlayerSession(
     var interaction by mutableLongStateOf(0L)
     var panel by mutableStateOf<PlayerPanel?>(null)
     var relatedOpen by mutableStateOf(false)
+    var endScreenFocused by mutableStateOf(false)
     var panelFromMenu by mutableStateOf(true)
 
     // Where the focus goes back once the panels close, and the options row last chosen, so coming back from a
@@ -92,8 +93,8 @@ class PlayerSession(
         return true
     }
 
-    fun onKey(event: KeyEvent, upNextVisible: Boolean, playNext: () -> Unit): Boolean {
-        if (panel != null) return false
+    fun onKey(event: KeyEvent, upNextVisible: Boolean, endScreenVisible: Boolean, playNext: () -> Unit): Boolean {
+        if (panel != null || endScreenFocused) return false
         if (event.type != KeyEventType.KeyDown) return false
         interaction = SystemClock.elapsedRealtime()
         val repeats = event.nativeKeyEvent.repeatCount
@@ -109,6 +110,12 @@ class PlayerSession(
             event.key == Key.DirectionLeft && notice.segment != null -> undoSkip()
             event.key == Key.DirectionLeft || event.key == Key.MediaRewind -> { scrub(-1, repeats); true }
             event.key == Key.DirectionRight || event.key == Key.MediaFastForward -> { scrub(1, repeats); true }
+            event.key == Key.DirectionUp && endScreenVisible -> {
+                // Choosing a card means not taking the next video: the countdown would cover the cards.
+                upNext.dismiss()
+                endScreenFocused = true
+                true
+            }
             event.key == Key.DirectionUp -> { showControls(); true }
             event.key == Key.DirectionDown -> { showControls(fromBelow = true); true }
             else -> false
@@ -118,11 +125,12 @@ class PlayerSession(
     // Back goes through the activity's back dispatcher, not key events: from Android 16 (predictive back)
     // the Back key never reaches the views, so a key handler would let Back leave the player at once.
     fun handlesBack(upNextVisible: Boolean): Boolean =
-        panel == null && (scrub.active || upNextVisible || relatedOpen || controlsVisible)
+        panel == null && (scrub.active || endScreenFocused || upNextVisible || relatedOpen || controlsVisible)
 
     fun back(upNextVisible: Boolean) {
         when {
             scrub.active -> cancelScrub()
+            endScreenFocused -> endScreenFocused = false
             upNextVisible -> upNext.dismiss()
             relatedOpen -> relatedOpen = false
             controlsVisible -> controlsVisible = false
