@@ -1,7 +1,5 @@
 package video.typetype.tv.ui.search
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Animation
@@ -13,18 +11,17 @@ import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.PlaylistPlay
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
-import androidx.compose.ui.unit.dp
-import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentSource
 import video.typetype.tv.data.SearchKind
-import video.typetype.tv.ui.components.OptionWheel
-import video.typetype.tv.ui.components.WheelOption
+import video.typetype.tv.resources.R
 import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.ServiceMark
+import video.typetype.tv.ui.components.TabStrip
 
 fun nextSource(current: ContentSource): ContentSource {
     val all = ContentSource.entries
@@ -32,36 +29,38 @@ fun nextSource(current: ContentSource): ContentSource {
 }
 
 @Composable
-fun SearchScope(
-    source: ContentSource,
-    kind: SearchKind,
-    onCycleSource: () -> Unit,
-    onSelectKind: (SearchKind) -> Unit,
-) {
-    val sourceName = stringResource(source.labelRes)
-    val kindName = stringResource(kind.labelRes)
-    val sourceDescription = stringResource(R.string.search_source, sourceName)
-    val kindDescription = stringResource(R.string.search_kind, kindName)
-    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-        PillButton(
-            label = sourceName,
-            onClick = onCycleSource,
-            modifier = Modifier.semantics { contentDescription = sourceDescription },
-            leading = { ServiceMark(source, 20) },
-        )
-        val kinds = SearchKind.available(source)
-        if (kinds.size > 1) {
-            OptionWheel(
-                options = kinds.map { WheelOption(stringResource(it.labelRes), it.icon()) },
-                selected = kinds.indexOf(kind).coerceAtLeast(0),
-                onSelect = { onSelectKind(kinds[it]) },
-                description = kindDescription,
-            )
-        }
-    }
+fun SourceButton(source: ContentSource, onCycle: () -> Unit) {
+    val name = stringResource(source.labelRes)
+    val description = stringResource(R.string.search_source, name)
+    PillButton(
+        label = name,
+        onClick = onCycle,
+        modifier = Modifier.semantics { contentDescription = description },
+        leading = { ServiceMark(source, 20) },
+    )
 }
 
-// The picture of each kind of result, so the wheel shows what it will search for at a glance.
+@Composable
+fun SearchKindTabs(
+    source: ContentSource,
+    kind: SearchKind,
+    onSelect: (SearchKind) -> Unit,
+    openTab: FocusRequester,
+    modifier: Modifier = Modifier,
+) {
+    val kinds = SearchKind.available(source)
+    if (kinds.size < 2) return
+    TabStrip(
+        tabs = kinds,
+        open = kind,
+        onOpen = onSelect,
+        label = { stringResource(it.labelRes) },
+        icon = { it.icon() },
+        openTab = openTab,
+        modifier = modifier,
+    )
+}
+
 private fun SearchKind.icon(): ImageVector = when (this) {
     SearchKind.Videos -> Icons.Rounded.PlayCircle
     SearchKind.Playlists -> Icons.Rounded.PlaylistPlay

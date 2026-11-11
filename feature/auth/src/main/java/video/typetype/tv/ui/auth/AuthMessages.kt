@@ -22,6 +22,7 @@ fun describeDiscoveryFailure(result: DiscoveryResult): UiMessage? = when (result
     DiscoveryResult.InvalidAddress -> UiMessage(R.string.setup_error_invalid_address)
     DiscoveryResult.NetworkUnavailable -> UiMessage(R.string.setup_error_network)
     is DiscoveryResult.TlsFailure -> UiMessage(R.string.setup_error_tls)
+    DiscoveryResult.CleartextOnly -> UiMessage(R.string.setup_error_cleartext_only)
     is DiscoveryResult.NotTypeType -> UiMessage(R.string.setup_error_not_typetype)
     is DiscoveryResult.UnsupportedApi -> UiMessage(R.string.setup_error_unsupported)
 }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.derivedStateOf
@@ -37,6 +38,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.Chapter
+import video.typetype.tv.data.SeekbarIcon
 import video.typetype.tv.data.Storyboard
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.ui.components.DurationBadge
@@ -57,11 +59,13 @@ fun SeekBar(
     storyboard: Storyboard? = null,
     chapters: List<Chapter> = emptyList(),
     positionLabel: (Long) -> String = ::formatMillis,
+    icon: SeekbarIcon = SeekbarIcon.TypeType,
 ) {
     val source = remember { MutableInteractionSource() }
     val focused by source.collectIsFocusedAsState()
     val trackHeight = animateDpAsState(if (focused) 8.dp else 4.dp, tween(160), label = "seek-track")
     val thumbRadius = animateDpAsState(if (focused) 10.dp else 0.dp, tween(160), label = "seek-thumb")
+    val iconSize by animateDpAsState(if (focused) 34.dp else 26.dp, tween(160), label = "seek-icon")
     var widthPx by remember { mutableIntStateOf(0) }
     val shownMillis = { scrubMillis ?: positionMillis() }
     val percent by remember(durationMillis, scrubMillis) {
@@ -118,10 +122,20 @@ fun SeekBar(
                 }
             }
             val thumb = thumbRadius.value.toPx()
-            if (thumb > 0f || scrubMillis != null) {
+            if (icon == SeekbarIcon.Plain && (thumb > 0f || scrubMillis != null)) {
                 drawCircle(Palette.TextHigh, maxOf(thumb, 10.dp.toPx()), Offset(size.width * progress, size.height / 2f))
             }
         }
+        SeekbarIconImage(
+            icon = icon,
+            modifier = Modifier
+                .offset {
+                    val iconPx = iconSize.roundToPx()
+                    val x = (widthPx * SeekMath.fraction(shownMillis(), durationMillis)).toInt() - iconPx / 2
+                    IntOffset(x.coerceIn(0, (widthPx - iconPx).coerceAtLeast(0)), 0)
+                }
+                .size(iconSize),
+        )
         if (scrubMillis != null) {
             val previewHeight = seekPreviewHeight(storyboard)
             SeekPreview(

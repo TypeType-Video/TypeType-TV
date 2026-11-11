@@ -27,7 +27,10 @@ import kotlinx.coroutines.launch
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.session.DiscoveryResult
 import video.typetype.tv.data.session.SessionManager
+import video.typetype.tv.theme.Palette
+import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.PillButton
+import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.util.LocalIntroPlaying
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
@@ -91,6 +94,14 @@ fun SetupScreen(session: SessionManager, modifier: Modifier = Modifier, onCancel
                 imeAction = ImeAction.Go,
                 onImeAction = ::submit,
             )
+            if (address.trim().startsWith("http://", ignoreCase = true)) {
+                Spacer(Modifier.height(10.dp))
+                TextLabel(
+                    stringResource(R.string.setup_cleartext_warning),
+                    Type.Meta.copy(color = Palette.AccentSoft),
+                    maxLines = 2,
+                )
+            }
             Spacer(Modifier.height(18.dp))
             PillButton(
                 label = stringResource(if (busy) R.string.setup_checking else R.string.setup_continue),

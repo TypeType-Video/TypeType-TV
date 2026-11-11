@@ -44,7 +44,10 @@ import video.typetype.tv.ui.auth.ReconnectScreen
 import video.typetype.tv.ui.auth.SetupScreen
 import video.typetype.tv.ui.components.InkBackground
 import video.typetype.tv.data.device.Intro
+import video.typetype.tv.ui.splash.StartupChime
 import video.typetype.tv.ui.splash.StartupSplash
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.ui.draw.drawWithContent
 
 @OptIn(UnstableApi::class)
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -56,6 +59,12 @@ fun AppEntry(container: AppContainer) {
     LaunchedEffect(Unit) { session.restore() }
     val intro = remember { container.performance.current.value.intro }
     var splash by rememberSaveable { mutableStateOf(intro != Intro.Off) }
+    // The first screen is composed behind the intro so it is ready when it ends, but drawing it under an opaque
+    // splash would only slow the intro down.
+    var covered by rememberSaveable { mutableStateOf(splash) }
+    val context = LocalContext.current
+    val chime = remember { StartupChime(context.applicationContext) }
+    DisposableEffect(chime) { onDispose { chime.release() } }
     // Changing the server opens the setup screen over the app, which stays as it was below: Back returns to it
     // and gives the focus back to what had it, such as the Change instance row of the settings.
     val appFocus = remember { FocusRequester() }
@@ -89,7 +98,13 @@ fun AppEntry(container: AppContainer) {
         },
     ) {
         CompositionLocalProvider(LocalIntroPlaying provides splash) {
-            Box(Modifier.fillMaxSize().focusRequester(appFocus).focusGroup()) {
+            Box(
+                Modifier
+                    .fillMaxSize()
+                    .drawWithContent { if (!covered) drawContent() }
+                    .focusRequester(appFocus)
+                    .focusGroup(),
+            ) {
                 AppState(container, changing?.previous ?: state, scope, changeInstance)
             }
             if (changing != null) {
@@ -102,7 +117,17 @@ fun AppEntry(container: AppContainer) {
                 )
             }
         }
-        if (splash) StartupSplash(onFinished = { splash = false }, short = intro == Intro.Short)
+        if (splash) {
+            StartupSplash(
+                chime = chime,
+                onRevealing = { covered = false },
+                onFinished = {
+                    covered = false
+                    splash = false
+                },
+                short = intro == Intro.Short,
+            )
+        }
     }
 }
 

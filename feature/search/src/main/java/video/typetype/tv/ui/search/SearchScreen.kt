@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
@@ -76,6 +77,7 @@ fun SearchScreen(
     val scope = rememberCoroutineScope()
     val firstKey = remember { FocusRequester() }
     val resultsEntry = remember { FocusRequester() }
+    val kindTab = remember { FocusRequester() }
     var ideas by remember { mutableStateOf<List<String>>(emptyList()) }
     var searchAttempt by remember { mutableIntStateOf(0) }
     LaunchedEffect(Unit) { ideas = tryLoad({}) { repository.searchIdeas() }.orEmpty() }
@@ -148,92 +150,87 @@ fun SearchScreen(
             },
     ) {
         InkBackground()
-        Row(
-            modifier = Modifier
+        Column(
+            Modifier
                 .fillMaxSize()
-                .padding(
-                    start = Dimens.SafeStart,
-                    end = Dimens.SafeEnd,
-                    top = Dimens.TabContentTop,
-                ),
-            horizontalArrangement = Arrangement.spacedBy(44.dp),
+                .padding(start = Dimens.SafeStart, end = Dimens.SafeEnd, top = Dimens.TabContentTop),
         ) {
-            Column(Modifier.width(480.dp).trapFocusDown()) {
-                QueryField(session.query, ideas, voice)
-                Spacer(Modifier.height(10.dp))
-                SearchScope(
-                    source = session.source,
-                    kind = session.kind,
-                    onCycleSource = {
-                        session.source = nextSource(session.source)
-                        session.kind = SearchKind.Videos
-                    },
-                    onSelectKind = { session.kind = it },
-                )
-                Spacer(Modifier.height(12.dp))
-                SearchKeyboard(
-                    onCharacter = { session.query = SearchInput.append(session.query, it) },
-                    onDelete = { session.query = SearchInput.delete(session.query) },
-                    onClear = { session.query = "" },
-                    firstKey = firstKey,
-                    rightEdgeTarget = if (hasEntry) resultsEntry else null,
-                    voice = if (voice.available) VoiceKey(voice.listening, onVoice) else null,
-                )
+            Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
+                SourceButton(session.source) {
+                    session.source = nextSource(session.source)
+                    session.kind = SearchKind.Videos
+                }
+                SearchKindTabs(session.source, session.kind, { session.kind = it }, kindTab)
             }
-            Crossfade(
-                targetState = state,
-                animationSpec = tween(220),
-                modifier = Modifier.weight(1f).fillMaxHeight().trapFocusDown(),
-                label = "search-results",
-            ) { current ->
-                when (current) {
-                    ResultsState.Idle -> MessagePanel(
-                        title = stringResource(R.string.search_start_title),
-                        body = stringResource(R.string.search_start_body),
-                    ) {
-                        RecentSearches(
-                            queries = ideas,
-                            onPick = {
-                                session.query = it
-                                moveFocusToResults = true
-                            },
-                            entry = resultsEntry,
-                        )
-                    }
-                    ResultsState.Loading -> ResultsSkeleton(Modifier.padding(top = 26.dp))
-                    is ResultsState.Failed -> ScreenFailure(current.message, onRetry = { searchAttempt++ })
-                    is ResultsState.Loaded -> if (current.results.size == 0) {
-                        MessagePanel(
-                            title = stringResource(R.string.search_empty_title),
-                            body = stringResource(R.string.search_empty_body),
-                        )
-                    } else if (current.results.playlists.isNotEmpty()) {
-                        PlaylistResults(
-                            current.pager.playlists,
-                            onOpen = { onOpenPlaylist(it.url) },
-                            entry = resultsEntry,
-                            paging = CollectionPaging(current.pager.loadingMore, current.pager::loadMore),
-                        )
-                    } else if (current.results.channels.isNotEmpty()) {
-                        ChannelResults(
-                            current.pager.channels,
-                            onOpen = { onOpenChannel(it.url) },
-                            entry = resultsEntry,
-                            paging = CollectionPaging(current.pager.loadingMore, current.pager::loadMore),
-                        )
-                    } else {
-                        ResultList(
-                            results = current.pager.videos,
-                            loadingMore = current.pager.loadingMore,
-                            onNearEnd = current.pager::loadMore,
-                            onOpen = {
-                                session.restoreVideoId = it.id
-                                onOpen(it)
-                            },
-                            entry = resultsEntry,
-                            restoreId = restoreId?.takeIf { pendingRestore },
-                            onRestored = { pendingRestore = false },
-                        )
+            Spacer(Modifier.height(8.dp))
+            Row(Modifier.weight(1f), horizontalArrangement = Arrangement.spacedBy(44.dp)) {
+                Column(Modifier.width(480.dp).trapFocusDown()) {
+                    QueryField(session.query, ideas, voice)
+                    Spacer(Modifier.height(12.dp))
+                    SearchKeyboard(
+                        onCharacter = { session.query = SearchInput.append(session.query, it) },
+                        onDelete = { session.query = SearchInput.delete(session.query) },
+                        onClear = { session.query = "" },
+                        firstKey = firstKey,
+                        rightEdgeTarget = if (hasEntry) resultsEntry else null,
+                        voice = if (voice.available) VoiceKey(voice.listening, onVoice) else null,
+                    )
+                }
+                Crossfade(
+                    targetState = state,
+                    animationSpec = tween(220),
+                    modifier = Modifier.weight(1f).fillMaxHeight().trapFocusDown(),
+                    label = "search-results",
+                ) { current ->
+                    when (current) {
+                        ResultsState.Idle -> MessagePanel(
+                            title = stringResource(R.string.search_start_title),
+                            body = stringResource(R.string.search_start_body),
+                        ) {
+                            RecentSearches(
+                                queries = ideas,
+                                onPick = {
+                                    session.query = it
+                                    moveFocusToResults = true
+                                },
+                                entry = resultsEntry,
+                            )
+                        }
+                        ResultsState.Loading -> ResultsSkeleton(Modifier.padding(top = 26.dp))
+                        is ResultsState.Failed -> ScreenFailure(current.message, onRetry = { searchAttempt++ })
+                        is ResultsState.Loaded -> if (current.results.size == 0) {
+                            MessagePanel(
+                                title = stringResource(R.string.search_empty_title),
+                                body = stringResource(R.string.search_empty_body),
+                            )
+                        } else if (current.results.playlists.isNotEmpty()) {
+                            PlaylistResults(
+                                current.pager.playlists,
+                                onOpen = { onOpenPlaylist(it.url) },
+                                entry = resultsEntry,
+                                paging = CollectionPaging(current.pager.loadingMore, current.pager::loadMore),
+                            )
+                        } else if (current.results.channels.isNotEmpty()) {
+                            ChannelResults(
+                                current.pager.channels,
+                                onOpen = { onOpenChannel(it.url) },
+                                entry = resultsEntry,
+                                paging = CollectionPaging(current.pager.loadingMore, current.pager::loadMore),
+                            )
+                        } else {
+                            ResultList(
+                                results = current.pager.videos,
+                                loadingMore = current.pager.loadingMore,
+                                onNearEnd = current.pager::loadMore,
+                                onOpen = {
+                                    session.restoreVideoId = it.id
+                                    onOpen(it)
+                                },
+                                entry = resultsEntry,
+                                restoreId = restoreId?.takeIf { pendingRestore },
+                                onRestored = { pendingRestore = false },
+                            )
+                        }
                     }
                 }
             }

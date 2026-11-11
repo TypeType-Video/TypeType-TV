@@ -1,4 +1,4 @@
-package video.typetype.tv.ui.library
+package video.typetype.tv.ui.components
 
 import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.animateDpAsState
@@ -18,41 +18,39 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
-import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.selected
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
-import video.typetype.tv.resources.R
-import video.typetype.tv.data.LibrarySection
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
-import video.typetype.tv.ui.components.FocusSurface
-import video.typetype.tv.ui.components.Glyph
-import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.util.focusEntersAt
 import video.typetype.tv.ui.util.trapFocusDown
 
+data class RailEntry(val id: String, val label: String, val icon: ImageVector)
+
 @Composable
-internal fun LibraryRail(
-    tabs: List<LibrarySection>,
-    selected: LibrarySection,
-    onSelect: (LibrarySection) -> Unit,
+fun SectionRail(
+    title: String,
+    entries: List<RailEntry>,
+    selectedId: String,
+    onSelect: (String) -> Unit,
     selectedRequester: FocusRequester,
     modifier: Modifier = Modifier,
 ) {
     Column(modifier = modifier.width(232.dp).trapFocusDown()) {
-        TextLabel(stringResource(R.string.library_title), Type.Headline)
+        TextLabel(title, Type.Headline)
         Spacer(Modifier.height(20.dp))
         Column(Modifier.focusEntersAt(selectedRequester), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            tabs.forEach { section ->
-                val isSelected = section.id == selected.id
+            entries.forEach { entry ->
+                val isSelected = entry.id == selectedId
                 RailItem(
-                    section = section,
+                    entry = entry,
                     selected = isSelected,
-                    onFocused = { onSelect(section) },
+                    onFocused = { onSelect(entry.id) },
                     modifier = if (isSelected) Modifier.focusRequester(selectedRequester) else Modifier,
                 )
             }
@@ -62,12 +60,11 @@ internal fun LibraryRail(
 
 @Composable
 private fun RailItem(
-    section: LibrarySection,
+    entry: RailEntry,
     selected: Boolean,
     onFocused: () -> Unit,
     modifier: Modifier = Modifier,
 ) {
-    val label = section.label()
     FocusSurface(
         onClick = onFocused,
         modifier = modifier
@@ -108,8 +105,8 @@ private fun RailItem(
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Box(Modifier.width(3.dp).height(bar.value).background(Palette.Accent, Shapes.Chip))
-            Glyph(section.icon(), content.value, 20)
-            TextLabel(label, Type.Button.copy(color = content.value), maxLines = 1)
+            Glyph(entry.icon, content.value, 20)
+            TextLabel(entry.label, Type.Button.copy(color = content.value), maxLines = 1)
         }
     }
 }

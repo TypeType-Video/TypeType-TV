@@ -26,6 +26,7 @@ fun PlayerScreen(
     onOpenNext: (Video) -> Unit,
     modifier: Modifier = Modifier,
     onOpenChannel: (String) -> Unit = {},
+    onOpenPlaylist: (String) -> Unit = {},
     startWithControls: Boolean = true,
     preview: Video? = null,
 ) {
@@ -60,6 +61,7 @@ fun PlayerScreen(
                 onOpenNext = onOpenNext,
                 modifier = modifier,
                 onOpenChannel = onOpenChannel,
+                onOpenPlaylist = onOpenPlaylist,
             )
         }
         is PlaybackPhase.Reconnecting -> ReconnectingPanel(phase.attempt, phase.offline, modifier)

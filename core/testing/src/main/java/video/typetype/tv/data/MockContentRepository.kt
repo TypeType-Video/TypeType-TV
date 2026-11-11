@@ -125,6 +125,16 @@ class MockContentRepository(
         }
     }
 
+    override suspend fun subscriptionFeed(page: String?): SubscriptionFeedPage {
+        delay(latencyMillis / 2)
+        val all = MockCatalog.all
+        return if (page == null) SubscriptionFeedPage(all.take(12), "2") else SubscriptionFeedPage(all.drop(12), null)
+    }
+
+    override suspend fun subscribedChannels(): List<ChannelSummary> =
+        MockCatalog.all.map { it.channel }.distinctBy { it.id }
+            .map { ChannelSummary(it.url.ifBlank { it.id }, it.name, "", it.subscribers, it.avatarUrl) }
+
     override suspend fun searchIdeas(): List<String> = MockCatalog.trendingSearches
 
     override suspend fun settings(): List<SettingsGroup> = MockSettings.groups

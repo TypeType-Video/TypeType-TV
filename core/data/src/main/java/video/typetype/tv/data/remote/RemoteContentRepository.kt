@@ -23,12 +23,16 @@ import video.typetype.tv.data.PublicPlaylistPage
 import video.typetype.tv.data.SavedPlaylist
 import video.typetype.tv.data.SearchKind
 import video.typetype.tv.data.SearchResults
+import video.typetype.tv.data.ChannelSummary
+import video.typetype.tv.data.SubscriptionFeedPage
 import video.typetype.tv.data.ContentSource
 import video.typetype.tv.data.PlaybackSetup
 import video.typetype.tv.data.CaptionStyles
 import video.typetype.tv.data.PresenceReport
 import video.typetype.tv.data.StartupPreferences
 import video.typetype.tv.data.VideoActivity
+import video.typetype.tv.data.onInstance
+import video.typetype.tv.data.toEndScreenElement
 import video.typetype.tv.data.api.LibraryWriteApi
 import video.typetype.tv.data.api.TypeTypeApi
 import video.typetype.tv.data.dto.BlockChannelRequest
@@ -42,7 +46,7 @@ import video.typetype.tv.data.session.StreamAccess
 class RemoteContentRepository(
     private val api: TypeTypeApi,
     private val library: LibraryWriteApi,
-    apiBase: HttpUrl,
+    private val apiBase: HttpUrl,
     private val settingsSource: RemoteSettings,
     private val texts: TextProvider,
     private val presence: RemotePresence,
@@ -60,6 +64,7 @@ class RemoteContentRepository(
     private val branding = DeArrowBranding(api, apiBase, userSettings, clock)
     private val homeLoader = HomeLoader(api, filter, branding, texts, clock)
     private val playlists = PublicPlaylistSource(api, library, filter, branding, clock)
+    private val subscriptions = RemoteSubscriptions(api, library, filter, branding, clock)
     private val activity = RemoteVideoActivity(library, api, userSettings) { homeCache.clear() }
 
     override suspend fun home(): HomeContent {
@@ -70,6 +75,10 @@ class RemoteContentRepository(
             homeCache.stale(HOME_KEY) ?: throw failure
         }
     }
+
+    override suspend fun subscriptionFeed(page: String?): SubscriptionFeedPage = watch.watch { subscriptions.subscriptionFeed(page) }
+
+    override suspend fun subscribedChannels(): List<ChannelSummary> = watch.watch { subscriptions.subscribedChannels() }
 
     override suspend fun video(id: String): Video? = watch.watch { branding.apply(listOf(stream(id).toVideo(id, clock()))).single() }
 
@@ -229,7 +238,7 @@ class RemoteContentRepository(
     }
 
     override suspend fun playbackSetup(videoId: String): PlaybackSetup {
-        val preferences = userSettings.playbackPreferences()
+        val preferences = userSettings.playbackPreferences().let { it.copy(seekbarIcon = it.seekbarIcon.onInstance(apiBase)) }
         val stream = runCatching { stream(videoId) }.getOrNull() ?: return PlaybackSetup(preferences)
         return PlaybackSetup(
             preferences = preferences,
@@ -239,6 +248,7 @@ class RemoteContentRepository(
                 durationMs = stream.duration * MILLIS_PER_SECOND,
                 streamCategory = stream.category,
             ),
+            endScreens = if (preferences.hideEndScreens) emptyList() else stream.endScreenElements.mapNotNull { it.toEndScreenElement() },
             liveManifest = stream.liveManifest(),
             storyboard = stream.toStoryboard(),
             stream = stream,

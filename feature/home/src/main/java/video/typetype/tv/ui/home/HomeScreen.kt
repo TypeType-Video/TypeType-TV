@@ -24,6 +24,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import video.typetype.tv.data.ContentRepository
+import video.typetype.tv.ui.util.LocalIntroPlaying
 import video.typetype.tv.ui.util.UiMessage
 import video.typetype.tv.ui.components.ScreenFailure
 import video.typetype.tv.ui.util.tryLoad
@@ -89,7 +90,7 @@ private fun HomeLoaded(
     var pendingRestore by remember { mutableStateOf(restoreAnchor != null) }
 
     var previewPlaying by remember { mutableStateOf(false) }
-    val heroInView = focusedCard == null && !previewPlaying
+    val heroInView = focusedCard == null && !previewPlaying && !LocalIntroPlaying.current
     LaunchedEffect(content, heroInView) {
         while (heroInView) {
             delay(HERO_ROTATION_MILLIS)

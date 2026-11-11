@@ -39,6 +39,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.resources.R
+import video.typetype.tv.data.SeekbarIcon
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Palette
@@ -89,6 +90,7 @@ data class PlayerPreferences(
     val commentsAreChat: Boolean = false,
     val audioLabel: String? = null,
     val commentsPanelAvailable: Boolean = false,
+    val seekbarIcon: SeekbarIcon = SeekbarIcon.TypeType,
 )
 
 @Composable
@@ -130,7 +132,7 @@ fun PlayerControls(
         TitleBlock(video, chapter, Modifier.align(Alignment.TopStart))
         Column(Modifier.align(Alignment.BottomCenter).padding(bottom = Dimens.SafeBottom + 6.dp)) {
             Column(Modifier.padding(start = Dimens.SafeStart, end = Dimens.SafeEnd)) {
-                TimeLine(state, actions, seekRequester, playRequester, markers, scrubMillis, storyboard, video.chapters)
+                TimeLine(state, actions, seekRequester, playRequester, markers, scrubMillis, storyboard, video.chapters, preferences.seekbarIcon)
                 Spacer(Modifier.height(10.dp))
                 Row(
                     modifier = Modifier.fillMaxWidth().onPreviewKeyEvent { event ->
@@ -188,6 +190,7 @@ private fun TimeLine(
     scrubMillis: Long?,
     storyboard: Storyboard?,
     chapters: List<Chapter>,
+    seekbarIcon: SeekbarIcon,
 ) {
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
         val elapsed by remember(state, scrubMillis) {
@@ -211,6 +214,7 @@ private fun TimeLine(
             storyboard = storyboard,
             chapters = chapters,
             positionLabel = if (state.isLive) liveLabel(state.durationMillis) else ::formatMillis,
+            icon = seekbarIcon,
         )
         if (state.isLive) {
             TextLabel(stringResource(R.string.player_live), Type.Label.copy(color = Palette.Accent), Modifier.width(48.dp))

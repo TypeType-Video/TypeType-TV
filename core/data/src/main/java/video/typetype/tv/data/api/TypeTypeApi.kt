@@ -50,8 +50,8 @@ class TypeTypeApi(private val client: ApiClient) {
     suspend fun shorts(limit: Int = 20): HomeRecommendationsDto =
         client.get("recommendations/shorts", HomeRecommendationsDto.serializer(), mapOf("service" to "0", "limit" to limit.toString()))
 
-    suspend fun subscriptionsFeed(limit: Int = 24): SubscriptionFeedDto =
-        client.get("subscriptions/feed", SubscriptionFeedDto.serializer(), mapOf("limit" to limit.toString()))
+    suspend fun subscriptionsFeed(limit: Int = 24, cursor: String? = null): SubscriptionFeedDto =
+        client.get("subscriptions/feed", SubscriptionFeedDto.serializer(), mapOf("limit" to limit.toString(), "cursor" to cursor))
 
     suspend fun trending(source: ContentSource = ContentSource.YouTube): List<VideoItemDto> =
         client.get("trending", ListSerializer(VideoItemDto.serializer()), mapOf("service" to source.serviceId.toString()))

@@ -22,12 +22,21 @@ sealed interface DiscoveryResult {
 
     data object NetworkUnavailable : DiscoveryResult
 
+    data object CleartextOnly : DiscoveryResult
+
     data object InvalidAddress : DiscoveryResult
 }
 
 class InstanceDiscovery(private val http: OkHttpClient) {
     suspend fun discover(input: String): DiscoveryResult {
         val origin = normalize(input) ?: return DiscoveryResult.InvalidAddress
+        val result = probe(origin)
+        if (hasScheme(input) || !result.isConnectionFailure()) return result
+        val cleartext = origin.newBuilder().scheme("http").build()
+        return if (probe(cleartext).isTypeType()) DiscoveryResult.CleartextOnly else result
+    }
+
+    private suspend fun probe(origin: HttpUrl): DiscoveryResult {
         var lastStatus: Int? = null
         for (base in candidateBases(origin)) {
             val request = Request.Builder().url(base.resolve("instance") ?: continue).get().build()
@@ -44,6 +53,12 @@ class InstanceDiscovery(private val http: OkHttpClient) {
         }
         return DiscoveryResult.NotTypeType(lastStatus)
     }
+
+    private fun DiscoveryResult.isConnectionFailure() =
+        this is DiscoveryResult.TlsFailure || this == DiscoveryResult.NetworkUnavailable
+
+    private fun DiscoveryResult.isTypeType() =
+        this is DiscoveryResult.Compatible || this is DiscoveryResult.UnsupportedApi
 
     private fun classify(base: HttpUrl, instance: InstanceDto): DiscoveryResult =
         if (instance.apiVersion == SUPPORTED_API_VERSION) {
@@ -66,9 +81,11 @@ class InstanceDiscovery(private val http: OkHttpClient) {
         fun normalize(input: String): HttpUrl? {
             val trimmed = input.trim().trimEnd('/')
             if (trimmed.isEmpty()) return null
-            val withScheme = if ("://" in trimmed) trimmed else "https://$trimmed"
+            val withScheme = if (hasScheme(trimmed)) trimmed else "https://$trimmed"
             val url = withScheme.toHttpUrlOrNull() ?: return null
             return url.newBuilder().encodedPath("/").query(null).fragment(null).build()
         }
+
+        private fun hasScheme(input: String) = "://" in input
     }
 }

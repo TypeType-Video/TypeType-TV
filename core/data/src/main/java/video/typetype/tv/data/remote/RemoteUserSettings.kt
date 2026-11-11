@@ -14,6 +14,7 @@ import kotlinx.serialization.json.floatOrNull
 import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import video.typetype.tv.data.PlaybackPreferences
+import video.typetype.tv.data.SeekbarIcon
 import video.typetype.tv.data.api.TypeTypeApi
 
 class RemoteUserSettings(
@@ -134,8 +135,10 @@ class RemoteUserSettings(
             showCurrentSegment = flag(settings, "sponsorBlockShowCurrentSegment") ?: true,
             captionStyles = captionStyles(settings),
             hideComments = flag(settings, "hideComments") ?: false,
+            hideEndScreens = flag(settings, "hideEndScreens") ?: false,
             audioLanguage = settings?.let { text(it, "defaultAudioLanguage") }.orEmpty(),
             preferOriginalAudio = flag(settings, "preferOriginalLanguage") ?: false,
+            seekbarIcon = SeekbarIcon.from(settings?.let { text(it, "seekbarIcon") }, settings?.let { text(it, "seekbarIconUrl") }),
         )
     }
 

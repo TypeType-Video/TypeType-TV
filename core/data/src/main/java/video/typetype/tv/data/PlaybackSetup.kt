@@ -30,8 +30,10 @@ data class PlaybackPreferences(
     val showCurrentSegment: Boolean = true,
     val captionStyles: CaptionStyles = CaptionStyles(),
     val hideComments: Boolean = false,
+    val hideEndScreens: Boolean = false,
     val audioLanguage: String = "",
     val preferOriginalAudio: Boolean = false,
+    val seekbarIcon: SeekbarIcon = SeekbarIcon.TypeType,
 ) {
     companion object {
         const val DEFAULT_COUNTDOWN_SECONDS = 10
@@ -42,6 +44,7 @@ data class PlaybackSetup(
     val preferences: PlaybackPreferences = PlaybackPreferences(),
     val subtitles: List<SubtitleTrack> = emptyList(),
     val sponsorSegments: List<SponsorSegment> = emptyList(),
+    val endScreens: List<EndScreenElement> = emptyList(),
     val liveManifest: String? = null,
     val storyboard: Storyboard? = null,
     val stream: StreamDto? = null,

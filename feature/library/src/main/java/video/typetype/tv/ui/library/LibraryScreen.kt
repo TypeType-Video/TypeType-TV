@@ -55,9 +55,12 @@ import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.components.Glyph
 import video.typetype.tv.ui.components.InkBackground
+import video.typetype.tv.ui.components.RailEntry
+import video.typetype.tv.ui.components.SectionRail
 import video.typetype.tv.ui.components.SkeletonBox
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.components.VideoCard
+import video.typetype.tv.ui.components.VideoGridSkeleton
 import video.typetype.tv.ui.util.requestFocusWhenReady
 import video.typetype.tv.ui.util.trapFocusDown
 
@@ -121,10 +124,11 @@ fun LibraryScreen(
                 ),
             horizontalArrangement = Arrangement.spacedBy(36.dp),
         ) {
-            LibraryRail(
-                tabs = tabs,
-                selected = session.selected,
-                onSelect = { session.selected = it },
+            SectionRail(
+                title = stringResource(R.string.library_title),
+                entries = tabs.map { RailEntry(it.id, it.label(), it.icon()) },
+                selectedId = session.selected.id,
+                onSelect = { id -> tabs.firstOrNull { it.id == id }?.let { session.selected = it } },
                 selectedRequester = selectedRequester,
             )
             Crossfade(
@@ -135,7 +139,7 @@ fun LibraryScreen(
             ) { loaded ->
                 when {
                     loaded == null && itemsFailure != null -> ScreenFailure(itemsFailure, onRetry = { itemsAttempt++ })
-                    loaded == null -> LibraryGridSkeleton()
+                    loaded == null -> VideoGridSkeleton()
                     loaded.isEmpty() -> EmptyLibrary()
                     else -> CompositionLocalProvider(LocalPlaylistContext provides playlist) {
                         LibraryGrid(
@@ -196,26 +200,6 @@ private fun LibraryGrid(
                     onClick = { onOpen(video) },
                     modifier = if (video.id == restoreId) Modifier.focusRequester(restorer) else Modifier,
                 )
-            }
-        }
-    }
-}
-
-@Composable
-private fun LibraryGridSkeleton() {
-    val description = stringResource(R.string.loading)
-    Column(Modifier.fillMaxSize().semantics { contentDescription = description }) {
-        SkeletonBox(Modifier.size(width = 80.dp, height = 10.dp), Shapes.Chip)
-        Spacer(Modifier.height(20.dp))
-        repeat(2) {
-            Row(Modifier.padding(bottom = 24.dp), horizontalArrangement = Arrangement.spacedBy(Dimens.CardGap)) {
-                repeat(3) {
-                    Column(Modifier.weight(1f)) {
-                        SkeletonBox(Modifier.fillMaxWidth().height(118.dp))
-                        Spacer(Modifier.height(10.dp))
-                        SkeletonBox(Modifier.size(width = 150.dp, height = 12.dp), Shapes.Chip)
-                    }
-                }
             }
         }
     }

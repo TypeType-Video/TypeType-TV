@@ -15,6 +15,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.wrapContentWidth
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.text.BasicText
@@ -73,7 +74,7 @@ fun TopNav(
     updateVersion: String? = null,
     onUpdate: () -> Unit = {},
 ) {
-    Box(
+    Row(
         modifier = modifier
             .fillMaxWidth()
             .drawBehind {
@@ -93,17 +94,19 @@ fun TopNav(
             }
             .padding(start = Dimens.SafeStart, end = Dimens.SafeEnd, top = Dimens.SafeTop)
             .height(Dimens.TopNavHeight),
+        verticalAlignment = Alignment.CenterVertically,
     ) {
-        BrandLogo(Modifier.align(Alignment.CenterStart))
+        BrandLogo()
         val ownEntry = remember { FocusRequester() }
         val selectedRequester = navEntry ?: ownEntry
         Row(
             modifier = Modifier
-                .align(Alignment.Center)
+                .weight(1f)
+                .wrapContentWidth(Alignment.CenterHorizontally)
                 .focusProperties { enter = { selectedRequester } }
                 .focusGroup()
                 .onFocusChanged { onNavFocusChange(it.hasFocus) },
-            horizontalArrangement = Arrangement.spacedBy(6.dp),
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             TopTab.entries.forEach { tab ->
@@ -117,7 +120,6 @@ fun TopNav(
             }
         }
         Row(
-            modifier = Modifier.align(Alignment.CenterEnd),
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
@@ -179,7 +181,7 @@ private fun NavTab(
         Row(
             modifier = Modifier
                 .background(container)
-                .padding(horizontal = 16.dp, vertical = 9.dp),
+                .padding(horizontal = 13.dp, vertical = 9.dp),
             horizontalArrangement = Arrangement.spacedBy(7.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {

@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import video.typetype.tv.data.PlaybackPreferences
+import video.typetype.tv.data.SeekbarIcon
 import video.typetype.tv.playback.PlayerHandle
 import video.typetype.tv.playback.AudioTrackChoice
 import video.typetype.tv.playback.CaptionChoice
@@ -30,6 +31,7 @@ internal fun playerPreferences(
     commentsOn: Boolean,
     commentsAreChat: Boolean = false,
     commentsPanelAvailable: Boolean = false,
+    seekbarIcon: SeekbarIcon = SeekbarIcon.TypeType,
 ): PlayerPreferences {
     val effective = qualityCap ?: defaultCap
     return PlayerPreferences(
@@ -43,6 +45,7 @@ internal fun playerPreferences(
         commentsAreChat = commentsAreChat,
         audioLabel = audioLabel(handle.audioTracks, handle.audioTrackId),
         commentsPanelAvailable = commentsPanelAvailable,
+        seekbarIcon = seekbarIcon,
     )
 }
 

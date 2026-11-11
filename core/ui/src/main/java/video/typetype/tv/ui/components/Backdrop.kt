@@ -36,6 +36,7 @@ import kotlin.math.roundToInt
 import kotlinx.coroutines.delay
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Palette
+import video.typetype.tv.ui.util.LocalIntroPlaying
 import video.typetype.tv.ui.util.LocalPerformance
 
 @Composable
@@ -51,8 +52,9 @@ fun Backdrop(
     var playing by remember(candidate?.id) { mutableStateOf(false) }
     var started by remember(candidate?.id) { mutableStateOf(false) }
     var surfaceShown by remember { mutableStateOf(false) }
-    LaunchedEffect(candidate?.id) {
-        if (candidate == null) return@LaunchedEffect
+    val introPlaying = LocalIntroPlaying.current
+    LaunchedEffect(candidate?.id, introPlaying) {
+        if (candidate == null || introPlaying) return@LaunchedEffect
         delay(PREVIEW_DELAY_MILLIS)
         started = true
         surfaceShown = true
