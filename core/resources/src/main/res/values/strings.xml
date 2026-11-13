@@ -124,6 +124,8 @@
     <string name="settings_show_recommendations_summary">Suggested videos on Home.</string>
     <string name="settings_show_related">More videos</string>
     <string name="settings_show_related_summary">Related videos on a video page and in the player.</string>
+    <string name="settings_show_end_screens">End screens</string>
+    <string name="settings_show_end_screens_summary">The creator\'s cards over the last seconds of a YouTube video.</string>
     <string name="settings_show_comments">Comments</string>
     <string name="settings_show_comments_summary">Comments under a video.</string>
     <string name="settings_show_shorts">Shorts</string>
@@ -419,6 +421,13 @@
     <string name="up_next_description">Up next: %1$s, %2$s. Plays in %3$d seconds. Press OK to play now, Back to cancel.</string>
     <string name="key_ok">OK</string>
     <string name="key_back">BACK</string>
+    <string name="end_screen_hint">▲ Creator cards</string>
+    <string name="end_screen_video">Video: %1$s</string>
+    <string name="end_screen_playlist">Playlist: %1$s</string>
+    <string name="end_screen_channel">Channel: %1$s</string>
+    <string name="end_screen_play_video">play the video</string>
+    <string name="end_screen_open_playlist">open the playlist</string>
+    <string name="end_screen_open_channel">open the channel</string>
     <string name="menu_comments">Comments</string>
     <string name="comments_loading">Loading comments</string>
     <string name="comments_empty">No comments to show for this video</string>

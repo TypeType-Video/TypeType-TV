@@ -5,6 +5,7 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.Stable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -12,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.media3.common.C
 import androidx.media3.common.Player
 import androidx.media3.common.Tracks
+import androidx.media3.common.VideoSize
 import video.typetype.tv.ui.util.formatMillis
 import kotlinx.coroutines.delay
 
@@ -27,7 +29,10 @@ class PlayerUiState {
     var trackHeights by mutableStateOf(emptyList<Int>())
     var isLive by mutableStateOf(false)
     var liveOffsetMillis by mutableLongStateOf(0L)
+    var videoAspect by mutableFloatStateOf(DEFAULT_ASPECT)
 }
+
+const val DEFAULT_ASPECT = 16f / 9f
 
 object LiveEdge {
     const val AT_EDGE_MILLIS = 3_000L
@@ -54,6 +59,12 @@ fun rememberPlayerUiState(player: Player): PlayerUiState {
 
             override fun onRenderedFirstFrame() {
                 state.hasFirstFrame = true
+            }
+
+            override fun onVideoSizeChanged(videoSize: VideoSize) {
+                if (videoSize.width > 0 && videoSize.height > 0) {
+                    state.videoAspect = videoSize.width * videoSize.pixelWidthHeightRatio / videoSize.height
+                }
             }
 
             override fun onTracksChanged(tracks: Tracks) {

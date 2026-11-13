@@ -135,6 +135,7 @@ class RemoteUserSettings(
             showCurrentSegment = flag(settings, "sponsorBlockShowCurrentSegment") ?: true,
             captionStyles = captionStyles(settings),
             hideComments = flag(settings, "hideComments") ?: false,
+            hideEndScreens = flag(settings, "hideEndScreens") ?: false,
             audioLanguage = settings?.let { text(it, "defaultAudioLanguage") }.orEmpty(),
             preferOriginalAudio = flag(settings, "preferOriginalLanguage") ?: false,
             seekbarIcon = SeekbarIcon.from(settings?.let { text(it, "seekbarIcon") }, settings?.let { text(it, "seekbarIconUrl") }),

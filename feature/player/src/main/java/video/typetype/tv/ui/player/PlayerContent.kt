@@ -71,6 +71,7 @@ fun PlayerContent(
     onOpenNext: (Video) -> Unit,
     modifier: Modifier = Modifier,
     onOpenChannel: (String) -> Unit = {},
+    onOpenPlaylist: (String) -> Unit = {},
     startWithControls: Boolean = true,
 ) {
     val player = handle.player
@@ -123,6 +124,11 @@ fun PlayerContent(
     }
     val upNextVisible = autoAdvance && !state.isEnded && !session.controlsVisible && session.panel == null &&
         !session.scrub.active && inUpNextWindow
+    val endScreenShown = setup.endScreens.isNotEmpty() && !choices.audioOnly && !state.isEnded &&
+        !session.controlsVisible && session.panel == null && !session.scrub.active
+    val endScreenVisible by remember(state, setup.endScreens) {
+        derivedStateOf { setup.endScreens.any { it.isVisibleAt(state.positionMillis) } }
+    }
     val sponsorLabel by remember(state, setup.sponsorSegments) {
         derivedStateOf { SponsorLabels.current(state.positionMillis, setup.sponsorSegments) }
     }
@@ -151,7 +157,8 @@ fun PlayerContent(
             .background(Color.Black)
             .focusRequester(root)
             .onPreviewKeyEvent { event ->
-                handleRemoteKey(event, session.panel != null, remoteKeys) || session.onKey(event, upNextVisible) { next?.let(onOpenNext) }
+                handleRemoteKey(event, session.panel != null, remoteKeys) ||
+                    session.onKey(event, upNextVisible, endScreenShown && endScreenVisible) { next?.let(onOpenNext) }
             }
             .focusable(),
     ) {
@@ -173,6 +180,20 @@ fun PlayerContent(
             if (commentsOn && bulletComments.isNotEmpty()) {
                 DanmakuOverlay(bulletComments, state, SPEED_CHOICES[speedIndex])
             }
+            EndScreenLayer(
+                elements = setup.endScreens,
+                state = state,
+                shown = endScreenShown,
+                focused = session.endScreenFocused,
+                onFocusedChange = { focused ->
+                    session.endScreenFocused = focused
+                    if (!focused) runCatching { root.requestFocus() }
+                },
+                onOpen = { element ->
+                    session.endScreenFocused = false
+                    openEndScreen(element, onOpenNext, onOpenPlaylist, onOpenChannel)
+                },
+            )
             BufferingSpinner(state.isBuffering && !state.isEnded && !opening, Modifier.align(Alignment.Center))
             Column(
                 modifier = Modifier.align(Alignment.TopEnd).padding(end = Dimens.SafeEnd, top = Dimens.SafeTop + 12.dp),

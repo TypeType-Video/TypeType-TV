@@ -263,6 +263,7 @@ fun AppRoot(
                         preview = route.preview,
                         onOpenNext = { navigator.replaceTop(Route.Player(it.id, continued = true, preview = it)) },
                         onOpenChannel = { navigator.push(Route.Channel(it)) },
+                        onOpenPlaylist = { navigator.push(Route.Playlist(it)) },
                     )
                 }
             }
