@@ -10,6 +10,7 @@ import org.junit.Assert.assertNull
 import org.junit.Before
 import org.junit.Test
 import video.typetype.tv.data.api.LibraryWriteApi
+import video.typetype.tv.data.dto.HistoryRequest
 import video.typetype.tv.data.dto.SubscriptionRequest
 import video.typetype.tv.data.dto.WatchLaterRequest
 
@@ -58,12 +59,26 @@ class LibraryWriteApiTest {
     fun subscribeAndUnsubscribeIdentifyTheChannel() = runBlocking {
         server.enqueue(MockResponse().setResponseCode(201).setBody("{}"))
         server.enqueue(MockResponse().setResponseCode(204))
-        api.subscribe(SubscriptionRequest("https://www.youtube.com/channel/UC1", "Channel"))
+        api.subscribe(SubscriptionRequest("https://www.youtube.com/channel/UC1", "Channel", ""))
         api.unsubscribe("https://www.youtube.com/channel/UC1")
-        assertEquals("/api/subscriptions", server.takeRequest().path)
+        val added = server.takeRequest()
+        assertEquals("/api/subscriptions", added.path)
+        val body = added.body.readUtf8()
+        assert(body.contains("\"avatarUrl\":\"\"")) { body }
         val removal = server.takeRequest()
         assertEquals("DELETE", removal.method)
         assertEquals("https://www.youtube.com/channel/UC1", removal.requestUrl?.queryParameter("url"))
+    }
+
+    @Test
+    fun historySendsTheProgressEvenAtTheStart() = runBlocking {
+        server.enqueue(MockResponse().setResponseCode(201).setBody("{}"))
+        api.addHistory(HistoryRequest(video, "Title", "", 120, "Channel", "https://www.youtube.com/channel/UC1", progress = 0))
+        val request = server.takeRequest()
+        assertEquals("/api/history", request.path)
+        val body = request.body.readUtf8()
+        assert(body.contains("\"progress\":0")) { body }
+        assert(body.contains("\"channelUrl\":\"https://www.youtube.com/channel/UC1\"")) { body }
     }
 
     @Test

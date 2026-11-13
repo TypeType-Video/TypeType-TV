@@ -22,14 +22,14 @@ data class HistoryRequest(
     val channelName: String,
     val channelUrl: String,
     val channelAvatar: String = "",
-    val progress: Long = 0L,
+    val progress: Long,
 )
 
 @Serializable
 data class SubscriptionRequest(
     val channelUrl: String,
     val name: String,
-    val avatarUrl: String = "",
+    val avatarUrl: String,
 )
 
 @Serializable
