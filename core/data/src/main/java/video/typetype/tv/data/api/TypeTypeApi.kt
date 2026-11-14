@@ -19,6 +19,7 @@ import video.typetype.tv.data.dto.PublicPlaylistDto
 import video.typetype.tv.data.dto.SavedPlaylistDto
 import video.typetype.tv.data.dto.UnreadCountDto
 import video.typetype.tv.data.dto.HomeRecommendationsDto
+import video.typetype.tv.data.dto.RecommenderSettingsDto
 import video.typetype.tv.data.dto.LibraryVideoDto
 import video.typetype.tv.data.dto.PlaylistDto
 import video.typetype.tv.data.dto.SearchHistoryDto
@@ -46,6 +47,9 @@ class TypeTypeApi(private val client: ApiClient) {
             HomeRecommendationsDto.serializer(),
             mapOf("service" to "0", "limit" to limit.toString(), "cursor" to cursor),
         )
+
+    suspend fun recommenderSettings(): RecommenderSettingsDto =
+        client.get("recommendations/settings", RecommenderSettingsDto.serializer())
 
     suspend fun shorts(limit: Int = 20): HomeRecommendationsDto =
         client.get("recommendations/shorts", HomeRecommendationsDto.serializer(), mapOf("service" to "0", "limit" to limit.toString()))

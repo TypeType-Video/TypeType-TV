@@ -3,6 +3,7 @@ package video.typetype.tv.data.remote
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.HomeContent
+import video.typetype.tv.data.RecommendedPage
 import video.typetype.tv.data.LibrarySection
 import video.typetype.tv.data.SettingsGroup
 import video.typetype.tv.data.Video
@@ -55,6 +56,7 @@ class RemoteContentRepository(
     access: StreamAccess,
     private val deviceSections: List<DeviceSection>,
     private val clock: () -> Long = System::currentTimeMillis,
+    recommenderOffered: Boolean = false,
 ) : ContentRepository {
     private val streams = StreamStore({ url -> access.anonymousFirst { api.streamFor(url, it) } }, clock)
     private val liveChat = LiveChatSource(api.liveChat)
@@ -62,7 +64,7 @@ class RemoteContentRepository(
     private val firstComments = TtlCache<String, CommentsPage>(STREAM_TTL_MILLIS, COMMENT_ENTRIES, clock)
     private val filter = ContentFilter(api, userSettings, clock)
     private val branding = DeArrowBranding(api, apiBase, userSettings, clock)
-    private val homeLoader = HomeLoader(api, filter, branding, texts, clock)
+    private val homeLoader = HomeLoader(api, filter, branding, texts, clock, recommenderOffered)
     private val playlists = PublicPlaylistSource(api, library, filter, branding, clock)
     private val subscriptions = RemoteSubscriptions(api, library, filter, branding, clock)
     private val activity = RemoteVideoActivity(library, api, userSettings) { homeCache.clear() }
@@ -75,6 +77,8 @@ class RemoteContentRepository(
             homeCache.stale(HOME_KEY) ?: throw failure
         }
     }
+
+    override suspend fun recommendedRows(cursor: String?): RecommendedPage = watch.watch { homeLoader.recommendedRows(cursor) }
 
     override suspend fun subscriptionFeed(page: String?): SubscriptionFeedPage = watch.watch { subscriptions.subscriptionFeed(page) }
 

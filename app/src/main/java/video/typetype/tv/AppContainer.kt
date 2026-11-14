@@ -92,6 +92,7 @@ class AppContainer(context: Context) {
         userSettings = userSettings,
         access = access,
         deviceSections = listOf(performance, updateSettings),
+        recommenderOffered = backend.instance.recommender.let { it.installed && it.enabled },
     )
 
     private val codecs: CodecSupport by lazy { deviceCodecs() }

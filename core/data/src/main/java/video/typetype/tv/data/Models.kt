@@ -47,6 +47,9 @@ data class Shelf(
 data class HomeContent(
     val featured: List<Video>,
     val shelves: List<Shelf>,
+    // Only on instances that run the recommender: its rows take the place at recommendedSlot among the shelves.
+    val recommended: RecommendedPage? = null,
+    val recommendedSlot: Int = 0,
 )
 
 sealed interface LibrarySection {
