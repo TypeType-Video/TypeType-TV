@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.runtime.Composable
@@ -26,7 +27,10 @@ import video.typetype.tv.data.Shelf
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Type
+import video.typetype.tv.ui.util.LoadMoreNearEnd
 import video.typetype.tv.ui.util.requestFocusWhenReady
+
+private const val LOADING_CARDS = 3
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -38,7 +42,10 @@ fun ShelfRow(
     restoreIndex: Int? = null,
     onRestored: () -> Unit = {},
     state: LazyListState = rememberLazyListState(),
+    loadingMore: Boolean = false,
+    onNearEnd: (() -> Unit)? = null,
 ) {
+    if (onNearEnd != null) LoadMoreNearEnd(state, shelf.videos.size, onNearEnd)
     val restorer = remember { FocusRequester() }
     LaunchedEffect(restoreIndex) {
         if (restoreIndex != null) {
@@ -76,6 +83,9 @@ fun ShelfRow(
                         .then(if (index == restoreIndex) Modifier.focusRequester(restorer) else Modifier),
                     onFocused = { onFocusVideo(video) },
                 )
+            }
+            if (loadingMore) {
+                items(LOADING_CARDS) { CardSkeleton(Modifier.width(cardWidth)) }
             }
         }
     }

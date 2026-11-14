@@ -62,4 +62,11 @@ data class InstanceDto(
     val oidcEnabled: Boolean = false,
     val oidcProviderName: String? = null,
     val supportedServices: List<Int> = emptyList(),
+    val recommender: RecommenderCapabilityDto = RecommenderCapabilityDto(),
+)
+
+@Serializable
+data class RecommenderCapabilityDto(
+    val installed: Boolean = false,
+    val enabled: Boolean = false,
 )
