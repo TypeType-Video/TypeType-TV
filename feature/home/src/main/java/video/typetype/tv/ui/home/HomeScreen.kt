@@ -169,6 +169,7 @@ private fun HomeLoaded(
             }
             val shelfRow: @Composable (Int, Shelf) -> Unit = { shelfIndex, shelf ->
                 val paged = recommended?.takeIf { holder -> holder.shelves.any { it.id == shelf.id } }
+                val loadMore = paged?.let { holder -> { holder.loadMore(shelf.id, scope, repository::recommendedRows) } }
                 ShelfRow(
                     shelf = shelf,
                     onOpen = { video, itemIndex ->
@@ -178,13 +179,14 @@ private fun HomeLoaded(
                     onFocusVideo = {
                         focusedCard = it
                         focusedShelf = shelfIndex
+                        if (shelf.id == paged?.shelves?.lastOrNull()?.id) loadMore?.invoke()
                     },
                     restoreIndex = restoreAnchor
                         ?.takeIf { pendingRestore && it.shelfIndex == shelfIndex }
                         ?.itemIndex,
                     onRestored = { pendingRestore = false },
                     loadingMore = paged?.loadingRow == shelf.id,
-                    onNearEnd = paged?.let { holder -> { holder.loadMore(shelf.id, scope, repository::recommendedRows) } },
+                    onNearEnd = loadMore,
                 )
             }
             itemsIndexed(before, key = { _, shelf -> shelf.id }) { shelfIndex, shelf -> shelfRow(shelfIndex, shelf) }

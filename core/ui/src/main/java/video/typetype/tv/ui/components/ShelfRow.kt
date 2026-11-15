@@ -27,10 +27,10 @@ import video.typetype.tv.data.Shelf
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Type
-import video.typetype.tv.ui.util.LoadMoreNearEnd
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
 private const val LOADING_CARDS = 3
+private const val NEAR_END_CARDS = 3
 
 @OptIn(ExperimentalComposeUiApi::class, ExperimentalFoundationApi::class)
 @Composable
@@ -45,7 +45,6 @@ fun ShelfRow(
     loadingMore: Boolean = false,
     onNearEnd: (() -> Unit)? = null,
 ) {
-    if (onNearEnd != null) LoadMoreNearEnd(state, shelf.videos.size, onNearEnd)
     val restorer = remember { FocusRequester() }
     LaunchedEffect(restoreIndex) {
         if (restoreIndex != null) {
@@ -81,7 +80,10 @@ fun ShelfRow(
                     modifier = Modifier
                         .width(cardWidth)
                         .then(if (index == restoreIndex) Modifier.focusRequester(restorer) else Modifier),
-                    onFocused = { onFocusVideo(video) },
+                    onFocused = {
+                        onFocusVideo(video)
+                        if (onNearEnd != null && index > 0 && index >= shelf.videos.size - NEAR_END_CARDS) onNearEnd()
+                    },
                 )
             }
             if (loadingMore) {
