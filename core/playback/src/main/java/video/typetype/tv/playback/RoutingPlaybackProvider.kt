@@ -3,6 +3,7 @@ package video.typetype.tv.playback
 import android.content.Context
 import androidx.media3.common.util.UnstableApi
 import video.typetype.tv.data.ContentSource
+import video.typetype.tv.data.TwitchUrls
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.net.ApiFailure
 import video.typetype.tv.data.net.FailureCategory
@@ -20,6 +21,7 @@ class RoutingPlaybackProvider(
     private val youtube = SabrPlaybackProvider(backend, codecs, access, online)
     private val standard = StandardPlaybackProvider(backend, codecs, access, online)
     private val live = HlsPlayerFactory(backend, online)
+    private val twitch = TwitchPlaybackProvider(backend, online)
 
     override fun preload(videoUrl: String, request: PlaybackRequest) {
         if (request.liveManifest == null && ContentSource.of(videoUrl) == ContentSource.YouTube) youtube.preload(videoUrl, request)
@@ -29,6 +31,7 @@ class RoutingPlaybackProvider(
 
     override suspend fun open(context: Context, videoUrl: String, request: PlaybackRequest): PlayerHandle {
         request.liveManifest?.let { return live.open(context, it, request.maxHeight) }
+        TwitchUrls.parse(videoUrl)?.let { return twitch.open(context, it, request) }
         return when (ContentSource.of(videoUrl)) {
             ContentSource.YouTube -> youtube.open(context, videoUrl, request)
             ContentSource.BiliBili, ContentSource.NicoNico -> standard.open(context, videoUrl, request)
