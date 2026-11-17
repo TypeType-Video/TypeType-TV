@@ -66,6 +66,7 @@ class RemoteContentRepository(
 
     private val streams = StreamStore({ url -> access.anonymousFirst { api.streamFor(url, it) } }, clock)
     private val liveChat = LiveChatSource(api.liveChat)
+    private val twitchChat = TwitchChatSource(api.twitch)
     private val homeCache = TtlCache<String, HomeContent>(HOME_TTL_MILLIS, 1, clock)
     private val firstComments = TtlCache<String, CommentsPage>(STREAM_TTL_MILLIS, COMMENT_ENTRIES, clock)
     private val filter = ContentFilter(api, userSettings, clock)
@@ -246,7 +247,8 @@ class RemoteContentRepository(
     private fun searchUrl(url: String, query: String): String =
         url.substringBefore('?').substringBefore('#').trimEnd('/') + "/search?query=" + URLEncoder.encode(query, Charsets.UTF_8.name())
 
-    override fun liveChat(videoUrl: String): Flow<LiveChatEvent> = liveChat.events(videoUrl)
+    override fun liveChat(videoUrl: String): Flow<LiveChatEvent> =
+        TwitchUrls.channelLogin(videoUrl)?.let(twitchChat::events) ?: liveChat.events(videoUrl)
 
     override suspend fun bulletComments(videoUrl: String): List<BulletComment> {
         if (ContentSource.of(videoUrl) == ContentSource.YouTube || twitchTarget(videoUrl) != null) return emptyList()
