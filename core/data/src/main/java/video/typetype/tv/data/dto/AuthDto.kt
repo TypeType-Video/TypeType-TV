@@ -63,6 +63,7 @@ data class InstanceDto(
     val oidcProviderName: String? = null,
     val supportedServices: List<Int> = emptyList(),
     val recommender: RecommenderCapabilityDto = RecommenderCapabilityDto(),
+    val twitch: TwitchCapabilityDto = TwitchCapabilityDto(),
 )
 
 @Serializable
