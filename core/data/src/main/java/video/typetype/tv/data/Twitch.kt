@@ -89,6 +89,8 @@ interface TwitchRepository {
 
     suspend fun vod(id: String): TwitchPlayback
 
+    suspend fun chapters(id: String): List<Chapter>
+
     suspend fun clip(slug: String): TwitchClipPlayback
 
     suspend fun searchChannels(query: String, cursor: String? = null): TwitchPage<Channel>

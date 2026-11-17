@@ -2,6 +2,7 @@ package video.typetype.tv.data.remote
 
 import okhttp3.HttpUrl
 import video.typetype.tv.data.Channel
+import video.typetype.tv.data.Chapter
 import video.typetype.tv.data.TwitchCategory
 import video.typetype.tv.data.TwitchChannelPage
 import video.typetype.tv.data.TwitchClipPlayback
@@ -68,6 +69,9 @@ class RemoteTwitchRepository(
         val dto = api.video(id)
         return TwitchPlayback(dto.video.toVideo(clock()), playlist(dto.hlsUrl), live = dto.video.recording)
     }
+
+    override suspend fun chapters(id: String): List<Chapter> =
+        api.videoChapters(id).map { Chapter(title = it.title.ifBlank { it.game?.name.orEmpty() }, startSeconds = it.start.toInt()) }
 
     override suspend fun clip(slug: String): TwitchClipPlayback {
         val dto = api.clip(slug)
