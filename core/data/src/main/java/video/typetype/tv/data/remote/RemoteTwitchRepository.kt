@@ -71,7 +71,10 @@ class RemoteTwitchRepository(
 
     override suspend fun clip(slug: String): TwitchClipPlayback {
         val dto = api.clip(slug)
-        val qualities = dto.qualities.mapNotNull { it.toQuality() }.sortedByDescending { it.height }
+        // Clip files are served by Live under the instance origin, like the playlists.
+        val qualities = dto.qualities.mapNotNull { quality ->
+            quality.toQuality()?.let { it.copy(url = twitchPlaylistUrl(apiBase, it.url) ?: return@mapNotNull null) }
+        }.sortedByDescending { it.height }
         if (qualities.isEmpty()) throw IOException("Clip $slug has no playable quality")
         return TwitchClipPlayback(dto.clip.toVideo(clock()), qualities)
     }

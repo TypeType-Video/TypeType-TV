@@ -62,10 +62,11 @@ class RemoteTwitchRepositoryTest {
     @Test
     fun clipQualitiesComeBestFirstAndUnreadableOnesAreDropped() = runBlocking {
         server.enqueue(json("""{"clip":{"slug":"Funny-Clip","title":"Clip","broadcaster":{"login":"space"}},
-            "qualities":[{"quality":"360","frameRate":30,"url":"https://clips.example/360.mp4"},
+            "qualities":[{"quality":"360","frameRate":30,"url":"/live/hls/clip.mp4?q=360"},
             {"quality":"1080","frameRate":60,"url":"https://clips.example/1080.mp4"},{"quality":"source","url":"x"}]}"""))
         val clip = repository.clip("Funny-Clip")
         assertEquals(listOf(1080, 360), clip.qualities.map { it.height })
+        assertEquals(server.url("/live/hls/clip.mp4?q=360").toString(), clip.qualities.last().url)
         assertEquals("https://clips.twitch.tv/Funny-Clip", clip.video.id)
     }
 
