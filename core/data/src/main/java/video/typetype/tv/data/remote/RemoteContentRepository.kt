@@ -39,6 +39,9 @@ import video.typetype.tv.data.api.TypeTypeApi
 import video.typetype.tv.data.dto.BlockChannelRequest
 import video.typetype.tv.data.dto.BlockVideoRequest
 import video.typetype.tv.data.dto.StreamDto
+import video.typetype.tv.data.TwitchRepository
+import video.typetype.tv.data.TwitchTarget
+import video.typetype.tv.data.TwitchUrls
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.device.DeviceSection
 import video.typetype.tv.data.net.ServerWatch
@@ -57,7 +60,10 @@ class RemoteContentRepository(
     private val deviceSections: List<DeviceSection>,
     private val clock: () -> Long = System::currentTimeMillis,
     recommenderOffered: Boolean = false,
+    twitch: TwitchRepository? = null,
 ) : ContentRepository {
+    private val twitch = twitch?.takeIf { it.enabled }?.let(::TwitchContent)
+
     private val streams = StreamStore({ url -> access.anonymousFirst { api.streamFor(url, it) } }, clock)
     private val liveChat = LiveChatSource(api.liveChat)
     private val homeCache = TtlCache<String, HomeContent>(HOME_TTL_MILLIS, 1, clock)
@@ -84,14 +90,19 @@ class RemoteContentRepository(
 
     override suspend fun subscribedChannels(): List<ChannelSummary> = watch.watch { subscriptions.subscribedChannels() }
 
-    override suspend fun video(id: String): Video? = watch.watch { branding.apply(listOf(stream(id).toVideo(id, clock()))).single() }
+    override suspend fun video(id: String): Video? = watch.watch {
+        twitchTarget(id)?.let { target -> return@watch twitch?.video(target) }
+        branding.apply(listOf(stream(id).toVideo(id, clock()))).single()
+    }
 
     override suspend fun prewarm(videoId: String) {
+        if (twitchTarget(videoId) != null) return
         stream(videoId)
     }
 
     override suspend fun related(id: String): List<Video> {
         if (filter.visibility().hideRelatedVideos) return emptyList()
+        twitchTarget(id)?.let { target -> return twitch?.related(target, video(id)).orEmpty() }
         val now = clock()
         val stream = stream(id)
         val related = branding.apply(filter.allowed(stream.relatedStreams.mapNotNull { it.toVideo(now) }))
@@ -194,7 +205,7 @@ class RemoteContentRepository(
     }
 
     override suspend fun comments(videoUrl: String, page: String?): CommentsPage {
-        if (ContentSource.of(videoUrl) == ContentSource.NicoNico || filter.visibility().hideComments) {
+        if (ContentSource.of(videoUrl) == ContentSource.NicoNico || twitchTarget(videoUrl) != null || filter.visibility().hideComments) {
             return CommentsPage(emptyList(), null, true)
         }
         if (page != null) return api.comments(videoUrl, page).toCommentsPage(clock())
@@ -237,12 +248,13 @@ class RemoteContentRepository(
     override fun liveChat(videoUrl: String): Flow<LiveChatEvent> = liveChat.events(videoUrl)
 
     override suspend fun bulletComments(videoUrl: String): List<BulletComment> {
-        if (ContentSource.of(videoUrl) == ContentSource.YouTube) return emptyList()
+        if (ContentSource.of(videoUrl) == ContentSource.YouTube || twitchTarget(videoUrl) != null) return emptyList()
         return api.bulletComments(videoUrl).comments.mapNotNull { it.toBulletComment() }
     }
 
     override suspend fun playbackSetup(videoId: String): PlaybackSetup {
         val preferences = userSettings.playbackPreferences().let { it.copy(seekbarIcon = it.seekbarIcon.onInstance(apiBase)) }
+        if (twitchTarget(videoId) != null) return PlaybackSetup(preferences)
         val stream = runCatching { stream(videoId) }.getOrNull() ?: return PlaybackSetup(preferences)
         return PlaybackSetup(
             preferences = preferences,
@@ -282,6 +294,8 @@ class RemoteContentRepository(
     override fun reportPresence(report: PresenceReport) = presence.report(report)
 
     private suspend fun stream(url: String): StreamDto = streams.get(url)
+
+    private fun twitchTarget(url: String): TwitchTarget? = TwitchUrls.parse(url)
 
     private companion object {
         const val HOME_KEY = "home"

@@ -22,6 +22,7 @@ import video.typetype.tv.data.remote.AndroidTextProvider
 import video.typetype.tv.data.remote.RemoteContentRepository
 import video.typetype.tv.data.remote.RemotePresence
 import video.typetype.tv.data.remote.RemoteSettings
+import video.typetype.tv.data.remote.RemoteTwitchRepository
 import video.typetype.tv.data.remote.RemoteUserSettings
 import video.typetype.tv.data.session.Backend
 import video.typetype.tv.data.session.DeviceProfileStore
@@ -93,6 +94,7 @@ class AppContainer(context: Context) {
         access = access,
         deviceSections = listOf(performance, updateSettings),
         recommenderOffered = backend.instance.recommender.let { it.installed && it.enabled },
+        twitch = RemoteTwitchRepository(backend.api.twitch, backend.apiBase, backend.instance.twitch.enabled),
     )
 
     private val codecs: CodecSupport by lazy { deviceCodecs() }
