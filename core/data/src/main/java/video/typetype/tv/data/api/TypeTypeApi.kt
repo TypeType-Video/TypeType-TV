@@ -36,6 +36,7 @@ import video.typetype.tv.data.net.FailureCategory
 
 class TypeTypeApi(private val client: ApiClient) {
     val liveChat = LiveChatApi(client)
+    val twitch = TwitchApi(client)
 
     suspend fun me(): UserProfileDto = client.get("auth/me", UserProfileDto.serializer())
 
