@@ -232,6 +232,7 @@
     <string name="source_youtube">YouTube</string>
     <string name="source_bilibili">Bilibili</string>
     <string name="source_niconico">NicoNico</string>
+    <string name="source_twitch">Twitch</string>
     <string name="shelf_trending_bilibili">Trending on Bilibili</string>
     <string name="shelf_trending_niconico">Trending on NicoNico</string>
     <string name="shelf_twitch_live">Live on Twitch</string>

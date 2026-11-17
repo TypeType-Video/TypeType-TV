@@ -6,6 +6,7 @@ import org.junit.Assert.assertNull
 import org.junit.Test
 import video.typetype.tv.data.Channel
 import video.typetype.tv.data.ChannelTab
+import video.typetype.tv.data.SearchKind
 import video.typetype.tv.data.TwitchCategory
 import video.typetype.tv.data.TwitchChannelPage
 import video.typetype.tv.data.TwitchClipPlayback
@@ -60,6 +61,14 @@ class TwitchContentTest {
         assertEquals(listOf(ChannelTab.Videos), ChannelTab.available("https://www.nicovideo.jp/user/1"))
     }
 
+    @Test
+    fun searchListsChannelsOrLivesByKind() = runBlocking {
+        val channels = content.search("spa", SearchKind.Channels, null)
+        assertEquals(listOf("https://www.twitch.tv/space"), channels.channels.map { it.url })
+        assertEquals("c2", channels.nextPage)
+        assertEquals(listOf(live), content.search("spa", SearchKind.Live, null).videos)
+    }
+
     private fun video(id: String, isLive: Boolean = false): Video =
         Video(id, id, channel, 0, "", "", "", "", isLive = isLive)
 
@@ -75,7 +84,8 @@ class TwitchContentTest {
         override suspend fun live(login: String): TwitchPlayback? = if (online) TwitchPlayback(live, "https://i.example/live", true) else null
         override suspend fun vod(id: String): TwitchPlayback = TwitchPlayback(vod, "https://i.example/vod", false)
         override suspend fun clip(slug: String): TwitchClipPlayback = TwitchClipPlayback(vod, emptyList())
-        override suspend fun searchChannels(query: String, cursor: String?) = TwitchPage<Channel>(emptyList(), null)
-        override suspend fun searchLives(query: String, cursor: String?) = TwitchPage<Video>(emptyList(), null)
+        override suspend fun searchChannels(query: String, cursor: String?) =
+            TwitchPage(listOf(Channel("space", "Space", "space", "1.9M", TwitchUrls.live("space"))), "c2")
+        override suspend fun searchLives(query: String, cursor: String?) = TwitchPage(listOf(live), null)
     }
 }

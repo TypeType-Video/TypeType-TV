@@ -55,7 +55,7 @@ class RemoteUserSettings(
                 "watch-later" -> LandingPage.WatchLater
                 else -> LandingPage.Home
             },
-            searchSource = ContentSource.entries.firstOrNull { it.serviceId == service } ?: ContentSource.YouTube,
+            searchSource = ContentSource.extractors.firstOrNull { it.serviceId == service } ?: ContentSource.YouTube,
         )
     }
 

@@ -157,8 +157,8 @@ fun SearchScreen(
         ) {
             Row(verticalAlignment = Alignment.Top, horizontalArrangement = Arrangement.spacedBy(24.dp)) {
                 SourceButton(session.source) {
-                    session.source = nextSource(session.source)
-                    session.kind = SearchKind.Videos
+                    session.source = nextSource(session.source, repository.searchSources)
+                    session.kind = SearchKind.available(session.source).first()
                 }
                 SearchKindTabs(session.source, session.kind, { session.kind = it }, kindTab)
             }

@@ -112,8 +112,12 @@ class RemoteContentRepository(
         }
     }
 
+    override val searchSources: List<ContentSource>
+        get() = if (twitchContent != null) ContentSource.entries else ContentSource.extractors
+
     override suspend fun search(query: String, source: ContentSource, kind: SearchKind, page: String?): SearchResults = watch.watch {
-        playlists.search(query, source, kind, page)
+        val twitch = twitchContent.takeIf { source == ContentSource.Twitch }
+        twitch?.search(query, kind, page) ?: playlists.search(query, source, kind, page)
     }
 
     override suspend fun publicPlaylist(url: String, page: String?): PublicPlaylistPage = watch.watch { playlists.page(url, page) }

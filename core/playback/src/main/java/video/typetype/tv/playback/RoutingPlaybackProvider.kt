@@ -35,7 +35,7 @@ class RoutingPlaybackProvider(
         return when (ContentSource.of(videoUrl)) {
             ContentSource.YouTube -> youtube.open(context, videoUrl, request)
             ContentSource.BiliBili, ContentSource.NicoNico -> standard.open(context, videoUrl, request)
-            null -> throw ApiException(
+            ContentSource.Twitch, null -> throw ApiException(
                 ApiFailure(FailureCategory.Contract, null, "unsupported_source", "This video source is not supported", null),
             )
         }

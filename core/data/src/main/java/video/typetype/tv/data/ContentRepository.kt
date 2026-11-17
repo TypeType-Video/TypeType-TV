@@ -14,6 +14,8 @@ interface ContentRepository : VideoActivityRepository, PresenceSink, Subscriptio
 
     suspend fun related(id: String): List<Video>
 
+    val searchSources: List<ContentSource> get() = ContentSource.extractors
+
     suspend fun search(
         query: String,
         source: ContentSource = ContentSource.YouTube,

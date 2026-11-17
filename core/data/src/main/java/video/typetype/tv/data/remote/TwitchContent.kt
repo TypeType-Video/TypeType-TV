@@ -2,7 +2,10 @@ package video.typetype.tv.data.remote
 
 import video.typetype.tv.data.Channel
 import video.typetype.tv.data.ChannelPage
+import video.typetype.tv.data.ChannelSummary
 import video.typetype.tv.data.ChannelTab
+import video.typetype.tv.data.SearchKind
+import video.typetype.tv.data.SearchResults
 import video.typetype.tv.data.TwitchRepository
 import video.typetype.tv.data.TwitchTarget
 import video.typetype.tv.data.TwitchUrls
@@ -32,6 +35,13 @@ internal class TwitchContent(private val twitch: TwitchRepository) {
         )
     }
 
+    suspend fun search(query: String, kind: SearchKind, cursor: String?): SearchResults = when (kind) {
+        SearchKind.Live -> twitch.searchLives(query, cursor).let { SearchResults(videos = it.items, nextPage = it.cursor) }
+        else -> twitch.searchChannels(query, cursor).let { page ->
+            SearchResults(channels = page.items.map { it.summary() }, nextPage = page.cursor)
+        }
+    }
+
     suspend fun related(target: TwitchTarget, video: Video?): List<Video> {
         val login = when (target) {
             is TwitchTarget.Live -> target.login
@@ -40,3 +50,5 @@ internal class TwitchContent(private val twitch: TwitchRepository) {
         return twitch.channelVods(login).items.filterNot { it.id == video?.id }
     }
 }
+
+private fun Channel.summary() = ChannelSummary(url = url, name = name, description = "", subscribers = subscribers, avatarUrl = avatarUrl)

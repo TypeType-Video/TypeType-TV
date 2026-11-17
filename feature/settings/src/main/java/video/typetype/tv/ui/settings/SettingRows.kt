@@ -101,7 +101,7 @@ private fun ChoiceRow(item: SettingItem.Choice, session: SettingsSession, onChoo
         },
     ) {
         val wire = item.wireValues[session.choiceIndex(item)]
-        val service = ContentSource.entries.firstOrNull { it.serviceId.toString() == wire }.takeIf { item.id == "service" }
+        val service = ContentSource.extractors.firstOrNull { it.serviceId.toString() == wire }.takeIf { item.id == "service" }
         RowIcon(item, service, item.iconFor(wire))
         Column(Modifier.weight(1f)) {
             TextLabel(stringResource(item.titleRes), Type.Title, maxLines = 1)

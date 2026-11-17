@@ -23,10 +23,8 @@ import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.ServiceMark
 import video.typetype.tv.ui.components.TabStrip
 
-fun nextSource(current: ContentSource): ContentSource {
-    val all = ContentSource.entries
-    return all[(all.indexOf(current) + 1) % all.size]
-}
+fun nextSource(current: ContentSource, sources: List<ContentSource>): ContentSource =
+    sources[(sources.indexOf(current) + 1) % sources.size]
 
 @Composable
 fun SourceButton(source: ContentSource, onCycle: () -> Unit) {

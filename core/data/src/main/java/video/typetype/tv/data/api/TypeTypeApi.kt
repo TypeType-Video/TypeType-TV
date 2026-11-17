@@ -155,7 +155,7 @@ class TypeTypeApi(private val client: ApiClient) {
             ContentSource.YouTube -> "streams/youtube/sabr"
             ContentSource.BiliBili -> "streams/bilibili"
             ContentSource.NicoNico -> "streams/niconico"
-            null -> throw ApiException(
+            ContentSource.Twitch, null -> throw ApiException(
                 ApiFailure(FailureCategory.Contract, null, "unsupported_source", "This video source is not supported", null),
             )
         }

@@ -37,6 +37,7 @@ import coil3.compose.AsyncImage
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.ChannelSummary
 import video.typetype.tv.data.PublicPlaylist
+import video.typetype.tv.data.TwitchUrls
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
@@ -86,7 +87,8 @@ fun ChannelResults(
     paging: CollectionPaging = CollectionPaging(),
 ) {
     CollectionList(channels, modifier, entry, paging, key = { it.url }) { channel, rowModifier ->
-        val subscribers = if (channel.subscribers.isBlank()) "" else stringResource(R.string.detail_subscribers, channel.subscribers)
+        val audienceRes = if (TwitchUrls.channelLogin(channel.url) != null) R.string.channel_followers else R.string.detail_subscribers
+        val subscribers = if (channel.subscribers.isBlank()) "" else stringResource(audienceRes, channel.subscribers)
         val description = if (subscribers.isBlank()) channel.name else stringResource(R.string.card_description, channel.name, subscribers)
         CollectionRow(onClick = { onOpen(channel) }, description = description, modifier = rowModifier) {
             Box(Modifier.size(72.dp).clip(CircleShape).background(Palette.SurfaceRaised), contentAlignment = Alignment.Center) {
@@ -96,7 +98,7 @@ fun ChannelResults(
             Column(Modifier.weight(1f)) {
                 TextLabel(channel.name, Type.Title, maxLines = 1)
                 if (channel.subscribers.isNotBlank()) {
-                    TextLabel(stringResource(R.string.detail_subscribers, channel.subscribers), Type.Meta, maxLines = 1)
+                    TextLabel(subscribers, Type.Meta, maxLines = 1)
                 }
                 if (channel.description.isNotBlank()) {
                     Spacer(Modifier.height(4.dp))
