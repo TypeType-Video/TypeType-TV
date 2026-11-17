@@ -39,6 +39,7 @@ import video.typetype.tv.data.api.TypeTypeApi
 import video.typetype.tv.data.dto.BlockChannelRequest
 import video.typetype.tv.data.dto.BlockVideoRequest
 import video.typetype.tv.data.dto.StreamDto
+import video.typetype.tv.data.TwitchAccountLink
 import video.typetype.tv.data.TwitchRepository
 import video.typetype.tv.data.TwitchTarget
 import video.typetype.tv.data.TwitchUrls
@@ -111,6 +112,8 @@ class RemoteContentRepository(
             channel(url, null, ChannelTab.Videos, null, null).videos
         }
     }
+
+    override val twitchAccount: TwitchAccountLink? = twitchContent?.let { RemoteTwitchAccountLink(api.twitch) }
 
     override val searchSources: List<ContentSource>
         get() = if (twitchContent != null) ContentSource.entries else ContentSource.extractors

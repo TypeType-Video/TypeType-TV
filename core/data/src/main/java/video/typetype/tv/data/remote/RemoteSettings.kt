@@ -37,6 +37,7 @@ class RemoteSettings(
             ContentSettings.group(settings, texts),
             blockedGroup(runCatching { api.blockedChannels() }.getOrNull()),
             accountGroup(profile?.role, account?.name ?: profile?.publicUsername, account?.email, unread),
+        ) + listOfNotNull(twitchGroup(api)) + listOf(
             instanceGroup(),
             SettingsGroup(
                 id = "about",
@@ -69,6 +70,20 @@ class RemoteSettings(
             titleRes = R.string.settings_group_account,
             items = info + SettingItem.Action("sign-out", R.string.settings_sign_out, R.string.settings_sign_out_summary),
         )
+    }
+
+    private suspend fun twitchGroup(api: TypeTypeApi): SettingsGroup? {
+        if (isGuest || !instance.twitch.enabled) return null
+        val status = runCatching { api.twitch.account() }.getOrNull() ?: return null
+        val items = if (status.linked) {
+            listOf(
+                SettingItem.Info("twitch-account", R.string.settings_twitch_account, status.displayName ?: status.login.orEmpty()),
+                SettingItem.Action(SettingActions.TWITCH_UNLINK, R.string.settings_twitch_unlink, R.string.settings_twitch_unlink_summary),
+            )
+        } else {
+            listOf(SettingItem.Action(SettingActions.TWITCH_LINK, R.string.settings_twitch_link, R.string.settings_twitch_link_summary))
+        }
+        return SettingsGroup("twitch", R.string.settings_group_twitch, items)
     }
 
     private fun instanceGroup() = SettingsGroup(

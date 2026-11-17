@@ -16,6 +16,8 @@ interface ContentRepository : VideoActivityRepository, PresenceSink, Subscriptio
 
     val searchSources: List<ContentSource> get() = ContentSource.extractors
 
+    val twitchAccount: TwitchAccountLink? get() = null
+
     suspend fun search(
         query: String,
         source: ContentSource = ContentSource.YouTube,

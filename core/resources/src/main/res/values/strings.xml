@@ -234,6 +234,17 @@
     <string name="load_error_unavailable">This video is not available, for example because of a regional restriction.</string>
     <string name="player_error_playback">Playback stopped after several attempts to recover.</string>
     <string name="player_twitch_ended">The stream has ended.</string>
+    <string name="settings_group_twitch">Twitch</string>
+    <string name="settings_twitch_account">Twitch account</string>
+    <string name="settings_twitch_link">Connect Twitch</string>
+    <string name="settings_twitch_link_summary">Shows a code to confirm on twitch.tv/activate from your phone</string>
+    <string name="settings_twitch_unlink">Disconnect Twitch</string>
+    <string name="settings_twitch_unlink_summary">TypeType forgets its access to your Twitch account</string>
+    <string name="twitch_link_title">Connect your Twitch account</string>
+    <string name="twitch_link_qr_description">QR code to confirm the Twitch connection from your phone</string>
+    <string name="twitch_link_waiting">Waiting for Twitch to confirm…</string>
+    <string name="twitch_link_expired">The code expired. Press OK for a new one.</string>
+    <string name="twitch_link_failed">Twitch could not be reached. Press OK to try again.</string>
     <string name="source_youtube">YouTube</string>
     <string name="source_bilibili">Bilibili</string>
     <string name="source_niconico">NicoNico</string>

@@ -18,6 +18,7 @@ import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.Home
 import androidx.compose.material.icons.rounded.Info
 import androidx.compose.material.icons.rounded.Link
+import androidx.compose.material.icons.rounded.LinkOff
 import androidx.compose.material.icons.rounded.LockReset
 import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material.icons.rounded.MarkEmailRead
@@ -78,6 +79,9 @@ internal fun SettingItem.icon(): ImageVector = when {
         "unread" -> Icons.Rounded.Notifications
         "mark-notifications-read" -> Icons.Rounded.MarkEmailRead
         "sign-out" -> Icons.Rounded.Logout
+        "twitch-account" -> Icons.Rounded.Person
+        SettingActions.TWITCH_LINK -> Icons.Rounded.Link
+        SettingActions.TWITCH_UNLINK -> Icons.Rounded.LinkOff
         "instance-name" -> Icons.Rounded.Dns
         "instance-address" -> Icons.Rounded.Link
         "instance-version", "version" -> Icons.Rounded.Info
