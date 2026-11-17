@@ -38,6 +38,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.resources.R
+import video.typetype.tv.data.TwitchUrls
 import video.typetype.tv.data.Video
 import video.typetype.tv.data.VideoActivity
 import video.typetype.tv.theme.Dimens
@@ -122,37 +123,40 @@ fun DetailHeader(
                 modifier = Modifier.focusRequester(playRequester),
                 onFocused = onFocusButtons,
             )
-            PillButton(
-                label = stringResource(if (saved) R.string.detail_saved else R.string.detail_watch_later),
-                icon = if (saved) Icons.Rounded.BookmarkAdded else Icons.Rounded.BookmarkAdd,
-                onClick = { actions.onWatchLater(!saved) },
-                onFocused = onFocusButtons,
-            )
-            PillButton(
-                label = stringResource(if (favorite) R.string.detail_favorited else R.string.detail_favorite),
-                icon = if (favorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
-                onClick = { actions.onFavorite(!favorite) },
-                onFocused = onFocusButtons,
-            )
-            PillButton(
-                label = stringResource(if (subscribed) R.string.detail_subscribed else R.string.detail_subscribe),
-                icon = if (subscribed) Icons.Rounded.Check else Icons.Rounded.NotificationsNone,
-                onClick = { actions.onSubscribe(!subscribed) },
-                onFocused = onFocusButtons,
-            )
-            PillButton(
-                label = stringResource(R.string.detail_playlists),
-                icon = Icons.Rounded.PlaylistAdd,
-                onClick = actions.onOpenPlaylists,
-                onFocused = onFocusButtons,
-            )
-            if (video.channel.url.isNotBlank()) {
+            // Twitch videos live outside the server library and channel pages; only playback applies to them.
+            if (TwitchUrls.parse(video.id) == null) {
                 PillButton(
-                    label = stringResource(R.string.detail_channel),
-                    icon = Icons.Rounded.AccountCircle,
-                    onClick = actions.onOpenChannel,
+                    label = stringResource(if (saved) R.string.detail_saved else R.string.detail_watch_later),
+                    icon = if (saved) Icons.Rounded.BookmarkAdded else Icons.Rounded.BookmarkAdd,
+                    onClick = { actions.onWatchLater(!saved) },
                     onFocused = onFocusButtons,
                 )
+                PillButton(
+                    label = stringResource(if (favorite) R.string.detail_favorited else R.string.detail_favorite),
+                    icon = if (favorite) Icons.Rounded.Favorite else Icons.Rounded.FavoriteBorder,
+                    onClick = { actions.onFavorite(!favorite) },
+                    onFocused = onFocusButtons,
+                )
+                PillButton(
+                    label = stringResource(if (subscribed) R.string.detail_subscribed else R.string.detail_subscribe),
+                    icon = if (subscribed) Icons.Rounded.Check else Icons.Rounded.NotificationsNone,
+                    onClick = { actions.onSubscribe(!subscribed) },
+                    onFocused = onFocusButtons,
+                )
+                PillButton(
+                    label = stringResource(R.string.detail_playlists),
+                    icon = Icons.Rounded.PlaylistAdd,
+                    onClick = actions.onOpenPlaylists,
+                    onFocused = onFocusButtons,
+                )
+                if (video.channel.url.isNotBlank()) {
+                    PillButton(
+                        label = stringResource(R.string.detail_channel),
+                        icon = Icons.Rounded.AccountCircle,
+                        onClick = actions.onOpenChannel,
+                        onFocused = onFocusButtons,
+                    )
+                }
             }
         }
         if (actions.failed) {
