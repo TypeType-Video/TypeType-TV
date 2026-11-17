@@ -306,6 +306,8 @@
     <string name="channel_tab_videos">Videos</string>
     <string name="channel_tab_live">Live</string>
     <string name="channel_tab_playlists">Playlists</string>
+    <string name="channel_tab_clips">Clips</string>
+    <string name="channel_followers">%1$s followers</string>
     <string name="channel_sort_latest">Newest</string>
     <string name="channel_sort_popular">Popular</string>
     <string name="channel_sort_oldest">Oldest</string>

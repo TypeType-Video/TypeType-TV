@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Block
 import androidx.compose.material.icons.rounded.Close
+import androidx.compose.material.icons.rounded.ContentCut
 import androidx.compose.material.icons.rounded.History
 import androidx.compose.material.icons.rounded.LiveTv
 import androidx.compose.material.icons.rounded.NewReleases
@@ -111,6 +112,7 @@ private fun ChannelTab.icon(): ImageVector = when (this) {
     ChannelTab.Videos -> Icons.Rounded.VideoLibrary
     ChannelTab.Live -> Icons.Rounded.LiveTv
     ChannelTab.Playlists -> Icons.Rounded.PlaylistPlay
+    ChannelTab.Clips -> Icons.Rounded.ContentCut
 }
 
 private fun ChannelSort.icon(): ImageVector = when (this) {

@@ -225,6 +225,7 @@ class RemoteContentRepository(
         sort: ChannelSort?,
         query: String?,
     ): ChannelPage = watch.watch {
+        TwitchUrls.channelLogin(url)?.let { login -> twitchContent?.let { return@watch it.channelPage(login, tab, page) } }
         val target = when {
             tab == ChannelTab.Live -> liveTabUrl(url)
             query != null -> searchUrl(url, query)

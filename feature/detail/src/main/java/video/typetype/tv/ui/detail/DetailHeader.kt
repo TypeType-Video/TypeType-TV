@@ -123,7 +123,7 @@ fun DetailHeader(
                 modifier = Modifier.focusRequester(playRequester),
                 onFocused = onFocusButtons,
             )
-            // Twitch videos live outside the server library and channel pages; only playback applies to them.
+            // Twitch videos live outside the server library: the library actions do not apply to them.
             if (TwitchUrls.parse(video.id) == null) {
                 PillButton(
                     label = stringResource(if (saved) R.string.detail_saved else R.string.detail_watch_later),
@@ -149,14 +149,14 @@ fun DetailHeader(
                     onClick = actions.onOpenPlaylists,
                     onFocused = onFocusButtons,
                 )
-                if (video.channel.url.isNotBlank()) {
-                    PillButton(
-                        label = stringResource(R.string.detail_channel),
-                        icon = Icons.Rounded.AccountCircle,
-                        onClick = actions.onOpenChannel,
-                        onFocused = onFocusButtons,
-                    )
-                }
+            }
+            if (video.channel.url.isNotBlank()) {
+                PillButton(
+                    label = stringResource(R.string.detail_channel),
+                    icon = Icons.Rounded.AccountCircle,
+                    onClick = actions.onOpenChannel,
+                    onFocused = onFocusButtons,
+                )
             }
         }
         if (actions.failed) {
