@@ -26,8 +26,12 @@ import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.TextLabel
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
-fun describePlaybackFailure(error: ApiException): UiMessage =
-    UiMessage(R.string.player_error_title, error.failure.requestId)
+fun describePlaybackFailure(error: ApiException): UiMessage = when (error.failure.code) {
+    TWITCH_OFFLINE -> UiMessage(R.string.player_twitch_ended)
+    else -> UiMessage(R.string.player_error_title, error.failure.requestId)
+}
+
+private const val TWITCH_OFFLINE = "twitch_offline"
 
 @Composable
 fun PlayerFailure(
