@@ -62,7 +62,7 @@ class RemoteContentRepository(
     recommenderOffered: Boolean = false,
     twitch: TwitchRepository? = null,
 ) : ContentRepository {
-    private val twitch = twitch?.takeIf { it.enabled }?.let(::TwitchContent)
+    private val twitchContent = twitch?.takeIf { it.enabled }?.let(::TwitchContent)
 
     private val streams = StreamStore({ url -> access.anonymousFirst { api.streamFor(url, it) } }, clock)
     private val liveChat = LiveChatSource(api.liveChat)
@@ -70,7 +70,7 @@ class RemoteContentRepository(
     private val firstComments = TtlCache<String, CommentsPage>(STREAM_TTL_MILLIS, COMMENT_ENTRIES, clock)
     private val filter = ContentFilter(api, userSettings, clock)
     private val branding = DeArrowBranding(api, apiBase, userSettings, clock)
-    private val homeLoader = HomeLoader(api, filter, branding, texts, clock, recommenderOffered)
+    private val homeLoader = HomeLoader(api, filter, branding, texts, clock, recommenderOffered, twitch?.takeIf { it.enabled })
     private val playlists = PublicPlaylistSource(api, library, filter, branding, clock)
     private val subscriptions = RemoteSubscriptions(api, library, filter, branding, clock)
     private val activity = RemoteVideoActivity(library, api, userSettings) { homeCache.clear() }
@@ -91,7 +91,7 @@ class RemoteContentRepository(
     override suspend fun subscribedChannels(): List<ChannelSummary> = watch.watch { subscriptions.subscribedChannels() }
 
     override suspend fun video(id: String): Video? = watch.watch {
-        twitchTarget(id)?.let { target -> return@watch twitch?.video(target) }
+        twitchTarget(id)?.let { target -> return@watch twitchContent?.video(target) }
         branding.apply(listOf(stream(id).toVideo(id, clock()))).single()
     }
 
@@ -102,7 +102,7 @@ class RemoteContentRepository(
 
     override suspend fun related(id: String): List<Video> {
         if (filter.visibility().hideRelatedVideos) return emptyList()
-        twitchTarget(id)?.let { target -> return twitch?.related(target, video(id)).orEmpty() }
+        twitchTarget(id)?.let { target -> return twitchContent?.related(target, video(id)).orEmpty() }
         val now = clock()
         val stream = stream(id)
         val related = branding.apply(filter.allowed(stream.relatedStreams.mapNotNull { it.toVideo(now) }))

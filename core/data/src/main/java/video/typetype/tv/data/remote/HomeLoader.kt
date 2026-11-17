@@ -10,6 +10,7 @@ import video.typetype.tv.data.ContentSource
 import video.typetype.tv.data.HomeContent
 import video.typetype.tv.data.RecommendedPage
 import video.typetype.tv.data.Shelf
+import video.typetype.tv.data.TwitchRepository
 import video.typetype.tv.data.Video
 import video.typetype.tv.data.api.TypeTypeApi
 import video.typetype.tv.data.dto.HomeRecommendationsDto
@@ -27,6 +28,7 @@ class HomeLoader(
     private val clock: () -> Long,
     // From the instance's /instance answer; without the recommender the home makes no recommender request at all.
     private val recommenderOffered: Boolean = false,
+    private val twitch: TwitchRepository? = null,
 ) {
     suspend fun load(): HomeContent = coroutineScope {
         val now = clock()
@@ -41,6 +43,7 @@ class HomeLoader(
             niconico = fetch { api.trending(ContentSource.NicoNico) },
             shorts = fetch { api.shorts(SHELF_LIMIT).items },
             notifications = fetch { api.notifications().takeIf { it.available && it.unreadCount > 0 }?.items.orEmpty().map { it.video } },
+            twitch = fetch { twitch?.popular()?.items.orEmpty() },
         )
         val visibility = filter.visibility()
         val blocked = filter.blocked()
@@ -72,6 +75,7 @@ class HomeLoader(
             shelf("shorts", R.string.shelf_shorts, shortVideos(sources.shorts, visibility, blocked, now)),
             shelf("trending-bilibili", R.string.shelf_trending_bilibili, sources.bilibili.videos(now, blocked)),
             shelf("trending-niconico", R.string.shelf_trending_niconico, sources.niconico.videos(now, blocked)),
+            shelf("twitch-live", R.string.shelf_twitch_live, blocked.filter(sources.twitch.await().getOrNull().orEmpty()).take(SHELF_LIMIT)),
             shelf("favorites", R.string.shelf_favorites, sources.favorites.libraryVideos(now)),
         )
         val shelves = top + rest.filter { it.videos.isNotEmpty() }
@@ -143,6 +147,7 @@ class HomeLoader(
         val niconico: Deferred<Result<List<VideoItemDto>>>,
         val shorts: Deferred<Result<List<VideoItemDto>>>,
         val notifications: Deferred<Result<List<VideoItemDto>>>,
+        val twitch: Deferred<Result<List<Video>>>,
     )
 
     private fun <T> CoroutineScope.fetch(block: suspend () -> T): Deferred<Result<T>> = async { runCatching { block() } }
