@@ -42,6 +42,7 @@ class RemoteUserSettings(
             hideRelatedVideos = flag(settings, "hideRelatedVideos") ?: false,
             hideComments = flag(settings, "hideComments") ?: false,
             hideShorts = flag(settings, "hideShorts") ?: false,
+            watchedThresholdPercent = settings?.get("watchedThresholdPercent")?.jsonPrimitive?.intOrNull ?: 0,
         )
     }
 

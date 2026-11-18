@@ -5,6 +5,7 @@ import kotlinx.serialization.json.booleanOrNull
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.contentOrNull
 import kotlinx.serialization.json.doubleOrNull
+import kotlinx.serialization.json.intOrNull
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.put
 import okhttp3.HttpUrl
@@ -92,6 +93,7 @@ class RemoteSettings(
                 "captions" -> put("subtitlesEnabled", value.toBoolean())
                 "sponsorblock" -> put("sponsorBlockMode", value)
                 "watch-history" -> put("disableWatchHistory", !value.toBoolean())
+                "watched-threshold" -> put("watchedThresholdPercent", value.toInt())
             }
         }
         if (patch.isNotEmpty()) api.updateSettings(patch)
@@ -147,6 +149,14 @@ class RemoteSettings(
                 summaryRes = R.string.settings_sponsorblock_summary,
             ),
             SettingItem.Toggle("watch-history", R.string.settings_watch_history, R.string.settings_watch_history_summary, !flag("disableWatchHistory", false)),
+            SettingItem.Choice(
+                id = "watched-threshold",
+                titleRes = R.string.settings_watched_threshold,
+                options = WATCHED_VALUES.map { if (it == 0) texts.text(R.string.settings_watched_last_minute) else "$it%" },
+                defaultIndex = WATCHED_VALUES.indexOf(settings?.get("watchedThresholdPercent")?.jsonPrimitive?.intOrNull ?: 0).coerceAtLeast(0),
+                wireValues = WATCHED_VALUES.map { it.toString() },
+                summaryRes = R.string.settings_watched_threshold_summary,
+            ),
         )
         return SettingsGroup("playback", R.string.settings_group_playback, items)
     }
@@ -155,6 +165,7 @@ class RemoteSettings(
         val QUALITY_VALUES = listOf("auto", "2160p", "1440p", "1080p", "720p", "480p", "360p")
         val SPEED_VALUES = listOf(0.75, 1.0, 1.25, 1.5, 2.0)
         val SPONSOR_VALUES = listOf("auto_skip", "mark_only", "disabled")
+        val WATCHED_VALUES = listOf(0, 50, 60, 70, 80, 90, 95, 100)
         const val CERT_PREVIEW = 23
     }
 }

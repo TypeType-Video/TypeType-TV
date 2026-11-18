@@ -143,6 +143,9 @@
     <string name="settings_captions_summary">Turn captions on whenever a video has them.</string>
     <string name="settings_watch_history">Save watch history</string>
     <string name="settings_watch_history_summary">Keep a record of what you watch to resume where you left off.</string>
+    <string name="settings_watched_threshold">Count as watched</string>
+    <string name="settings_watched_threshold_summary">How much of a video you need to watch before it shows as watched.</string>
+    <string name="settings_watched_last_minute">Last minute (default)</string>
     <string name="settings_version">Version</string>
     <string name="settings_on">On</string>
     <string name="shelf_continue">Continue watching</string>

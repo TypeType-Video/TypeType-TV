@@ -58,7 +58,7 @@ class HomeLoader(
         val featuredIds = featured.map { it.id }.toSet()
         val continueWatching = if (visibility.hideContinueWatching) emptyList() else {
             sources.history.await().getOrNull().orEmpty()
-                .mapNotNull { it.toVideo(now, resume = true) }
+                .mapNotNull { it.toVideo(now, resume = true, visibility.watchedThresholdPercent) }
                 .filter { it.resumeFraction != null }
                 .distinctBy { it.id }
         }

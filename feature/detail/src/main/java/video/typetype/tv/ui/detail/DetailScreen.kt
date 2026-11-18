@@ -109,7 +109,7 @@ private fun DetailContent(
 ) {
     var pickerOpen by remember(source.id) { mutableStateOf(false) }
     val activity = controller.activity
-    val video = remember(source, activity.resumePositionMs) { source.withResume(activity.resumePositionMs) }
+    val video = remember(source, activity) { source.withResume(activity.resumePositionMs, activity.watchedThresholdPercent) }
     val playRequester = remember { FocusRequester() }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()

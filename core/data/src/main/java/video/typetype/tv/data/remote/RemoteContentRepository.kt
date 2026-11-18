@@ -144,11 +144,12 @@ class RemoteContentRepository(
 
     override suspend fun library(section: LibrarySection): List<Video> = watch.watch {
         val now = clock()
+        val watched = filter.visibility().watchedThresholdPercent
         val items = when (section) {
-            LibrarySection.History -> api.history(HISTORY_LIMIT).map { it.toVideo(now, resume = true) }
+            LibrarySection.History -> api.history(HISTORY_LIMIT).map { it.toVideo(now, resume = true, watched) }
             LibrarySection.Favorites -> api.favorites().map { it.toVideo(now, resume = false) }
             LibrarySection.WatchLater -> api.watchLater().map { it.toVideo(now, resume = false) }
-            is LibrarySection.Playlist -> api.playlist(section.id).videos.map { it.toVideo(now, resume = true) }
+            is LibrarySection.Playlist -> api.playlist(section.id).videos.map { it.toVideo(now, resume = true, watched) }
             is LibrarySection.Saved -> this.playlists.page(section.url, null).videos
             LibrarySection.Downloads -> emptyList()
         }

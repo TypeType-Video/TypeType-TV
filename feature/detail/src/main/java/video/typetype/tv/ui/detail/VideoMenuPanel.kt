@@ -150,7 +150,7 @@ fun VideoMenuPanel(
             }
             Spacer(Modifier.height(8.dp))
             MenuRow(Icons.Rounded.PlayArrow, stringResource(R.string.detail_play), Modifier.focusRequester(first)) {
-                actions.onPlay(video.withResume(activity.resumePositionMs))
+                actions.onPlay(video.withResume(activity.resumePositionMs, activity.watchedThresholdPercent))
             }
             if (video.channel.url.isNotBlank()) {
                 MenuRow(Icons.Rounded.AccountCircle, stringResource(R.string.video_menu_channel)) {

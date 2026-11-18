@@ -34,6 +34,7 @@ import androidx.compose.material.icons.rounded.Science
 import androidx.compose.material.icons.rounded.Speed
 import androidx.compose.material.icons.rounded.SystemUpdate
 import androidx.compose.material.icons.rounded.SwapHoriz
+import androidx.compose.material.icons.rounded.TaskAlt
 import androidx.compose.material.icons.rounded.Tune
 import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.VerifiedUser
@@ -53,6 +54,7 @@ internal fun SettingItem.icon(): ImageVector = when {
         "captions" -> Icons.Rounded.ClosedCaption
         "sponsorblock" -> Icons.Rounded.FastForward
         "watch-history" -> Icons.Rounded.History
+        "watched-threshold" -> Icons.Rounded.TaskAlt
         "landing" -> Icons.Rounded.Home
         "show-continue" -> Icons.Rounded.Replay
         "show-recommendations" -> Icons.Rounded.AutoAwesome

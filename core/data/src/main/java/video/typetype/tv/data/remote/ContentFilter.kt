@@ -9,6 +9,7 @@ data class ContentVisibility(
     val hideRelatedVideos: Boolean = false,
     val hideComments: Boolean = false,
     val hideShorts: Boolean = false,
+    val watchedThresholdPercent: Int = 0,
 )
 
 data class BlockedSets(

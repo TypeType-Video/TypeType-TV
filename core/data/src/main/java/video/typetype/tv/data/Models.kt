@@ -138,17 +138,17 @@ data class VideoActivity(
     val favorite: Boolean = false,
     val subscribed: Boolean = false,
     val resumePositionMs: Long = 0L,
+    val watchedThresholdPercent: Int = 0,
 )
 
-fun Video.withResume(positionMs: Long): Video {
+fun Video.withResume(positionMs: Long, watchedThresholdPercent: Int = 0): Video {
     if (durationSeconds <= 0 || positionMs < RESUME_MINIMUM_MS) return this
-    val fraction = (positionMs / MILLIS_PER_SECOND.toFloat() / durationSeconds).coerceIn(0f, 1f)
-    return if (fraction >= RESUME_FINISHED_FRACTION) this else copy(resumeFraction = fraction)
+    if (WatchedRule.isWatched(positionMs, durationSeconds.toLong(), watchedThresholdPercent)) return this
+    return copy(resumeFraction = (positionMs / MILLIS_PER_SECOND.toFloat() / durationSeconds).coerceIn(0f, 1f))
 }
 
 private const val RESUME_MINIMUM_MS = 5_000L
 private const val MILLIS_PER_SECOND = 1_000
-private const val RESUME_FINISHED_FRACTION = 0.97f
 
 data class PlaylistChoice(
     val id: String,
