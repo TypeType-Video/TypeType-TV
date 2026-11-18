@@ -84,7 +84,7 @@ fun PlayerContent(
         view.keepScreenOn = true
         onDispose { view.keepScreenOn = false }
     }
-    val state = rememberPlayerUiState(player)
+    val state = rememberPlayerUiState(player, handle.isRecording)
     val session = remember(player) { PlayerSession(player, state, startWithControls) }
     val captionIndex = choices.captionIndex
     val speedIndex = choices.speedIndex

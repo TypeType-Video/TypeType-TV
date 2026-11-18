@@ -33,7 +33,7 @@ class TwitchPlaybackProvider(private val backend: Backend, private val online: (
             // A recording in progress opens where it was asked (its start or the saved position), not at its live
             // edge: that is how the web rewinds a live, and Go live still reaches the edge.
             val source = hls(playback.playlistUrl, live = false, recording = playback.live)
-            start(context, source, request, isLive = playback.live, fromPosition = true)
+            start(context, source, request, isLive = playback.live, fromPosition = true, isRecording = playback.live)
         }
         is TwitchTarget.Clip -> {
             val clip = repository.clip(target.slug)
@@ -63,11 +63,12 @@ class TwitchPlaybackProvider(private val backend: Backend, private val online: (
         isLive: Boolean,
         heights: List<Int> = emptyList(),
         fromPosition: Boolean = !isLive,
+        isRecording: Boolean = false,
     ): PlayerHandle {
         val player = TvPlayers.create(context, request.preview)
         if (fromPosition) player.setMediaSource(source, request.startMs) else player.setMediaSource(source)
         if (fromPosition && isLive) seekOnceKnown(player, request.startMs)
-        val handle = PlayerHandle(player = player, heights = heights, isLive = isLive)
+        val handle = PlayerHandle(player = player, heights = heights, isLive = isLive, isRecording = isRecording)
         if (heights.isEmpty()) handle.capVideoHeight(request.maxHeight)
         player.prepare()
         player.playWhenReady = true
