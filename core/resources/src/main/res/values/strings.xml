@@ -231,6 +231,7 @@
     <string name="player_live">LIVE</string>
     <string name="player_go_live">Go live</string>
     <string name="player_live_ended">The live stream has ended</string>
+    <string name="load_error_live_not_started">This live has not started yet.</string>
     <string name="load_error_unavailable">This video is not available, for example because of a regional restriction.</string>
     <string name="player_error_playback">Playback stopped after several attempts to recover.</string>
     <string name="player_twitch_ended">The stream has ended.</string>
