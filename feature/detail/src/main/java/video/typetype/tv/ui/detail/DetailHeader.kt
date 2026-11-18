@@ -23,6 +23,7 @@ import androidx.compose.material.icons.rounded.FavoriteBorder
 import androidx.compose.material.icons.rounded.NotificationsNone
 import androidx.compose.material.icons.rounded.PlaylistAdd
 import androidx.compose.material.icons.rounded.PlayArrow
+import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -123,6 +124,14 @@ fun DetailHeader(
                 modifier = Modifier.focusRequester(playRequester),
                 onFocused = onFocusButtons,
             )
+            if (video.isLive && video.startOverId != null) {
+                PillButton(
+                    label = stringResource(R.string.detail_start_over),
+                    icon = Icons.Rounded.Replay,
+                    onClick = actions.onStartOver,
+                    onFocused = onFocusButtons,
+                )
+            }
             // Twitch videos live outside the server library: the library actions do not apply to them.
             if (TwitchUrls.parse(video.id) == null) {
                 PillButton(

@@ -39,6 +39,7 @@ internal fun TwitchStreamDto.toVideo(now: Long): Video = Video(
     description = "",
     isLive = true,
     thumbnailUrl = previewUrl.ifBlank { null },
+    startOverId = archive?.id?.takeIf { it.isNotBlank() }?.let(TwitchUrls::vod),
 )
 
 internal fun TwitchVideoDto.toVideo(now: Long): Video = Video(

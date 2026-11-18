@@ -32,6 +32,8 @@ data class Video(
     val chapters: List<Chapter> = emptyList(),
     val focusY: Float = 0.5f,
     val thumbnailUrl: String? = null,
+    // A Twitch live's recording in progress: the web rewinds into it, the TV offers to start the live over.
+    val startOverId: String? = null,
 ) {
     val source: ContentSource? get() = ContentSource.of(id)
     val isShort: Boolean get() = "/shorts/" in id
