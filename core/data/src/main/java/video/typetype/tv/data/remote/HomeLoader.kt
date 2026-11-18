@@ -44,6 +44,7 @@ class HomeLoader(
             shorts = fetch { api.shorts(SHELF_LIMIT).items },
             notifications = fetch { api.notifications().takeIf { it.available && it.unreadCount > 0 }?.items.orEmpty().map { it.video } },
             twitch = fetch { twitch?.popular()?.items.orEmpty() },
+            twitchFollowed = fetch { twitch?.followedLives()?.items.orEmpty() },
         )
         val visibility = filter.visibility()
         val blocked = filter.blocked()
@@ -75,6 +76,7 @@ class HomeLoader(
             shelf("shorts", R.string.shelf_shorts, shortVideos(sources.shorts, visibility, blocked, now)),
             shelf("trending-bilibili", R.string.shelf_trending_bilibili, sources.bilibili.videos(now, blocked)),
             shelf("trending-niconico", R.string.shelf_trending_niconico, sources.niconico.videos(now, blocked)),
+            shelf("twitch-followed", R.string.shelf_twitch_followed, blocked.filter(sources.twitchFollowed.await().getOrNull().orEmpty()).take(SHELF_LIMIT)),
             shelf("twitch-live", R.string.shelf_twitch_live, blocked.filter(sources.twitch.await().getOrNull().orEmpty()).take(SHELF_LIMIT)),
             shelf("favorites", R.string.shelf_favorites, sources.favorites.libraryVideos(now)),
         )
@@ -148,6 +150,7 @@ class HomeLoader(
         val shorts: Deferred<Result<List<VideoItemDto>>>,
         val notifications: Deferred<Result<List<VideoItemDto>>>,
         val twitch: Deferred<Result<List<Video>>>,
+        val twitchFollowed: Deferred<Result<List<Video>>>,
     )
 
     private fun <T> CoroutineScope.fetch(block: suspend () -> T): Deferred<Result<T>> = async { runCatching { block() } }

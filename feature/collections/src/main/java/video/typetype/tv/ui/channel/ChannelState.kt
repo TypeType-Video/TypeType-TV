@@ -13,6 +13,7 @@ import video.typetype.tv.data.ChannelSort
 import video.typetype.tv.data.ChannelTab
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.PublicPlaylist
+import video.typetype.tv.data.TwitchUrls
 import video.typetype.tv.data.Video
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.ui.util.UiMessage
@@ -35,6 +36,10 @@ class ChannelState(
         private set
 
     var subscribed by mutableStateOf(false)
+        private set
+
+    // A Twitch channel is followed with the linked Twitch account; without one there is nothing to follow it with.
+    var followable by mutableStateOf(false)
         private set
 
     var subscriptionFailed by mutableStateOf(false)
@@ -85,7 +90,14 @@ class ChannelState(
             page = loaded
             videos = loaded.videos.distinctBy { it.id }
             nextPage = loaded.nextPage
-            subscribed = runCatching { repository.isSubscribed(url) }.getOrDefault(false)
+            val login = TwitchUrls.channelLogin(url)
+            val link = repository.twitchAccount?.takeIf { login != null }
+            followable = link != null && runCatching { link.linked() }.getOrDefault(false)
+            subscribed = when {
+                login == null -> runCatching { repository.isSubscribed(url) }.getOrDefault(false)
+                followable && link != null -> runCatching { link.isFollowing(login) }.getOrDefault(false)
+                else -> false
+            }
             podcasts = runCatching { repository.channelPodcasts(url) }.getOrDefault(emptyList())
             blocked = runCatching { repository.isChannelBlocked(url) }.getOrDefault(false)
         } catch (error: IOException) {
@@ -194,8 +206,10 @@ class ChannelState(
         subscriptionFailed = false
         scope.launch {
             try {
-                repository.setSubscribed(channel, !previous)
-            } catch (error: ApiException) {
+                val login = TwitchUrls.channelLogin(channel.url)
+                val link = repository.twitchAccount
+                if (login != null && link != null) link.setFollowing(login, !previous) else repository.setSubscribed(channel, !previous)
+            } catch (error: IOException) {
                 subscribed = previous
                 subscriptionFailed = true
             }

@@ -49,5 +49,20 @@ class RemoteTwitchAccountLinkTest {
         assertEquals("""{"deviceCode":"d1"}""", server.takeRequest().body.readUtf8())
     }
 
+    @Test
+    fun followingReadsAndWritesTheLinkedAccountState() = runBlocking {
+        server.enqueue(json("""{"linked":true,"login":"me","displayName":"Me"}"""))
+        server.enqueue(json("""{"channelId":"1","following":true}"""))
+        server.enqueue(MockResponse().setResponseCode(204))
+        assertEquals(true, link.linked())
+        assertEquals(true, link.isFollowing("space"))
+        link.setFollowing("space", follow = false)
+        server.takeRequest()
+        assertEquals("/api/twitch/me/follows/space", server.takeRequest().path)
+        val unfollow = server.takeRequest()
+        assertEquals("DELETE", unfollow.method)
+        assertEquals("/api/twitch/me/follows/space", unfollow.path)
+    }
+
     private fun json(body: String) = MockResponse().setHeader("Content-Type", "application/json").setBody(body)
 }

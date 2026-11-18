@@ -23,4 +23,10 @@ interface TwitchAccountLink {
     suspend fun poll(deviceCode: String): TwitchLinkPoll
 
     suspend fun unlink()
+
+    suspend fun linked(): Boolean
+
+    suspend fun isFollowing(login: String): Boolean
+
+    suspend fun setFollowing(login: String, follow: Boolean)
 }

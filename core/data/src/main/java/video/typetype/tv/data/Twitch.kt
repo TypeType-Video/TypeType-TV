@@ -106,6 +106,8 @@ interface TwitchRepository {
 
     suspend fun searchLives(query: String, cursor: String? = null): TwitchPage<Video>
 
+    suspend fun followedLives(cursor: String? = null): TwitchPage<Video>
+
     suspend fun searchCategories(query: String, cursor: String? = null): TwitchPage<TwitchCategory>
 
     suspend fun category(slug: String, cursor: String? = null): Pair<TwitchCategory?, TwitchPage<Video>>

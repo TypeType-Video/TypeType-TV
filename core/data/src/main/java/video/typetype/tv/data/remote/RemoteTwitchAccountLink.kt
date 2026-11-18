@@ -31,6 +31,12 @@ internal class RemoteTwitchAccountLink(private val api: TwitchApi) : TwitchAccou
 
     override suspend fun unlink() = api.unlink()
 
+    override suspend fun linked(): Boolean = api.account().linked
+
+    override suspend fun isFollowing(login: String): Boolean = api.followState(login).following
+
+    override suspend fun setFollowing(login: String, follow: Boolean) = api.setFollow(login, follow)
+
     private companion object {
         const val ACTIVATE = "https://www.twitch.tv/activate"
         const val MIN_INTERVAL = 5

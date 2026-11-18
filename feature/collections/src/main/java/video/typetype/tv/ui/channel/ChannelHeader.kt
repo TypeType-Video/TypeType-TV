@@ -106,8 +106,16 @@ internal fun ChannelHeader(state: ChannelState, subscribe: FocusRequester, more:
                 Box(Modifier.width(600.dp)) { TextLabel(page.description, Type.Body, maxLines = 2) }
             }
         }
-        // Twitch channels are followed on Twitch, not in the server subscriptions or block list.
-        if (TwitchUrls.channelLogin(page.channel.url) == null) Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(bottom = 4.dp)) {
+        // Twitch channels are followed with the linked Twitch account, not in the server subscriptions or block list.
+        if (TwitchUrls.channelLogin(page.channel.url) != null) {
+            if (state.followable) PillButton(
+                label = stringResource(if (state.subscribed) R.string.channel_following else R.string.channel_follow),
+                icon = if (state.subscribed) Icons.Rounded.Check else Icons.Rounded.NotificationsNone,
+                onClick = state::toggleSubscription,
+                emphasized = !state.subscribed,
+                modifier = Modifier.focusRequester(subscribe).padding(bottom = 4.dp),
+            )
+        } else Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(bottom = 4.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 PillButton(
                     label = stringResource(if (state.subscribed) R.string.detail_subscribed else R.string.detail_subscribe),

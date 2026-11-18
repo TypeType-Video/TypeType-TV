@@ -114,6 +114,7 @@ class TwitchContentTest {
         override suspend fun searchChannels(query: String, cursor: String?) =
             TwitchPage(listOf(Channel("space", "Space", "space", "1.9M", TwitchUrls.live("space"))), "c2")
         override suspend fun searchLives(query: String, cursor: String?) = TwitchPage(listOf(live), null)
+        override suspend fun followedLives(cursor: String?) = TwitchPage(listOf(live), null)
         override suspend fun searchCategories(query: String, cursor: String?) = TwitchPage(listOf(categoryOf("chess", "Chess")), null)
         override suspend fun category(slug: String, cursor: String?) = categoryOf(slug, "Chess") to TwitchPage(listOf(live), "c2")
     }
