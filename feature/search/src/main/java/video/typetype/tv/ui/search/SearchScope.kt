@@ -3,6 +3,7 @@ package video.typetype.tv.ui.search
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Animation
+import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.LiveTv
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.MusicNote
@@ -68,4 +69,5 @@ private fun SearchKind.icon(): ImageVector = when (this) {
     SearchKind.Movies -> Icons.Rounded.Movie
     SearchKind.MusicSongs -> Icons.Rounded.MusicNote
     SearchKind.MusicVideos -> Icons.Rounded.MusicVideo
+    SearchKind.Categories -> Icons.Rounded.Category
 }

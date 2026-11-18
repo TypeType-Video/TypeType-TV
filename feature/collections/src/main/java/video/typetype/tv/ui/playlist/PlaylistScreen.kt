@@ -35,6 +35,7 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentRepository
+import video.typetype.tv.data.TwitchUrls
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.theme.Palette
@@ -70,7 +71,9 @@ fun PlaylistScreen(
         return
     }
     val save = remember { FocusRequester() }
-    LaunchedEffect(url) { if (kind.savable) save.requestFocusWhenReady() }
+    // A Twitch category lists lives: it is not a playlist the server can save.
+    val savable = kind.savable && TwitchUrls.categorySlug(url) == null
+    LaunchedEffect(url) { if (savable) save.requestFocusWhenReady() }
     val gridState = rememberLazyGridState()
     val nearEnd by remember {
         derivedStateOf {
@@ -92,7 +95,7 @@ fun PlaylistScreen(
         ) {
             item(key = "header", span = { GridItemSpan(maxLineSpan) }) {
                 Column {
-                    PlaylistHeader(state, save, kind.savable)
+                    PlaylistHeader(state, save, savable)
                     Spacer(Modifier.height(12.dp))
                 }
             }
@@ -109,7 +112,10 @@ private fun PlaylistHeader(state: PlaylistState, save: FocusRequester, savable: 
             TextLabel(page.playlist.title, Type.Display, maxLines = 2)
             Spacer(Modifier.height(6.dp))
             TextLabel(
-                metaLine(page.playlist.uploader, stringResource(R.string.playlist_video_count, page.playlist.count.toString())),
+                metaLine(
+                    page.playlist.uploader,
+                    page.playlist.count.takeIf { it > 0 }?.let { stringResource(R.string.playlist_video_count, it.toString()) },
+                ),
                 Type.Meta,
                 maxLines = 1,
             )

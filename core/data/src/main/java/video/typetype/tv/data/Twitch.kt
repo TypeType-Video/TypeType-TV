@@ -17,6 +17,15 @@ object TwitchUrls {
 
     fun channelLogin(channelUrl: String): String? = (parse(channelUrl) as? TwitchTarget.Live)?.login
 
+    fun category(slug: String) = "https://www.twitch.tv/directory/category/$slug"
+
+    fun categorySlug(url: String): String? {
+        val parsed = url.toHttpUrlOrNull() ?: return null
+        val segments = parsed.pathSegments.filter { it.isNotEmpty() }
+        if (parsed.host.lowercase() != "www.twitch.tv" || segments.size != 3) return null
+        return segments[2].takeIf { segments[0] == "directory" && segments[1] == "category" && it.isNotBlank() }
+    }
+
     fun parse(url: String): TwitchTarget? {
         val parsed = url.toHttpUrlOrNull() ?: return null
         val host = parsed.host.lowercase()
@@ -96,4 +105,8 @@ interface TwitchRepository {
     suspend fun searchChannels(query: String, cursor: String? = null): TwitchPage<Channel>
 
     suspend fun searchLives(query: String, cursor: String? = null): TwitchPage<Video>
+
+    suspend fun searchCategories(query: String, cursor: String? = null): TwitchPage<TwitchCategory>
+
+    suspend fun category(slug: String, cursor: String? = null): Pair<TwitchCategory?, TwitchPage<Video>>
 }

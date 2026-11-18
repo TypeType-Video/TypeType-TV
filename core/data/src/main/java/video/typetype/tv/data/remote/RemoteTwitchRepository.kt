@@ -83,6 +83,14 @@ class RemoteTwitchRepository(
         return TwitchClipPlayback(dto.clip.toVideo(clock()), qualities)
     }
 
+    override suspend fun searchCategories(query: String, cursor: String?): TwitchPage<TwitchCategory> =
+        api.searchGames(query, cursor).map { it.toCategory() }
+
+    override suspend fun category(slug: String, cursor: String?): Pair<TwitchCategory?, TwitchPage<Video>> {
+        val dto = api.gameStreams(slug, cursor)
+        return dto.game?.toCategory() to dto.streams.map { it.toVideo(clock()) }
+    }
+
     override suspend fun searchChannels(query: String, cursor: String?): TwitchPage<Channel> =
         api.searchChannels(query, cursor).map { it.toChannel() }
 

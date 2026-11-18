@@ -7,8 +7,11 @@ import video.typetype.tv.data.ChannelPage
 import video.typetype.tv.data.ChannelSummary
 import video.typetype.tv.data.ChannelTab
 import video.typetype.tv.data.Chapter
+import video.typetype.tv.data.PublicPlaylist
+import video.typetype.tv.data.PublicPlaylistPage
 import video.typetype.tv.data.SearchKind
 import video.typetype.tv.data.SearchResults
+import video.typetype.tv.data.TwitchCategory
 import video.typetype.tv.data.TwitchRepository
 import video.typetype.tv.data.TwitchTarget
 import video.typetype.tv.data.TwitchUrls
@@ -52,8 +55,17 @@ internal class TwitchContent(private val twitch: TwitchRepository) {
         emptyList()
     }
 
+    // A category opens like a public playlist whose videos are its lives, so the TV needs no screen of its own for it.
+    suspend fun categoryPage(slug: String, cursor: String?): PublicPlaylistPage {
+        val (category, lives) = twitch.category(slug, cursor)
+        val playlist = category?.asPlaylist() ?: PublicPlaylist(TwitchUrls.category(slug), slug, "", 0, null)
+        return PublicPlaylistPage(playlist, lives.items, lives.cursor)
+    }
+
     suspend fun search(query: String, kind: SearchKind, cursor: String?): SearchResults = when (kind) {
         SearchKind.Live -> twitch.searchLives(query, cursor).let { SearchResults(videos = it.items, nextPage = it.cursor) }
+        SearchKind.Categories -> (if (query.isBlank()) twitch.categories(cursor) else twitch.searchCategories(query, cursor))
+            .let { page -> SearchResults(playlists = page.items.map { it.asPlaylist() }, nextPage = page.cursor) }
         else -> twitch.searchChannels(query, cursor).let { page ->
             SearchResults(channels = page.items.map { it.summary() }, nextPage = page.cursor)
         }
@@ -69,3 +81,11 @@ internal class TwitchContent(private val twitch: TwitchRepository) {
 }
 
 private fun Channel.summary() = ChannelSummary(url = url, name = name, description = "", subscribers = subscribers, avatarUrl = avatarUrl)
+
+private fun TwitchCategory.asPlaylist() = PublicPlaylist(
+    url = TwitchUrls.category(slug),
+    title = name,
+    uploader = viewers,
+    count = 0,
+    thumbnailUrl = boxArtUrl,
+)

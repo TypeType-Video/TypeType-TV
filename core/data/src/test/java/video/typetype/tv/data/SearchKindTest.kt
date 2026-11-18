@@ -43,8 +43,8 @@ class SearchKindTest {
     }
 
     @Test
-    fun twitchSearchesChannelsAndLivesOnly() {
-        assertEquals(listOf(SearchKind.Channels, SearchKind.Live), SearchKind.available(ContentSource.Twitch))
+    fun twitchSearchesChannelsLivesAndCategories() {
+        assertEquals(listOf(SearchKind.Channels, SearchKind.Live, SearchKind.Categories), SearchKind.available(ContentSource.Twitch))
         assertFalse(ContentSource.Twitch in ContentSource.extractors)
     }
 }

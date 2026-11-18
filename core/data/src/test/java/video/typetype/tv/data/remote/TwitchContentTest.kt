@@ -81,12 +81,27 @@ class TwitchContentTest {
         assertEquals(emptyList<Chapter>(), content.video(TwitchTarget.Vod("1"))?.chapters)
     }
 
+    @Test
+    fun categoriesAreListedAsPlaylistsThatOpenOnTheirLives() = runBlocking {
+        val popular = content.search("", SearchKind.Categories, null)
+        assertEquals(listOf("https://www.twitch.tv/directory/category/just-chatting"), popular.playlists.map { it.url })
+        val found = content.search("che", SearchKind.Categories, null)
+        assertEquals(listOf("Chess"), found.playlists.map { it.title })
+        val page = content.categoryPage("chess", null)
+        assertEquals("Chess", page.playlist.title)
+        assertEquals(listOf(live), page.videos)
+        assertEquals("c2", page.nextPage)
+        assertEquals("chess", TwitchUrls.categorySlug(page.playlist.url))
+    }
+
+    private fun categoryOf(slug: String, name: String) = TwitchCategory("1", name, slug, null, "10K watching")
+
     private var chapterList: List<Chapter> = emptyList()
 
     private inner class FakeTwitch : TwitchRepository {
         override val enabled: Boolean = true
         override suspend fun popular(cursor: String?): TwitchPage<Video> = TwitchPage(listOf(live), null)
-        override suspend fun categories(cursor: String?) = TwitchPage<TwitchCategory>(emptyList(), null)
+        override suspend fun categories(cursor: String?) = TwitchPage(listOf(categoryOf("just-chatting", "Just Chatting")), null)
         override suspend fun categoryLives(slug: String, cursor: String?) = TwitchPage<Video>(emptyList(), null)
         override suspend fun channel(login: String): TwitchChannelPage = TwitchChannelPage(channel, login, "", null, live.takeIf { online })
         override suspend fun channelVods(login: String, cursor: String?): TwitchPage<Video> =
@@ -99,5 +114,7 @@ class TwitchContentTest {
         override suspend fun searchChannels(query: String, cursor: String?) =
             TwitchPage(listOf(Channel("space", "Space", "space", "1.9M", TwitchUrls.live("space"))), "c2")
         override suspend fun searchLives(query: String, cursor: String?) = TwitchPage(listOf(live), null)
+        override suspend fun searchCategories(query: String, cursor: String?) = TwitchPage(listOf(categoryOf("chess", "Chess")), null)
+        override suspend fun category(slug: String, cursor: String?) = categoryOf(slug, "Chess") to TwitchPage(listOf(live), "c2")
     }
 }

@@ -120,7 +120,10 @@ class RemoteContentRepository(
         twitch?.search(query, kind, page) ?: playlists.search(query, source, kind, page)
     }
 
-    override suspend fun publicPlaylist(url: String, page: String?): PublicPlaylistPage = watch.watch { playlists.page(url, page) }
+    override suspend fun publicPlaylist(url: String, page: String?): PublicPlaylistPage = watch.watch {
+        val category = TwitchUrls.categorySlug(url)?.let { slug -> twitchContent?.categoryPage(slug, page) }
+        category ?: playlists.page(url, page)
+    }
 
     override suspend fun channelPodcasts(channelUrl: String): List<PublicPlaylist> =
         if (ContentSource.of(channelUrl) == ContentSource.YouTube) playlists.podcasts(channelUrl) else emptyList()

@@ -297,6 +297,7 @@
     <string name="search_kind_movies">Movies and TV</string>
     <string name="search_kind_music_songs">Music: songs</string>
     <string name="search_kind_music_videos">Music: videos</string>
+    <string name="search_kind_categories">Categories</string>
     <string name="channel_podcasts">Podcasts</string>
     <string name="channel_verified">Verified channel</string>
     <string name="channel_more">More options</string>

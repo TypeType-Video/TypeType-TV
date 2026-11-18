@@ -115,7 +115,7 @@ fun SearchScreen(
     }
     LaunchedEffect(session.query, session.source, session.kind, searchAttempt) {
         val query = session.query
-        if (query.isBlank()) {
+        if (query.isBlank() && !session.kind.browsable) {
             state = ResultsState.Idle
             return@LaunchedEffect
         }

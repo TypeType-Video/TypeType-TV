@@ -55,7 +55,8 @@ fun PlaylistResults(
     paging: CollectionPaging = CollectionPaging(),
 ) {
     CollectionList(playlists, modifier, entry, paging, key = { it.url }) { playlist, rowModifier ->
-        val count = stringResource(R.string.playlist_video_count, playlist.count.toString())
+        // A Twitch category has lives, not a fixed number of videos.
+        val count = if (playlist.count > 0) stringResource(R.string.playlist_video_count, playlist.count.toString()) else ""
         val description = stringResource(
             R.string.card_description,
             playlist.title,
@@ -69,7 +70,7 @@ fun PlaylistResults(
                 TextLabel(playlist.title, Type.Title, maxLines = 2)
                 Spacer(Modifier.height(4.dp))
                 TextLabel(
-                    metaLine(playlist.uploader, stringResource(R.string.playlist_video_count, playlist.count.toString())),
+                    metaLine(playlist.uploader, count),
                     Type.Meta,
                     maxLines = 1,
                 )
