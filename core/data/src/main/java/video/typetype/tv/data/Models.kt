@@ -32,6 +32,8 @@ data class Video(
     val chapters: List<Chapter> = emptyList(),
     val focusY: Float = 0.5f,
     val thumbnailUrl: String? = null,
+    // A Twitch live's recording in progress: the web rewinds into it, the TV offers to start the live over.
+    val startOverId: String? = null,
 ) {
     val source: ContentSource? get() = ContentSource.of(id)
     val isShort: Boolean get() = "/shorts/" in id
@@ -47,6 +49,9 @@ data class Shelf(
 data class HomeContent(
     val featured: List<Video>,
     val shelves: List<Shelf>,
+    // Only on instances that run the recommender: its rows take the place at recommendedSlot among the shelves.
+    val recommended: RecommendedPage? = null,
+    val recommendedSlot: Int = 0,
 )
 
 sealed interface LibrarySection {
@@ -135,17 +140,17 @@ data class VideoActivity(
     val favorite: Boolean = false,
     val subscribed: Boolean = false,
     val resumePositionMs: Long = 0L,
+    val watchedThresholdPercent: Int = 0,
 )
 
-fun Video.withResume(positionMs: Long): Video {
+fun Video.withResume(positionMs: Long, watchedThresholdPercent: Int = 0): Video {
     if (durationSeconds <= 0 || positionMs < RESUME_MINIMUM_MS) return this
-    val fraction = (positionMs / MILLIS_PER_SECOND.toFloat() / durationSeconds).coerceIn(0f, 1f)
-    return if (fraction >= RESUME_FINISHED_FRACTION) this else copy(resumeFraction = fraction)
+    if (WatchedRule.isWatched(positionMs, durationSeconds.toLong(), watchedThresholdPercent)) return this
+    return copy(resumeFraction = (positionMs / MILLIS_PER_SECOND.toFloat() / durationSeconds).coerceIn(0f, 1f))
 }
 
 private const val RESUME_MINIMUM_MS = 5_000L
 private const val MILLIS_PER_SECOND = 1_000
-private const val RESUME_FINISHED_FRACTION = 0.97f
 
 data class PlaylistChoice(
     val id: String,

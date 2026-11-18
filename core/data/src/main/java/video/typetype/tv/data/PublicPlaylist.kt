@@ -30,14 +30,18 @@ enum class SearchKind(@StringRes val labelRes: Int, private val filters: Map<Con
     Playlists(R.string.search_kind_playlists, mapOf(ContentSource.YouTube to "|3|playlists")),
     Channels(
         R.string.search_kind_channels,
-        mapOf(ContentSource.YouTube to "|2|channels", ContentSource.BiliBili to "|2|channels"),
+        mapOf(ContentSource.YouTube to "|2|channels", ContentSource.BiliBili to "|2|channels", ContentSource.Twitch to null),
     ),
-    Live(R.string.search_kind_live, mapOf(ContentSource.NicoNico to "|1|lives")),
+    Live(R.string.search_kind_live, mapOf(ContentSource.NicoNico to "|1|lives", ContentSource.Twitch to null)),
     Anime(R.string.search_kind_anime, mapOf(ContentSource.BiliBili to "|3|animes")),
     Movies(R.string.search_kind_movies, mapOf(ContentSource.BiliBili to "|4|movies_and_tv")),
     MusicSongs(R.string.search_kind_music_songs, mapOf(ContentSource.YouTube to "YouTube Music|5|music_songs")),
     MusicVideos(R.string.search_kind_music_videos, mapOf(ContentSource.YouTube to "YouTube Music|6|music_videos")),
+    Categories(R.string.search_kind_categories, mapOf(ContentSource.Twitch to null)),
     ;
+
+    // Categories are worth browsing before typing anything: an empty search lists the popular ones.
+    val browsable: Boolean get() = this == Categories
 
     fun supports(source: ContentSource): Boolean = source in filters
 

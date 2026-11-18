@@ -11,4 +11,9 @@ sealed interface LiveChatEvent {
     data class Message(val message: LiveChatMessage) : LiveChatEvent
 
     data object Unavailable : LiveChatEvent
+
+    // Moderation on Twitch: one message taken down, or a viewer's messages (every message when author is null).
+    data class Removed(val messageId: String) : LiveChatEvent
+
+    data class Cleared(val author: String?) : LiveChatEvent
 }

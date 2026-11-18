@@ -32,6 +32,7 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
+import video.typetype.tv.data.TwitchUrls
 import video.typetype.tv.resources.R
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Type
@@ -97,14 +98,24 @@ internal fun ChannelHeader(state: ChannelState, subscribe: FocusRequester, more:
             }
             if (page.channel.subscribers.isNotBlank()) {
                 Spacer(Modifier.height(2.dp))
-                TextLabel(stringResource(R.string.detail_subscribers, page.channel.subscribers), Type.Meta, maxLines = 1)
+                val audience = if (TwitchUrls.channelLogin(page.channel.url) != null) R.string.channel_followers else R.string.detail_subscribers
+                TextLabel(stringResource(audience, page.channel.subscribers), Type.Meta, maxLines = 1)
             }
             if (page.description.isNotBlank()) {
                 Spacer(Modifier.height(6.dp))
                 Box(Modifier.width(600.dp)) { TextLabel(page.description, Type.Body, maxLines = 2) }
             }
         }
-        Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(bottom = 4.dp)) {
+        // Twitch channels are followed with the linked Twitch account, not in the server subscriptions or block list.
+        if (TwitchUrls.channelLogin(page.channel.url) != null) {
+            if (state.followable) PillButton(
+                label = stringResource(if (state.subscribed) R.string.channel_following else R.string.channel_follow),
+                icon = if (state.subscribed) Icons.Rounded.Check else Icons.Rounded.NotificationsNone,
+                onClick = state::toggleSubscription,
+                emphasized = !state.subscribed,
+                modifier = Modifier.focusRequester(subscribe).padding(bottom = 4.dp),
+            )
+        } else Column(horizontalAlignment = Alignment.End, modifier = Modifier.padding(bottom = 4.dp)) {
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                 PillButton(
                     label = stringResource(if (state.subscribed) R.string.detail_subscribed else R.string.detail_subscribe),

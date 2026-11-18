@@ -35,6 +35,11 @@ object PlaybackRequests {
         } catch (_: IOException) {
             0L
         }
-        return if (video.withResume(position).resumeFraction != null) position else 0L
+        val threshold = try {
+            repository.watchedThresholdPercent()
+        } catch (_: IOException) {
+            0
+        }
+        return if (video.withResume(position, threshold).resumeFraction != null) position else 0L
     }
 }

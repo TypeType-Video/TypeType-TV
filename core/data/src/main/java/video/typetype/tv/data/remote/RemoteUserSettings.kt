@@ -42,6 +42,7 @@ class RemoteUserSettings(
             hideRelatedVideos = flag(settings, "hideRelatedVideos") ?: false,
             hideComments = flag(settings, "hideComments") ?: false,
             hideShorts = flag(settings, "hideShorts") ?: false,
+            watchedThresholdPercent = settings?.get("watchedThresholdPercent")?.jsonPrimitive?.intOrNull ?: 0,
         )
     }
 
@@ -55,7 +56,7 @@ class RemoteUserSettings(
                 "watch-later" -> LandingPage.WatchLater
                 else -> LandingPage.Home
             },
-            searchSource = ContentSource.entries.firstOrNull { it.serviceId == service } ?: ContentSource.YouTube,
+            searchSource = ContentSource.extractors.firstOrNull { it.serviceId == service } ?: ContentSource.YouTube,
         )
     }
 

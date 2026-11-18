@@ -9,9 +9,14 @@ enum class ContentSource(val serviceId: Int, @StringRes val labelRes: Int, @Draw
     YouTube(0, R.string.source_youtube, R.drawable.ic_service_youtube),
     BiliBili(5, R.string.source_bilibili, R.drawable.ic_service_bilibili),
     NicoNico(6, R.string.source_niconico, R.drawable.ic_service_niconico),
+
+    // Served by TypeType-Live, not by the extractor: it has no service id and only exists where the instance enables it.
+    Twitch(-1, R.string.source_twitch, R.drawable.ic_service_twitch),
     ;
 
     companion object {
+        val extractors: List<ContentSource> = entries - Twitch
+
         fun of(videoUrl: String): ContentSource? {
             val host = videoUrl.toHttpUrlOrNull()?.host?.lowercase().orEmpty()
             return when {

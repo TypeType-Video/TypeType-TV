@@ -19,6 +19,7 @@ import video.typetype.tv.data.dto.PublicPlaylistDto
 import video.typetype.tv.data.dto.SavedPlaylistDto
 import video.typetype.tv.data.dto.UnreadCountDto
 import video.typetype.tv.data.dto.HomeRecommendationsDto
+import video.typetype.tv.data.dto.RecommenderSettingsDto
 import video.typetype.tv.data.dto.LibraryVideoDto
 import video.typetype.tv.data.dto.PlaylistDto
 import video.typetype.tv.data.dto.SearchHistoryDto
@@ -35,6 +36,7 @@ import video.typetype.tv.data.net.FailureCategory
 
 class TypeTypeApi(private val client: ApiClient) {
     val liveChat = LiveChatApi(client)
+    val twitch = TwitchApi(client)
 
     suspend fun me(): UserProfileDto = client.get("auth/me", UserProfileDto.serializer())
 
@@ -46,6 +48,9 @@ class TypeTypeApi(private val client: ApiClient) {
             HomeRecommendationsDto.serializer(),
             mapOf("service" to "0", "limit" to limit.toString(), "cursor" to cursor),
         )
+
+    suspend fun recommenderSettings(): RecommenderSettingsDto =
+        client.get("recommendations/settings", RecommenderSettingsDto.serializer())
 
     suspend fun shorts(limit: Int = 20): HomeRecommendationsDto =
         client.get("recommendations/shorts", HomeRecommendationsDto.serializer(), mapOf("service" to "0", "limit" to limit.toString()))
@@ -150,7 +155,7 @@ class TypeTypeApi(private val client: ApiClient) {
             ContentSource.YouTube -> "streams/youtube/sabr"
             ContentSource.BiliBili -> "streams/bilibili"
             ContentSource.NicoNico -> "streams/niconico"
-            null -> throw ApiException(
+            ContentSource.Twitch, null -> throw ApiException(
                 ApiFailure(FailureCategory.Contract, null, "unsupported_source", "This video source is not supported", null),
             )
         }

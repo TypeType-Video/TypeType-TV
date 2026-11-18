@@ -37,6 +37,7 @@ class RemoteSettings(
             ContentSettings.group(settings, texts),
             blockedGroup(runCatching { api.blockedChannels() }.getOrNull()),
             accountGroup(profile?.role, account?.name ?: profile?.publicUsername, account?.email, unread),
+        ) + listOfNotNull(twitchGroup(api)) + listOf(
             instanceGroup(),
             SettingsGroup(
                 id = "about",
@@ -71,6 +72,20 @@ class RemoteSettings(
         )
     }
 
+    private suspend fun twitchGroup(api: TypeTypeApi): SettingsGroup? {
+        if (isGuest || !instance.twitch.enabled) return null
+        val status = runCatching { api.twitch.account() }.getOrNull() ?: return null
+        val items = if (status.linked) {
+            listOf(
+                SettingItem.Info("twitch-account", R.string.settings_twitch_account, status.displayName ?: status.login.orEmpty()),
+                SettingItem.Action(SettingActions.TWITCH_UNLINK, R.string.settings_twitch_unlink, R.string.settings_twitch_unlink_summary),
+            )
+        } else {
+            listOf(SettingItem.Action(SettingActions.TWITCH_LINK, R.string.settings_twitch_link, R.string.settings_twitch_link_summary))
+        }
+        return SettingsGroup("twitch", R.string.settings_group_twitch, items)
+    }
+
     private fun instanceGroup() = SettingsGroup(
         id = "instance",
         titleRes = R.string.settings_group_instance,
@@ -92,6 +107,7 @@ class RemoteSettings(
                 "captions" -> put("subtitlesEnabled", value.toBoolean())
                 "sponsorblock" -> put("sponsorBlockMode", value)
                 "watch-history" -> put("disableWatchHistory", !value.toBoolean())
+                "watched-threshold" -> put("watchedThresholdPercent", value.toInt())
             }
         }
         if (patch.isNotEmpty()) api.updateSettings(patch)
@@ -147,7 +163,7 @@ class RemoteSettings(
                 summaryRes = R.string.settings_sponsorblock_summary,
             ),
             SettingItem.Toggle("watch-history", R.string.settings_watch_history, R.string.settings_watch_history_summary, !flag("disableWatchHistory", false)),
-        )
+        ) + listOfNotNull(WatchedSettings.choice(settings, texts))
         return SettingsGroup("playback", R.string.settings_group_playback, items)
     }
 
