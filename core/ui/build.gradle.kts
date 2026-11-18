@@ -12,6 +12,7 @@ dependencies {
     api(libs.androidx.activity.compose)
     api(libs.coil.compose)
     implementation(libs.coil.gif)
+    implementation(libs.zxing.core)
 
     testImplementation(project(":core:testing"))
     testImplementation(libs.junit)

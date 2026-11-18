@@ -17,5 +17,7 @@ interface VideoActivityRepository {
 
     suspend fun resumePositionMs(videoId: String): Long
 
+    suspend fun watchedThresholdPercent(): Int = 0
+
     fun recordPlayback(video: Video, positionMs: Long, started: Boolean)
 }

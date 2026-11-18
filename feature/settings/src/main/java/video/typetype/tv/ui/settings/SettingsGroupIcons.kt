@@ -7,6 +7,7 @@ import androidx.compose.material.icons.rounded.Bolt
 import androidx.compose.material.icons.rounded.Dashboard
 import androidx.compose.material.icons.rounded.Dns
 import androidx.compose.material.icons.rounded.Info
+import androidx.compose.material.icons.rounded.LiveTv
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SystemUpdate
@@ -19,6 +20,7 @@ internal fun SettingsGroup.icon(): ImageVector = when (id) {
     "playback" -> Icons.Rounded.PlayCircle
     "content" -> Icons.Rounded.Dashboard
     "blocked" -> Icons.Rounded.Block
+    "twitch" -> Icons.Rounded.LiveTv
     "performance" -> Icons.Rounded.Bolt
     "updates" -> Icons.Rounded.SystemUpdate
     "about" -> Icons.Rounded.Info

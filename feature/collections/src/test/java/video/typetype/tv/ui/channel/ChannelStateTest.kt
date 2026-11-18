@@ -95,7 +95,7 @@ class ChannelStateTest {
     @Test
     fun aYoutubeChannelOffersItsTabsAndSorts() = runBlocking {
         val state = ChannelState(url, repository(), scope).also { it.load() }
-        assertEquals(ChannelTab.entries, state.tabs)
+        assertEquals(listOf(ChannelTab.Videos, ChannelTab.Live, ChannelTab.Playlists), state.tabs)
         assertEquals(ChannelSort.Latest, state.sort)
     }
 

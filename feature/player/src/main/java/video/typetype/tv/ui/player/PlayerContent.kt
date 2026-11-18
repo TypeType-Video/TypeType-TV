@@ -41,6 +41,7 @@ import video.typetype.tv.data.Video
 import video.typetype.tv.playback.PlayerHandle
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.data.ContentSource
+import video.typetype.tv.data.TwitchUrls
 import video.typetype.tv.ui.detail.CommentsState
 import video.typetype.tv.ui.detail.VideoActivityController
 import video.typetype.tv.ui.player.danmaku.DanmakuOverlay
@@ -83,7 +84,7 @@ fun PlayerContent(
         view.keepScreenOn = true
         onDispose { view.keepScreenOn = false }
     }
-    val state = rememberPlayerUiState(player)
+    val state = rememberPlayerUiState(player, handle.isRecording)
     val session = remember(player) { PlayerSession(player, state, startWithControls) }
     val captionIndex = choices.captionIndex
     val speedIndex = choices.speedIndex
@@ -162,7 +163,7 @@ fun PlayerContent(
             }
             .focusable(),
     ) {
-        val chatAvailable = handle.isLive && video?.source == ContentSource.YouTube
+        val chatAvailable = handle.isLive && (video?.source == ContentSource.YouTube || video?.id?.let(TwitchUrls::channelLogin) != null)
         val chatUrl = video?.id?.takeIf { choices.chatOn && chatAvailable && !state.isEnded }
         val heights = if (handle.isLive) state.trackHeights else handle.heights
         val opening = !state.hasFirstFrame && !state.isPlaying && !choices.audioOnly

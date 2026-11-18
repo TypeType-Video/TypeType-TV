@@ -1,5 +1,7 @@
 package video.typetype.tv.data.remote
 
+import video.typetype.tv.data.WatchedRule
+
 object Formatters {
     fun compactCount(count: Long): String {
         if (count < 0) return ""
@@ -37,10 +39,10 @@ object Formatters {
         }
     }
 
-    fun resumeFraction(progressSeconds: Long, durationSeconds: Long): Float? {
+    fun resumeFraction(progressSeconds: Long, durationSeconds: Long, watchedThresholdPercent: Int = 0): Float? {
         if (durationSeconds <= 0L || progressSeconds <= 0L) return null
-        val fraction = progressSeconds.toFloat() / durationSeconds.toFloat()
-        return fraction.takeIf { it in MIN_RESUME..MAX_RESUME }
+        if (WatchedRule.isWatched(progressSeconds * 1_000L, durationSeconds, watchedThresholdPercent)) return null
+        return (progressSeconds.toFloat() / durationSeconds.toFloat()).takeIf { it >= MIN_RESUME }
     }
 
     private fun scaled(count: Long, divisor: Double, suffix: String): String {
@@ -53,5 +55,4 @@ object Formatters {
         if (amount == 1L) "1 $name ago" else "$amount ${name}s ago"
 
     private const val MIN_RESUME = 0.02f
-    private const val MAX_RESUME = 0.95f
 }

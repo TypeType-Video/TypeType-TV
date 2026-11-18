@@ -40,6 +40,9 @@ object LiveEdge {
     fun offsetMillis(reported: Long, windowMillis: Long): Long =
         if (reported == C.TIME_UNSET || reported < 0L) 0L else reported.coerceAtMost(windowMillis.coerceAtLeast(0L))
 
+    // A recording in progress has no wall clock to measure a live offset from, only its own growing length.
+    fun behindRecordingEnd(positionMillis: Long, windowMillis: Long): Long = (windowMillis - positionMillis).coerceAtLeast(0L)
+
     fun position(positionMillis: Long, offsetMillis: Long, windowMillis: Long, live: Boolean): Long =
         if (live && windowMillis > 0L) (windowMillis - offsetMillis).coerceIn(0L, windowMillis) else positionMillis
 
@@ -49,7 +52,7 @@ object LiveEdge {
 private const val POSITION_POLL_MILLIS = 200L
 
 @Composable
-fun rememberPlayerUiState(player: Player): PlayerUiState {
+fun rememberPlayerUiState(player: Player, recording: Boolean = false): PlayerUiState {
     val state = remember(player) { PlayerUiState() }
     DisposableEffect(player) {
         val listener = object : Player.Listener {
@@ -87,13 +90,17 @@ fun rememberPlayerUiState(player: Player): PlayerUiState {
         player.addListener(listener)
         onDispose { player.removeListener(listener) }
     }
-    LaunchedEffect(player) {
+    LaunchedEffect(player, recording) {
         while (true) {
             if (player.duration > 0L) state.durationMillis = player.duration
             state.isLive = player.isCurrentMediaItemLive
             state.bufferedMillis = player.bufferedPosition.coerceAtLeast(0L)
             val position = player.currentPosition.coerceAtLeast(0L)
-            val offset = if (state.isLive) LiveEdge.offsetMillis(player.currentLiveOffset, state.durationMillis) else 0L
+            val offset = when {
+                !state.isLive -> 0L
+                recording -> LiveEdge.behindRecordingEnd(position, state.durationMillis)
+                else -> LiveEdge.offsetMillis(player.currentLiveOffset, state.durationMillis)
+            }
             state.liveOffsetMillis = offset
             state.positionMillis = LiveEdge.position(position, offset, state.durationMillis, state.isLive)
             delay(POSITION_POLL_MILLIS)

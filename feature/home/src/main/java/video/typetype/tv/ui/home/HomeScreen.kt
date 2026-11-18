@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.layout.Arrangement
@@ -29,15 +30,18 @@ import video.typetype.tv.ui.util.UiMessage
 import video.typetype.tv.ui.components.ScreenFailure
 import video.typetype.tv.ui.util.tryLoad
 import video.typetype.tv.data.HomeContent
+import video.typetype.tv.data.Shelf
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.ui.components.Backdrop
 import video.typetype.tv.ui.components.LocalStreamPrewarm
 import video.typetype.tv.ui.components.ShelfRow
+import video.typetype.tv.ui.components.ShelfSkeleton
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
 private const val HERO_ROTATION_MILLIS = 9_000L
 private const val BACKDROP_SETTLE_MILLIS = 260L
+private const val PENDING_SKELETON_SHELVES = 2
 
 @Composable
 fun HomeScreen(
@@ -67,7 +71,7 @@ fun HomeScreen(
         } else if (loaded == null) {
             HomeSkeleton()
         } else {
-            HomeLoaded(loaded, session, onOpen, onPlay)
+            HomeLoaded(loaded, session, repository, onOpen, onPlay)
         }
     }
 }
@@ -76,6 +80,7 @@ fun HomeScreen(
 private fun HomeLoaded(
     content: HomeContent,
     session: HomeSession,
+    repository: ContentRepository,
     onOpen: (Video) -> Unit,
     onPlay: (Video) -> Unit,
 ) {
@@ -90,6 +95,20 @@ private fun HomeLoaded(
     var pendingRestore by remember { mutableStateOf(restoreAnchor != null) }
 
     var previewPlaying by remember { mutableStateOf(false) }
+    var focusedShelf by remember { mutableIntStateOf(-1) }
+    val recommended = remember(content) { session.recommendedFor(content) }
+    val slot = content.recommendedSlot
+    LaunchedEffect(recommended) {
+        recommended?.awaitRows { repository.recommendedRows(null) }
+    }
+    // Rows that arrive while focus is below their place wait, so nothing moves under the user.
+    LaunchedEffect(recommended?.arrived, focusedShelf) {
+        if (recommended?.arrived != null && focusedShelf < slot) recommended.applyArrived()
+    }
+    val before = content.shelves.take(slot)
+    val after = content.shelves.drop(slot)
+    val middle = recommended?.visible.orEmpty()
+    val skeletons = if (recommended?.pending == true) PENDING_SKELETON_SHELVES else 0
     val heroInView = focusedCard == null && !previewPlaying && !LocalIntroPlaying.current
     LaunchedEffect(content, heroInView) {
         while (heroInView) {
@@ -101,7 +120,8 @@ private fun HomeLoaded(
         if (restoreAnchor == null) {
             playRequester.requestFocusWhenReady()
         } else {
-            listState.scrollToItem(restoreAnchor.shelfIndex + 1)
+            val skipped = if (restoreAnchor.shelfIndex >= slot) skeletons else 0
+            listState.scrollToItem(restoreAnchor.shelfIndex + 1 + skipped)
         }
     }
 
@@ -140,26 +160,38 @@ private fun HomeLoaded(
                     onOpen = { onOpen(hero) },
                     onFocusHero = {
                         focusedCard = null
+                        focusedShelf = -1
                         prewarm?.focus(hero)
                         scope.launch { listState.animateScrollToItem(0) }
                     },
                     modifier = Modifier.padding(bottom = 6.dp),
                 )
             }
-            itemsIndexed(content.shelves, key = { _, shelf -> shelf.id }) { shelfIndex, shelf ->
+            val shelfRow: @Composable (Int, Shelf) -> Unit = { shelfIndex, shelf ->
+                val paged = recommended?.takeIf { holder -> holder.shelves.any { it.id == shelf.id } }
+                val loadMore = paged?.let { holder -> { holder.loadMore(shelf.id, scope, repository::recommendedRows) } }
                 ShelfRow(
                     shelf = shelf,
                     onOpen = { video, itemIndex ->
                         session.anchor = HomeAnchor(shelfIndex, itemIndex)
                         onOpen(video)
                     },
-                    onFocusVideo = { focusedCard = it },
+                    onFocusVideo = {
+                        focusedCard = it
+                        focusedShelf = shelfIndex
+                        if (shelf.id == paged?.shelves?.lastOrNull()?.id) loadMore?.invoke()
+                    },
                     restoreIndex = restoreAnchor
                         ?.takeIf { pendingRestore && it.shelfIndex == shelfIndex }
                         ?.itemIndex,
                     onRestored = { pendingRestore = false },
+                    loadingMore = paged?.loadingRow == shelf.id,
+                    onNearEnd = loadMore,
                 )
             }
+            itemsIndexed(before, key = { _, shelf -> shelf.id }) { shelfIndex, shelf -> shelfRow(shelfIndex, shelf) }
+            items(skeletons, key = { "recommended-skeleton-$it" }) { ShelfSkeleton() }
+            itemsIndexed(middle + after, key = { _, shelf -> shelf.id }) { index, shelf -> shelfRow(slot + index, shelf) }
         }
     }
 }

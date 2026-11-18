@@ -38,7 +38,7 @@ internal object ContentSettings {
         fun flag(key: String) = settings?.get(key)?.jsonPrimitive?.booleanOrNull ?: false
         val landing = settings?.get("defaultLandingPage")?.jsonPrimitive?.contentOrNull
         val service = settings?.get("defaultService")?.jsonPrimitive?.intOrNull
-        val sources = ContentSource.entries
+        val sources = ContentSource.extractors
         val items = listOf(
             SettingItem.Choice(
                 id = "landing",

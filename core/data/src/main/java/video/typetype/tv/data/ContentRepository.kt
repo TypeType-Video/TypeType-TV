@@ -5,11 +5,18 @@ import kotlinx.coroutines.flow.Flow
 interface ContentRepository : VideoActivityRepository, PresenceSink, SubscriptionsRepository {
     suspend fun home(): HomeContent
 
+    // The recommender rows again (null cursor) or their next slice; only asked when the home has recommender rows.
+    suspend fun recommendedRows(cursor: String?): RecommendedPage = RecommendedPage(emptyList(), null)
+
     suspend fun video(id: String): Video?
 
     suspend fun prewarm(videoId: String)
 
     suspend fun related(id: String): List<Video>
+
+    val searchSources: List<ContentSource> get() = ContentSource.extractors
+
+    val twitchAccount: TwitchAccountLink? get() = null
 
     suspend fun search(
         query: String,

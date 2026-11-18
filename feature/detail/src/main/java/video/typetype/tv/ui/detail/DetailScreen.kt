@@ -109,7 +109,7 @@ private fun DetailContent(
 ) {
     var pickerOpen by remember(source.id) { mutableStateOf(false) }
     val activity = controller.activity
-    val video = remember(source, activity.resumePositionMs) { source.withResume(activity.resumePositionMs) }
+    val video = remember(source, activity) { source.withResume(activity.resumePositionMs, activity.watchedThresholdPercent) }
     val playRequester = remember { FocusRequester() }
     val listState = rememberLazyListState()
     val scope = rememberCoroutineScope()
@@ -135,6 +135,11 @@ private fun DetailContent(
                         onSubscribe = { controller.setSubscribed(video, it) },
                         onOpenChannel = { if (video.channel.url.isNotBlank()) onOpenChannel(video.channel.url) },
                         onOpenPlaylists = { pickerOpen = true },
+                        onStartOver = {
+                            video.startOverId?.let { id ->
+                                onPlay(video.copy(id = id, isLive = false, resumeFraction = null, startOverId = null))
+                            }
+                        },
                     ),
                     playRequester = playRequester,
                     onPlay = { onPlay(video) },

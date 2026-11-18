@@ -56,9 +56,17 @@ class LiveChatState {
         private set
 
     fun apply(batch: List<LiveChatEvent>) {
-        val added = batch.filterIsInstance<LiveChatEvent.Message>().map { it.message }
-        if (added.isNotEmpty()) messages = (messages + added).takeLast(KEPT_MESSAGES)
-        if (batch.any { it == LiveChatEvent.Unavailable }) unavailable = true
+        var next = messages
+        batch.forEach { event ->
+            next = when (event) {
+                is LiveChatEvent.Message -> next + event.message
+                is LiveChatEvent.Removed -> next.filterNot { it.id == event.messageId }
+                is LiveChatEvent.Cleared -> event.author?.let { author -> next.filterNot { it.author.equals(author, ignoreCase = true) } }
+                    ?: emptyList()
+                LiveChatEvent.Unavailable -> next.also { unavailable = true }
+            }
+        }
+        if (next !== messages) messages = next.takeLast(KEPT_MESSAGES)
     }
 
     private companion object {

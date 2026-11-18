@@ -30,4 +30,10 @@ class LiveEdgeTest {
         assertEquals(42_000L, LiveEdge.position(42_000, 0, 600_000, live = false))
         assertEquals(42_000L, LiveEdge.position(42_000, 0, 0, live = true))
     }
+
+    @Test
+    fun aRecordingIsMeasuredFromItsOwnEnd() {
+        assertEquals(3_600_000L, LiveEdge.behindRecordingEnd(0, 3_600_000))
+        assertEquals(0L, LiveEdge.behindRecordingEnd(3_700_000, 3_600_000))
+    }
 }
