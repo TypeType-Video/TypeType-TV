@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Home
+import androidx.compose.material.icons.rounded.LiveTv
 import androidx.compose.material.icons.rounded.Search
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.Subscriptions
@@ -15,6 +16,7 @@ import video.typetype.tv.data.Video
 sealed interface Route {
     data object Home : Route
     data object Subscriptions : Route
+    data object Live : Route
     data object Search : Route
     data object Library : Route
     data object Settings : Route
@@ -32,6 +34,7 @@ enum class TopTab(
 ) {
     Home(Route.Home, R.string.nav_home, Icons.Rounded.Home),
     Subscriptions(Route.Subscriptions, R.string.nav_subscriptions, Icons.Rounded.Subscriptions),
+    Live(Route.Live, R.string.nav_live, Icons.Rounded.LiveTv),
     Search(Route.Search, R.string.nav_search, Icons.Rounded.Search),
     Library(Route.Library, R.string.nav_library, Icons.Rounded.VideoLibrary),
     Settings(Route.Settings, R.string.nav_settings, Icons.Rounded.Settings),

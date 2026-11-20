@@ -5,6 +5,10 @@ data class LiveChatMessage(
     val author: String,
     val text: String,
     val moderator: Boolean = false,
+    val nameColor: Int? = null,
+    val parts: List<ChatPart> = emptyList(),
+    val badges: List<ChatImage> = emptyList(),
+    val action: Boolean = false,
 )
 
 sealed interface LiveChatEvent {

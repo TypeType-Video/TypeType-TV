@@ -1,5 +1,7 @@
 package video.typetype.tv.data.remote
 
+import video.typetype.tv.data.Shelf
+import video.typetype.tv.data.proxiedImage
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.HomeContent
@@ -67,7 +69,7 @@ class RemoteContentRepository(
 
     private val streams = StreamStore({ url -> access.anonymousFirst { api.streamFor(url, it) } }, clock)
     private val liveChat = LiveChatSource(api.liveChat)
-    private val twitchChat = TwitchChatSource(api.twitch)
+    private val twitchChat = TwitchChatSource(api.twitch, image = { proxiedImage(apiBase, it) })
     private val homeCache = TtlCache<String, HomeContent>(HOME_TTL_MILLIS, 1, clock)
     private val firstComments = TtlCache<String, CommentsPage>(STREAM_TTL_MILLIS, COMMENT_ENTRIES, clock)
     private val filter = ContentFilter(api, userSettings, clock)
@@ -114,6 +116,9 @@ class RemoteContentRepository(
     }
 
     override val twitchAccount: TwitchAccountLink? = twitchContent?.let { RemoteTwitchAccountLink(api.twitch) }
+    private val twitchShelves = twitch?.takeIf { it.enabled }?.let { repository ->
+        TwitchShelves(repository, linked = { twitchAccount?.linked() == true }, filter = filter, texts = texts)
+    }
 
     override val searchSources: List<ContentSource>
         get() = if (twitchContent != null) ContentSource.entries else ContentSource.extractors
@@ -257,6 +262,8 @@ class RemoteContentRepository(
     // A search inside the channel is the channel's address with /search and the query, as the web asks for it.
     private fun searchUrl(url: String, query: String): String =
         url.substringBefore('?').substringBefore('#').trimEnd('/') + "/search?query=" + URLEncoder.encode(query, Charsets.UTF_8.name())
+
+    override suspend fun liveShelves(): List<Shelf> = twitchShelves?.load().orEmpty()
 
     override fun liveChat(videoUrl: String): Flow<LiveChatEvent> =
         TwitchUrls.channelLogin(videoUrl)?.let(twitchChat::events) ?: liveChat.events(videoUrl)
