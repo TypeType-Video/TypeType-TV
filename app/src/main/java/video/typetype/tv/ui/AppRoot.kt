@@ -1,5 +1,6 @@
 package video.typetype.tv.ui
 
+import video.typetype.tv.ui.live.LiveScreen
 import androidx.activity.compose.BackHandler
 import android.view.KeyEvent as AndroidKeyEvent
 import androidx.compose.ui.platform.LocalFocusManager
@@ -226,6 +227,7 @@ fun AppRoot(
                         onOpen = openDetail,
                     )
                     Route.Subscriptions -> SubscriptionsScreen(session = subscriptionsSession, onOpen = openDetail)
+                    Route.Live -> LiveScreen(repository = repository, onOpen = openDetail)
                     Route.Settings -> SettingsScreen(repository, settingsSession, onSettingsAction)
                     is Route.Detail -> DetailScreen(
                         videoId = route.videoId,
@@ -281,6 +283,7 @@ fun AppRoot(
                             .background(Palette.NavScrim),
                     )
                     TopNav(
+                        hidden = if (repository.twitchAccount == null) setOf(TopTab.Live) else emptySet(),
                         selected = activeTab ?: lastTab,
                         onSelect = {
                             homeSession.anchor = null
