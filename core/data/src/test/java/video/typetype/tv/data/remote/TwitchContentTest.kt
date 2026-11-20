@@ -101,6 +101,7 @@ class TwitchContentTest {
     private inner class FakeTwitch : TwitchRepository {
         override val enabled: Boolean = true
         override suspend fun popular(cursor: String?): TwitchPage<Video> = TwitchPage(listOf(live), null)
+        override suspend fun followedVideos(cursor: String?): TwitchPage<Video> = TwitchPage(emptyList(), null)
         override suspend fun categories(cursor: String?) = TwitchPage(listOf(categoryOf("just-chatting", "Just Chatting")), null)
         override suspend fun categoryLives(slug: String, cursor: String?) = TwitchPage<Video>(emptyList(), null)
         override suspend fun channel(login: String): TwitchChannelPage = TwitchChannelPage(channel, login, "", null, live.takeIf { online })
