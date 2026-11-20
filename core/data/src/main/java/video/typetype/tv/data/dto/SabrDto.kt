@@ -78,4 +78,5 @@ data class SabrWindowDto(
     val terminalError: String? = null,
     val recoveryAction: String? = null,
     val retryVideoItags: List<Int> = emptyList(),
+    val blockedBy: String? = null,
 )
