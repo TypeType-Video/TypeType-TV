@@ -33,6 +33,9 @@ class SabrWindowLoader(
     @Volatile
     private var renewingToken = false
 
+    @Volatile
+    private var lastWindow: PlaybackWindow? = null
+
     suspend fun firstWindow(positionMs: Long): PlaybackWindow = awaitWindow { WindowPosition(positionMs, emptyList()) }
 
     override fun load(
@@ -118,7 +121,7 @@ class SabrWindowLoader(
                     requested = true
                 }
                 val window = api.segments(session.sessionId, body)
-                if (window.ready) return mapper.map(window, session)
+                if (window.ready) return mapper.map(window, session, lastWindow).also { lastWindow = it }
                 renewingToken = window.blockedBy == TOKEN_SESSION_RENEWAL
                 if (recover(window, positionMs)) {
                     reported = false
