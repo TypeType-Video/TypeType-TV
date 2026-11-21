@@ -23,11 +23,12 @@ class StandardPlaybackProvider(
     private val codecs: CodecSupport,
     private val access: StreamAccess,
     private val online: () -> Boolean = { true },
+    private val preference: CodecPreference = CodecPreference { null },
 ) {
     suspend fun open(context: Context, videoUrl: String, request: PlaybackRequest): PlayerHandle {
         val source = ContentSource.of(videoUrl) ?: failure("unsupported_source", "This video source is not supported")
         val stream = access.anonymousFirst { backend.api.streamFor(videoUrl, it) }
-        val selection = StandardFormatSelector.select(stream, request.maxHeight ?: Int.MAX_VALUE, codecs)
+        val selection = StandardFormatSelector.select(stream, request.maxHeight ?: Int.MAX_VALUE, codecs, preference.mimeType())
             ?: failure("playback_unavailable", "No compatible video format")
         val factory = OkHttpDataSource.Factory(backend.mediaHttp)
         val hls = source == ContentSource.NicoNico

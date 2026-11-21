@@ -346,6 +346,12 @@
     <string name="settings_smooth_animations_summary">Zooms and fades between screens, and shadows under the focused card. Turn it off on a slow box.</string>
     <string name="settings_backdrop">Background picture</string>
     <string name="settings_backdrop_summary">Shows the selected video\'s picture behind the home and video pages. Turn it off on a slow box.</string>
+    <string name="settings_preferred_codec">Preferred video codec</string>
+    <string name="settings_preferred_codec_summary">Plays this codec when the video has it and this TV can decode it. Otherwise the best format is chosen.</string>
+    <string name="settings_preferred_codec_auto">Automatic</string>
+    <string name="settings_preferred_codec_av1">AV1</string>
+    <string name="settings_preferred_codec_vp9">VP9</string>
+    <string name="settings_preferred_codec_h264">H.264</string>
     <string name="settings_intro">Startup intro</string>
     <string name="settings_intro_summary">The animation and sound when the app opens.</string>
     <string name="settings_intro_full">Full</string>

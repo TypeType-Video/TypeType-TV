@@ -41,6 +41,7 @@ import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material.icons.rounded.VideoLibrary
 import androidx.compose.material.icons.rounded.ViewQuilt
+import androidx.compose.material.icons.rounded.Memory
 import androidx.compose.ui.graphics.vector.ImageVector
 import video.typetype.tv.data.SettingActions
 import video.typetype.tv.data.SettingItem
@@ -50,6 +51,7 @@ internal fun SettingItem.icon(): ImageVector = when {
     SettingActions.unblockedChannel(id) != null -> Icons.Rounded.PersonOff
     else -> when (id) {
         "quality" -> Icons.Rounded.HighQuality
+        "preferred-codec" -> Icons.Rounded.Memory
         "speed" -> Icons.Rounded.Speed
         "autoplay" -> Icons.Rounded.Autorenew
         "captions" -> Icons.Rounded.ClosedCaption
