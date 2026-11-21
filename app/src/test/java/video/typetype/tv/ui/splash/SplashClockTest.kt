@@ -14,7 +14,7 @@ class SplashClockTest {
 
     @Test
     fun withoutSoundThePictureRunsOnFrameTime() {
-        val clock = SplashClock(0f, null)
+        val clock = SplashClock(0f, heardAt = null)
 
         assertEquals(1_000f, clock.frames(61), 1f)
     }
@@ -77,5 +77,26 @@ class SplashClockTest {
         heard = null
 
         assertEquals(5_900f + 16.67f, clock.advance(frame), 0.1f)
+    }
+
+    @Test
+    fun aLongFrameUnderTheFadeMovesItByTwoFramesInsteadOfSkippingIt() {
+        val clock = SplashClock(5_500f, smoothFrom = 5_600f, heardAt = null)
+        clock.advance(0)
+
+        assertEquals(5_634f, clock.advance(700_000_000L), 0f)
+        assertEquals(5_650.67f, clock.advance(700_000_000L + frame), 0.1f)
+    }
+
+    @Test
+    fun underTheFadeThePictureNoLongerJumpsToTheSound() {
+        var heard = 5_590L
+        val clock = SplashClock(5_590f, smoothFrom = 5_600f) { heard }
+        clock.advance(0)
+        heard = 5_610L
+        clock.advance(frame)
+        heard = 6_500L
+
+        assertEquals(5_610f + 16.67f, clock.advance(2 * frame), 0.1f)
     }
 }
