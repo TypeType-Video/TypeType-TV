@@ -136,8 +136,10 @@ fun PlayerContent(
 
     ControlsTimingEffects(session, state, root = root, seek = seek, play = play)
     val noticeVisible = session.notice.segment != null && !session.controlsVisible && session.panel == null
-    LaunchedEffect(noticeVisible) {
-        if (noticeVisible) {
+    // Counted from the skip, not from when the notice shows: a skip made while the controls were open must not
+    // come back later, nor let Left undo it long after.
+    LaunchedEffect(session.notice.segment) {
+        if (session.notice.segment != null) {
             delay(NOTICE_VISIBLE_MILLIS)
             session.notice.dismiss()
         }
