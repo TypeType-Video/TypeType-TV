@@ -42,7 +42,10 @@ class RemoteSettings(
             SettingsGroup(
                 id = "about",
                 titleRes = R.string.settings_group_about,
-                items = listOf(SettingItem.Info("version", R.string.settings_version, appVersion)),
+                items = listOf(
+                    SettingItem.Info("version", R.string.settings_version, appVersion),
+                    SettingItem.Info("mascot", R.string.settings_mascot_credit, texts.text(R.string.settings_mascot_credit_value)),
+                ),
             ),
         )
     }

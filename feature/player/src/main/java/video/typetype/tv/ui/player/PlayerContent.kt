@@ -48,6 +48,7 @@ import video.typetype.tv.ui.player.danmaku.DanmakuOverlay
 import video.typetype.tv.ui.player.panel.PanelScene
 import video.typetype.tv.ui.player.panel.PlayerPanelHost
 import video.typetype.tv.ui.player.panel.SheetWidth
+import video.typetype.tv.ui.screensaver.HoldScreensaver
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -114,6 +115,7 @@ fun PlayerContent(
     LaunchedEffect(handle, captionIndex) { handle.selectCaption(handle.captionLanguages.getOrNull(captionIndex - 1)?.tag) }
     LaunchedEffect(handle, speedIndex) { player.setPlaybackSpeed(SPEED_CHOICES[speedIndex]) }
     AudioOnlyEffect(player, choices.audioOnly)
+    HoldScreensaver(state.isPlaying && !choices.audioOnly)
 
     val autoAdvance = !state.isLive && preferences.autoplay && next != null && !session.upNext.dismissed
     val currentAutoAdvance by rememberUpdatedState(autoAdvance)

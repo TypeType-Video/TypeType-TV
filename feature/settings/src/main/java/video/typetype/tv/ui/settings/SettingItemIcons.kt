@@ -76,6 +76,7 @@ internal fun SettingItem.icon(): ImageVector = when {
         "screensaver-after" -> Icons.Rounded.Timer
         "screensaver-style" -> Icons.Rounded.Animation
         "screensaver-dim" -> Icons.Rounded.Brightness4
+        "mascot" -> Icons.Rounded.Favorite
         "forget-decoders" -> Icons.Rounded.Restore
         "check-updates" -> Icons.Rounded.SystemUpdate
         "update-channel" -> Icons.Rounded.Science

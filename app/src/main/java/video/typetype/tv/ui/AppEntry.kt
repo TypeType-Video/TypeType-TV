@@ -153,30 +153,33 @@ private fun AppState(container: AppContainer, state: SessionState, scope: Corout
             LaunchedEffect(current.profile.id) {
                 if (!guest) accountName = tryLoad({}) { current.backend.api.account().name } ?: accountName
             }
-            AppRoot(
-                repository = repository,
-                playback = playback,
-                connectivity = container.connectivity,
-                account = AccountBadge(
-                    initials = AccountInitials.of(accountName, guest),
-                    name = accountName.takeUnless { guest },
-                    imageUrl = InstanceUrls.resolve(current.backend.apiBase, current.profile.avatarUrl),
-                ),
-                onSettingsAction = { action ->
-                    scope.launch {
-                        when (action) {
-                            "sign-out" -> session.signOut()
-                            "change-instance" -> onChangeInstance()
-                            "forget-certificate" -> session.forgetCertificate()
-                            "mark-notifications-read" -> tryLoad({}) { repository.markNotificationsRead() }
-                            "forget-decoders" -> container.decoderFailures.forget()
-                            UpdateSettings.CHECK_NOW -> container.updates.checkNow()
+            val screensaver by container.screensaver.current.collectAsState()
+            ScreensaverHost(screensaver, artwork = { repository.screensaverArt() }) {
+                AppRoot(
+                    repository = repository,
+                    playback = playback,
+                    connectivity = container.connectivity,
+                    account = AccountBadge(
+                        initials = AccountInitials.of(accountName, guest),
+                        name = accountName.takeUnless { guest },
+                        imageUrl = InstanceUrls.resolve(current.backend.apiBase, current.profile.avatarUrl),
+                    ),
+                    onSettingsAction = { action ->
+                        scope.launch {
+                            when (action) {
+                                "sign-out" -> session.signOut()
+                                "change-instance" -> onChangeInstance()
+                                "forget-certificate" -> session.forgetCertificate()
+                                "mark-notifications-read" -> tryLoad({}) { repository.markNotificationsRead() }
+                                "forget-decoders" -> container.decoderFailures.forget()
+                                UpdateSettings.CHECK_NOW -> container.updates.checkNow()
+                            }
                         }
-                    }
-                },
-                performance = performance,
-                updates = container.updates,
-            )
+                    },
+                    performance = performance,
+                    updates = container.updates,
+                )
+            }
         }
     }
 }
