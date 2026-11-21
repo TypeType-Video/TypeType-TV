@@ -165,10 +165,11 @@ class SabrWindowLoaderTest {
     @Test
     fun aTokenSessionRenewalIsAwaitedPastTheDeadline() = runBlocking {
         val renewing = """{"ready":false,"status":"terminal","retryAfterMs":150,"blockedBy":"token_session_renewal"}"""
-        repeat(6) { responses += { _ -> MockResponse().setResponseCode(202).setBody(renewing) } }
+        // The deadline leaves a slow CI runner time for the first answer, and the renewal still lasts well past it.
+        repeat(12) { responses += { _ -> MockResponse().setResponseCode(202).setBody(renewing) } }
         responses += { _ -> MockResponse().setResponseCode(200).setBody(ready("s1", 1)) }
         val session = newSession()
-        val window = loader(session, polls = 40, deadlineMillis = 400).firstWindow(69_343)
+        val window = loader(session, polls = 40, deadlineMillis = 1_000).firstWindow(69_343)
         assertEquals("s1", session.sessionId)
         assertEquals(1L, window.generation)
     }
