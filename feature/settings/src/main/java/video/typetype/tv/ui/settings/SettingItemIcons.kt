@@ -42,6 +42,8 @@ import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material.icons.rounded.VideoLibrary
 import androidx.compose.material.icons.rounded.ViewQuilt
 import androidx.compose.material.icons.rounded.Memory
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.Brightness4
 import androidx.compose.ui.graphics.vector.ImageVector
 import video.typetype.tv.data.SettingActions
 import video.typetype.tv.data.SettingItem
@@ -71,6 +73,9 @@ internal fun SettingItem.icon(): ImageVector = when {
         "smooth-animations" -> Icons.Rounded.Speed
         "backdrop" -> Icons.Rounded.Wallpaper
         "intro" -> Icons.Rounded.MovieFilter
+        "screensaver-after" -> Icons.Rounded.Timer
+        "screensaver-style" -> Icons.Rounded.Animation
+        "screensaver-dim" -> Icons.Rounded.Brightness4
         "forget-decoders" -> Icons.Rounded.Restore
         "check-updates" -> Icons.Rounded.SystemUpdate
         "update-channel" -> Icons.Rounded.Science

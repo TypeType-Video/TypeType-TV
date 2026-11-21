@@ -12,6 +12,7 @@ import video.typetype.tv.data.PresenceReport
 import video.typetype.tv.data.device.CodecSettings
 import video.typetype.tv.data.device.PerformanceSettings
 import video.typetype.tv.data.device.PreferencesDeviceStore
+import video.typetype.tv.data.device.ScreensaverSettings
 import video.typetype.tv.data.device.UpdateSettings
 import video.typetype.tv.data.dto.UserProfileDto
 import video.typetype.tv.data.net.AndroidConnectivity
@@ -57,6 +58,7 @@ class AppContainer(context: Context) {
     val performance by lazy { PerformanceSettings(PreferencesDeviceStore(appContext)) }
     val updateSettings by lazy { UpdateSettings(PreferencesDeviceStore(appContext, PreferencesDeviceStore.UPDATES)) }
     private val codecSettings by lazy { CodecSettings(PreferencesDeviceStore(appContext)) }
+    val screensaver by lazy { ScreensaverSettings(PreferencesDeviceStore(appContext)) }
 
     fun warmUp() {
         Thread({ secrets.warmUp() }, "secrets-warmup").start()
@@ -95,7 +97,7 @@ class AppContainer(context: Context) {
         watch = backend.watch,
         userSettings = userSettings,
         access = access,
-        deviceSections = listOf(performance, updateSettings, codecSettings),
+        deviceSections = listOf(performance, screensaver, updateSettings, codecSettings),
         recommenderOffered = backend.instance.recommender.let { it.installed && it.enabled },
         twitch = RemoteTwitchRepository(backend.api.twitch, backend.apiBase, backend.instance.twitch.enabled),
     )
