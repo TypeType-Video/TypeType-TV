@@ -67,6 +67,26 @@ class SessionRestoreTest {
     }
 
     @Test
+    fun whatTheInstanceOffersNowReplacesWhatWasStored() = runBlocking {
+        store.put("profile", """{"id":"user-1","publicUsername":"Cached"}""")
+        responses["auth/me"] = { profile("Fresh") }
+        responses["instance"] = { MockResponse().setBody("""{"name":"Test","apiVersion":1,"twitch":{"enabled":true}}""") }
+        val session = SessionManager(store)
+        session.restore()
+        assertTrue((session.state.value as SessionState.SignedIn).backend.instance.twitch.enabled)
+        assertTrue(store.get("instance").orEmpty().contains("twitch"))
+    }
+
+    @Test
+    fun theStoredInstanceStaysWhenTheInstanceDoesNotAnswer() = runBlocking {
+        store.put("profile", """{"id":"user-1","publicUsername":"Cached"}""")
+        responses["auth/me"] = { profile("Fresh") }
+        val session = SessionManager(store)
+        session.restore()
+        assertEquals("Test", (session.state.value as SessionState.SignedIn).backend.instance.name)
+    }
+
+    @Test
     fun withoutACachedProfileTheAppWaitsForTheServerThenContinues() = runBlocking {
         var up = false
         responses["auth/me"] = { if (up) profile("Back") else MockResponse().setResponseCode(503) }
