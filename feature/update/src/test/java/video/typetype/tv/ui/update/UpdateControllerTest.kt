@@ -62,9 +62,11 @@ class UpdateControllerTest {
     private class Installer(var result: InstallResult = InstallResult.Success) : UpdateInstaller {
         override val packageName = PACKAGE
         val installed = mutableListOf<String>()
+        val profiles = mutableListOf<String?>()
 
-        override suspend fun install(apk: File): InstallResult {
+        override suspend fun install(apk: File, profile: File?): InstallResult {
             installed += apk.readText()
+            profiles += profile?.readText()
             return result
         }
     }
@@ -163,6 +165,35 @@ class UpdateControllerTest {
         assertEquals(listOf("apk/v0.1.1"), installer.installed)
         assertEquals(UpdateState.UpToDate, updates.state.value)
         assertFalse(folder.root.resolve("update.apk").exists())
+    }
+
+    @Test
+    fun theReleaseProfileIsCheckedAndInstalledWithTheApk() {
+        source.listed = listOf(release("v0.1.1").copy(profileUrl = "dm/v0.1.1"))
+        source.manifest = source.manifest.copy(dmAsset = "app.dm", dmSha256 = "dmsha")
+        val updates = controller()
+        updates.checkNow()
+        updates.install()
+        assertEquals(listOf("apk/v0.1.1 sha", "dm/v0.1.1 dmsha"), downloads)
+        assertEquals(listOf<String?>("dm/v0.1.1"), installer.profiles)
+        assertFalse(folder.root.resolve("update.dm").exists())
+    }
+
+    @Test
+    fun aProfileThatFailsLeavesThePlainApkInstall() {
+        source.listed = listOf(release("v0.1.1").copy(profileUrl = "dm/v0.1.1"))
+        source.manifest = source.manifest.copy(dmAsset = "app.dm", dmSha256 = "dmsha")
+        val apkOnly = download
+        download = ApkDownload { url, sha256, target, onProgress ->
+            if (url.startsWith("dm/")) throw IOException("missing")
+            apkOnly.download(url, sha256, target, onProgress)
+        }
+        val updates = controller()
+        updates.checkNow()
+        updates.install()
+        assertEquals(listOf("apk/v0.1.1"), installer.installed)
+        assertEquals(listOf<String?>(null), installer.profiles)
+        assertEquals(UpdateState.UpToDate, updates.state.value)
     }
 
     @Test

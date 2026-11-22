@@ -23,15 +23,15 @@ class SessionUpdateInstaller(context: Context) : UpdateInstaller {
     private val context = context.applicationContext
     override val packageName: String = this.context.packageName
 
-    override suspend fun install(apk: File): InstallResult {
+    override suspend fun install(apk: File, profile: File?): InstallResult {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.S) {
-            val silent = commit(apk, askUser = false)
+            val silent = commit(apk, profile, askUser = false)
             if (silent !== SILENT_REFUSED) return silent
         }
-        return commit(apk, askUser = true)
+        return commit(apk, profile, askUser = true)
     }
 
-    private suspend fun commit(apk: File, askUser: Boolean): InstallResult {
+    private suspend fun commit(apk: File, profile: File?, askUser: Boolean): InstallResult {
         val installer = context.packageManager.packageInstaller
         val params = PackageInstaller.SessionParams(PackageInstaller.SessionParams.MODE_FULL_INSTALL).apply {
             setAppPackageName(packageName)
@@ -44,7 +44,7 @@ class SessionUpdateInstaller(context: Context) : UpdateInstaller {
             }
         }
         val sessionId = try {
-            installer.createSession(params).also { id -> withContext(Dispatchers.IO) { write(installer, id, apk) } }
+            installer.createSession(params).also { id -> withContext(Dispatchers.IO) { write(installer, id, apk, profile) } }
         } catch (error: IOException) {
             return InstallResult.Failed(error.message)
         } catch (error: SecurityException) {
@@ -53,17 +53,24 @@ class SessionUpdateInstaller(context: Context) : UpdateInstaller {
         return awaitAnswer(installer, sessionId, askUser)
     }
 
-    private fun write(installer: PackageInstaller, sessionId: Int, apk: File) {
+    // A base.dm next to base.apk carries the release's baseline profile: Android compiles the app with it while
+    // installing, as a store install does, instead of running it from the APK until an idle-time job compiles it.
+    private fun write(installer: PackageInstaller, sessionId: Int, apk: File, profile: File?) {
         try {
             installer.openSession(sessionId).use { session ->
-                session.openWrite("base.apk", 0, apk.length()).use { output ->
-                    apk.inputStream().use { it.copyTo(output) }
-                    session.fsync(output)
-                }
+                session.add("base.apk", apk)
+                profile?.let { session.add("base.dm", it) }
             }
         } catch (error: IOException) {
             installer.abandonSession(sessionId)
             throw error
+        }
+    }
+
+    private fun PackageInstaller.Session.add(name: String, file: File) {
+        openWrite(name, 0, file.length()).use { output ->
+            file.inputStream().use { it.copyTo(output) }
+            fsync(output)
         }
     }
 

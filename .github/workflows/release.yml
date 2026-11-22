@@ -124,6 +124,16 @@ jobs:
           cd artifacts
           apk="TypeType-TV-$RELEASE_TAG.apk"
           sha256sum "$apk" > "$apk.sha256"
+          # The baseline profile of this APK as dex metadata: the in-app update installs it with the APK, so the box
+          # compiles the new version at install time instead of running it from the APK until an idle-time job does.
+          dm="TypeType-TV-$RELEASE_TAG.dm"
+          profile="$RUNNER_TEMP/dm"
+          mkdir -p "$profile"
+          unzip -p "$apk" assets/dexopt/baseline.prof > "$profile/primary.prof"
+          test -s "$profile/primary.prof"
+          (cd "$profile" && zip -q -X -0 primary.dm primary.prof)
+          mv "$profile/primary.dm" "$dm"
+          sha256sum "$dm" > "$dm.sha256"
           jq -n \
             --arg channel "$RELEASE_CHANNEL" \
             --arg packageName "$APPLICATION_ID" \
@@ -131,8 +141,11 @@ jobs:
             --argjson versionCode "$RELEASE_CODE" \
             --arg apkAsset "$apk" \
             --arg sha256 "$(cut -d ' ' -f 1 "$apk.sha256")" \
+            --arg dmAsset "$dm" \
+            --arg dmSha256 "$(cut -d ' ' -f 1 "$dm.sha256")" \
             '{schemaVersion: 1, channel: $channel, packageName: $packageName, versionName: $versionName,
-              versionCode: $versionCode, apkAsset: $apkAsset, sha256: $sha256}' > typetype-update.json
+              versionCode: $versionCode, apkAsset: $apkAsset, sha256: $sha256, dmAsset: $dmAsset,
+              dmSha256: $dmSha256}' > typetype-update.json
           cat typetype-update.json
 
       - name: Keep the files with the run

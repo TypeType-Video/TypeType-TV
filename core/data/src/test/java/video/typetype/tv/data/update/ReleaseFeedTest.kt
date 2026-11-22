@@ -43,6 +43,7 @@ class ReleaseFeedTest {
         assertEquals("Beta", releases.first().notes)
         assertEquals("", releases.last().notes)
         assertEquals(server.url("/files/TypeType-TV-v0.1.0.apk").toString(), releases.last().apkUrl)
+        assertEquals(null, releases.last().profileUrl)
         val request = server.takeRequest()
         assertEquals("/repos/owner/app/releases?per_page=30", request.path)
     }
@@ -59,6 +60,17 @@ class ReleaseFeedTest {
             ),
         )
         assertEquals(emptyList<AppRelease>(), feed.releases())
+    }
+
+    @Test
+    fun aReleaseProfileIsFoundNextToItsApk() = runBlocking {
+        server.enqueue(
+            MockResponse().setBody(
+                """[{"tag_name":"v0.4.0","assets":[${asset("TypeType-TV-v0.4.0.apk")},${asset("TypeType-TV-v0.4.0.dm")},
+                ${asset("typetype-update.json")}]}]""",
+            ),
+        )
+        assertEquals(server.url("/files/TypeType-TV-v0.4.0.dm").toString(), feed.releases().single().profileUrl)
     }
 
     @Test

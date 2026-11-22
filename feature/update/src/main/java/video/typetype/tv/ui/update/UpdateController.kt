@@ -12,9 +12,11 @@ import kotlinx.coroutines.launch
 import video.typetype.tv.data.device.UpdatePreferences
 import video.typetype.tv.data.device.UpdateSettings
 import video.typetype.tv.data.update.ApkDownload
+import video.typetype.tv.data.update.AppRelease
 import video.typetype.tv.data.update.AppVersion
 import video.typetype.tv.data.update.ReleaseSource
 import video.typetype.tv.data.update.UpdateOffer
+import video.typetype.tv.data.update.UpdateManifest
 import video.typetype.tv.data.update.UpdateOffers
 import video.typetype.tv.data.update.UpdateVerificationException
 import java.io.File
@@ -74,9 +76,11 @@ class UpdateController(
     val preferences: StateFlow<UpdatePreferences> = settings.current
     private var job: Job? = null
     private var lastCheckMillis: Long? = null
+    private val profileFile = File(apkFile.parentFile, apkFile.nameWithoutExtension + ".dm")
 
     init {
         apkFile.delete()
+        profileFile.delete()
         scope.launch {
             settings.current.map { it.channel }.distinctUntilChanged().drop(1).collect {
                 if (!busy()) check(quiet = !mutablePanel.value)
@@ -140,6 +144,7 @@ class UpdateController(
 
     private suspend fun installing(offer: UpdateOffer): UpdateState {
         mutableState.value = UpdateState.Downloading(offer, 0f)
+        val profile: File?
         try {
             val manifest = releases.manifest(offer.target)
             if (manifest.packageName != installer.packageName || manifest.versionCode <= installed.versionCode) {
@@ -148,19 +153,35 @@ class UpdateController(
             download.download(offer.target.apkUrl, manifest.sha256, apkFile) { progress ->
                 mutableState.value = UpdateState.Downloading(offer, progress)
             }
+            profile = downloadProfile(offer.target, manifest)
         } catch (_: UpdateVerificationException) {
             return UpdateState.Failed(offer, UpdateFailure.Checksum)
         } catch (_: IOException) {
             return UpdateState.Failed(offer, UpdateFailure.Download)
         }
         mutableState.value = UpdateState.Installing(offer)
-        val result = installer.install(apkFile)
+        val result = installer.install(apkFile, profile)
         apkFile.delete()
+        profileFile.delete()
         return when (result) {
             InstallResult.Success -> UpdateState.UpToDate
             InstallResult.Cancelled -> UpdateState.Available(offer)
             InstallResult.Conflict -> UpdateState.Failed(offer, UpdateFailure.Signature)
             is InstallResult.Failed -> UpdateState.Failed(offer, UpdateFailure.Refused)
+        }
+    }
+
+    // The release's compiled-code profile is optional: an old release has none, and one that fails to download or to
+    // match its checksum only leaves the update uncompiled, as every update was before.
+    private suspend fun downloadProfile(release: AppRelease, manifest: UpdateManifest): File? {
+        val url = release.profileUrl ?: return null
+        val sha256 = manifest.dmSha256 ?: return null
+        return try {
+            download.download(url, sha256, profileFile) {}
+            profileFile
+        } catch (_: IOException) {
+            profileFile.delete()
+            null
         }
     }
 

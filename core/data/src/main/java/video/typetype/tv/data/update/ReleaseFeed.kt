@@ -22,6 +22,8 @@ data class UpdateManifest(
     val versionCode: Long,
     val apkAsset: String,
     val sha256: String,
+    val dmAsset: String? = null,
+    val dmSha256: String? = null,
 )
 
 @Serializable
@@ -81,6 +83,7 @@ class ReleaseFeed(
             notes = body.orEmpty(),
             apkUrl = files["TypeType-TV-$tagName.apk"] ?: return null,
             manifestUrl = files[MANIFEST] ?: return null,
+            profileUrl = files["TypeType-TV-$tagName.dm"],
         )
     }
 
