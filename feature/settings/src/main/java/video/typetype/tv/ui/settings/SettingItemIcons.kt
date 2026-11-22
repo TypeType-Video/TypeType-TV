@@ -24,6 +24,7 @@ import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material.icons.rounded.MarkEmailRead
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.PersonOff
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.Restore
@@ -41,6 +42,9 @@ import androidx.compose.material.icons.rounded.Update
 import androidx.compose.material.icons.rounded.VerifiedUser
 import androidx.compose.material.icons.rounded.VideoLibrary
 import androidx.compose.material.icons.rounded.ViewQuilt
+import androidx.compose.material.icons.rounded.Memory
+import androidx.compose.material.icons.rounded.Timer
+import androidx.compose.material.icons.rounded.Brightness4
 import androidx.compose.ui.graphics.vector.ImageVector
 import video.typetype.tv.data.SettingActions
 import video.typetype.tv.data.SettingItem
@@ -50,6 +54,7 @@ internal fun SettingItem.icon(): ImageVector = when {
     SettingActions.unblockedChannel(id) != null -> Icons.Rounded.PersonOff
     else -> when (id) {
         "quality" -> Icons.Rounded.HighQuality
+        "preferred-codec" -> Icons.Rounded.Memory
         "speed" -> Icons.Rounded.Speed
         "autoplay" -> Icons.Rounded.Autorenew
         "captions" -> Icons.Rounded.ClosedCaption
@@ -69,6 +74,11 @@ internal fun SettingItem.icon(): ImageVector = when {
         "smooth-animations" -> Icons.Rounded.Speed
         "backdrop" -> Icons.Rounded.Wallpaper
         "intro" -> Icons.Rounded.MovieFilter
+        "screensaver-after" -> Icons.Rounded.Timer
+        "screensaver-style" -> Icons.Rounded.Animation
+        "screensaver-dim" -> Icons.Rounded.Brightness4
+        "screensaver-start-now" -> Icons.Rounded.PlayCircle
+        "mascot" -> Icons.Rounded.Favorite
         "forget-decoders" -> Icons.Rounded.Restore
         "check-updates" -> Icons.Rounded.SystemUpdate
         "update-channel" -> Icons.Rounded.Science

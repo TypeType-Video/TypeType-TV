@@ -48,6 +48,7 @@ import video.typetype.tv.ui.player.danmaku.DanmakuOverlay
 import video.typetype.tv.ui.player.panel.PanelScene
 import video.typetype.tv.ui.player.panel.PlayerPanelHost
 import video.typetype.tv.ui.player.panel.SheetWidth
+import video.typetype.tv.ui.screensaver.HoldScreensaver
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.getValue
 
@@ -114,6 +115,7 @@ fun PlayerContent(
     LaunchedEffect(handle, captionIndex) { handle.selectCaption(handle.captionLanguages.getOrNull(captionIndex - 1)?.tag) }
     LaunchedEffect(handle, speedIndex) { player.setPlaybackSpeed(SPEED_CHOICES[speedIndex]) }
     AudioOnlyEffect(player, choices.audioOnly)
+    HoldScreensaver(state.isPlaying && !choices.audioOnly)
 
     val autoAdvance = !state.isLive && preferences.autoplay && next != null && !session.upNext.dismissed
     val currentAutoAdvance by rememberUpdatedState(autoAdvance)
@@ -136,8 +138,10 @@ fun PlayerContent(
 
     ControlsTimingEffects(session, state, root = root, seek = seek, play = play)
     val noticeVisible = session.notice.segment != null && !session.controlsVisible && session.panel == null
-    LaunchedEffect(noticeVisible) {
-        if (noticeVisible) {
+    // Counted from the skip, not from when the notice shows: a skip made while the controls were open must not
+    // come back later, nor let Left undo it long after.
+    LaunchedEffect(session.notice.segment) {
+        if (session.notice.segment != null) {
             delay(NOTICE_VISIBLE_MILLIS)
             session.notice.dismiss()
         }

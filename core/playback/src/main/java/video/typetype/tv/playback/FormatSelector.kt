@@ -18,8 +18,14 @@ object FormatSelector {
     private const val SABR = "sabr"
     private const val PREFERRED_AUDIO_ITAG = 140
 
-    fun select(stream: StreamDto, maxHeight: Int, support: CodecSupport, audioTrackId: String? = null): PlaybackTuple? {
-        val video = VideoRanking.pick(sabrVideo(stream.videoOnlyStreams), maxHeight, support) ?: return null
+    fun select(
+        stream: StreamDto,
+        maxHeight: Int,
+        support: CodecSupport,
+        audioTrackId: String? = null,
+        preferredMime: String? = null,
+    ): PlaybackTuple? {
+        val video = VideoRanking.pick(sabrVideo(stream.videoOnlyStreams), maxHeight, support, preferredMime = preferredMime) ?: return null
         val audio = pickAudio(stream.audioStreams, audioTrackId) ?: return null
         return PlaybackTuple(video.itag, audio.itag, audio.audioTrackId, video.height)
     }
@@ -27,8 +33,8 @@ object FormatSelector {
     fun hasSabrFormats(stream: StreamDto): Boolean =
         sabrVideo(stream.videoOnlyStreams).isNotEmpty() && stream.audioStreams.any { it.deliveryMethod == SABR && isMp4Audio(it) }
 
-    fun heights(stream: StreamDto, maxHeight: Int, support: CodecSupport): List<Int> =
-        VideoRanking.heights(sabrVideo(stream.videoOnlyStreams), maxHeight, support)
+    fun heights(stream: StreamDto, maxHeight: Int, support: CodecSupport, preferredMime: String? = null): List<Int> =
+        VideoRanking.heights(sabrVideo(stream.videoOnlyStreams), maxHeight, support, preferredMime = preferredMime)
 
     // The server's SABR contract carries AVC, VP9 and AV1 video, the same set TypeType-Android accepts.
     private fun sabrVideo(streams: List<VideoStreamDto>): List<VideoStreamDto> =

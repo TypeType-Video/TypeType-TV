@@ -70,7 +70,7 @@ fun StartupSplash(
             throw cancelled
         }
         if (sound) chime.start()
-        val source = SplashClock(start, if (sound) chime::heardAt else null)
+        val source = SplashClock(start, SplashTimeline.EXIT_START, if (sound) chime::heardAt else null)
         val end = SplashTimeline.TOTAL.toFloat()
         var revealing = false
         while (clock.floatValue < end) {

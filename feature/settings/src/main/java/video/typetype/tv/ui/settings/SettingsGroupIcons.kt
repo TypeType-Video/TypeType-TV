@@ -11,6 +11,7 @@ import androidx.compose.material.icons.rounded.LiveTv
 import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.Settings
 import androidx.compose.material.icons.rounded.SystemUpdate
+import androidx.compose.material.icons.rounded.Bedtime
 import androidx.compose.ui.graphics.vector.ImageVector
 import video.typetype.tv.data.SettingsGroup
 
@@ -22,6 +23,7 @@ internal fun SettingsGroup.icon(): ImageVector = when (id) {
     "blocked" -> Icons.Rounded.Block
     "twitch" -> Icons.Rounded.LiveTv
     "performance" -> Icons.Rounded.Bolt
+    "screensaver" -> Icons.Rounded.Bedtime
     "updates" -> Icons.Rounded.SystemUpdate
     "about" -> Icons.Rounded.Info
     else -> Icons.Rounded.Settings

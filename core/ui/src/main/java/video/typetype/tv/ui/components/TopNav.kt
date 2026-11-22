@@ -69,6 +69,8 @@ fun TopNav(
     account: AccountBadge,
     modifier: Modifier = Modifier,
     contentEntry: FocusRequester? = null,
+    // What Down reaches from the right end of the bar, when the screen has something under the profile picture.
+    cornerEntry: FocusRequester? = null,
     navEntry: FocusRequester? = null,
     onNavFocusChange: (Boolean) -> Unit = {},
     updateVersion: String? = null,
@@ -110,13 +112,15 @@ fun TopNav(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TopTab.entries.filterNot { it in hidden }.forEach { tab ->
+            val tabs = TopTab.entries.filterNot { it in hidden }
+            tabs.forEach { tab ->
+                val downTo = if (tab == tabs.last() && updateVersion == null) cornerEntry ?: contentEntry else contentEntry
                 NavTab(
                     tab = tab,
                     selected = tab == selected,
                     onClick = { onSelect(tab) },
                     modifier = (if (tab == selected) Modifier.focusRequester(selectedRequester) else Modifier)
-                        .focusProperties { contentEntry?.let { down = it } },
+                        .focusProperties { downTo?.let { down = it } },
                 )
             }
         }
@@ -132,7 +136,7 @@ fun TopNav(
                     emphasized = true,
                     compact = true,
                     description = stringResource(R.string.update_pill_description, updateVersion),
-                    modifier = Modifier.focusProperties { contentEntry?.let { down = it } },
+                    modifier = Modifier.focusProperties { (cornerEntry ?: contentEntry)?.let { down = it } },
                 )
             }
             Avatar(account, animated = LocalPerformance.current.animatedAvatar && LocalRemoteActivity.current.idle)

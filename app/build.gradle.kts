@@ -2,10 +2,11 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
+    id("typetype.dex-metadata")
 }
 
 // The release workflow reads this line: "x.y.z-beta.n" is published from the beta branch, "x.y.z" from main.
-val appVersion = "0.7.0-beta.2"
+val appVersion = "0.8.0-beta.1"
 
 // The version code follows from the name, so each release installs over the one before, and a beta sits under the
 // stable release that ends it: 0.3.0-beta.2 is 30002 and 0.3.0 is 30099.

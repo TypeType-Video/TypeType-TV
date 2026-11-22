@@ -19,6 +19,7 @@ import video.typetype.tv.data.VideoActivityRepository
 private const val PROGRESS_INTERVAL_MILLIS = 15_000L
 private const val POSITION_SAMPLE_MILLIS = 1_000L
 private const val SPONSOR_POLL_MILLIS = 250L
+private const val SPONSOR_MIN_WAIT_MILLIS = 16L
 private const val FULL_VOLUME = 1f
 private const val MUTED_VOLUME = 0f
 
@@ -60,15 +61,24 @@ fun SkipSponsorSegments(segments: List<SponsorSegment>, enabled: Boolean, mute: 
     if (skippable.isEmpty()) return
     DisposableEffect(player) { onDispose { player.volume = FULL_VOLUME } }
     LaunchedEffect(skippable, player, mute) {
-        while (true) {
-            val inside = SponsorSkips.active(player.currentPosition, skippable, notice::isBypassed)
-            if (mute) {
+        if (mute) {
+            while (true) {
+                val inside = SponsorSkips.active(player.currentPosition, skippable, notice::isBypassed)
                 player.volume = if (inside != null) MUTED_VOLUME else FULL_VOLUME
-            } else if (inside != null) {
-                notice.skipped(inside)
-                player.seekTo(inside.endMs)
+                delay(SPONSOR_POLL_MILLIS)
             }
-            delay(SPONSOR_POLL_MILLIS)
+        }
+        val skipper = SponsorSkipper(skippable)
+        while (true) {
+            val position = player.currentPosition
+            val skip = skipper.next(position, player.duration, notice::isBypassed)
+            if (skip != null) {
+                notice.skipped(skip.segment)
+                player.seekTo(skip.targetMs)
+            }
+            // Waking on the next segment's start instead of the next poll keeps its first words from being heard.
+            val untilStart = if (player.isPlaying) skipper.millisToNextStart(position, player.playbackParameters.speed) else null
+            delay((untilStart ?: SPONSOR_POLL_MILLIS).coerceIn(SPONSOR_MIN_WAIT_MILLIS, SPONSOR_POLL_MILLIS))
         }
     }
 }
