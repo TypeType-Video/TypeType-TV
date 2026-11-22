@@ -12,13 +12,16 @@ import video.typetype.tv.data.net.ApiFailure
 import video.typetype.tv.data.net.FailureCategory
 
 class SabrWindowMapper(private val apiBase: HttpUrl) {
-    fun map(dto: SabrWindowDto, session: SabrSession): PlaybackWindow {
+    fun map(dto: SabrWindowDto, session: SabrSession, previous: PlaybackWindow? = null): PlaybackWindow {
         if (!dto.ready) contract("window is not ready")
         if (dto.generation != session.generation) contract("window generation does not match the session")
         if (dto.sessionId.isNotBlank() && dto.sessionId != session.sessionId) contract("window belongs to another session")
         val audio = dto.audio ?: contract("window has no audio track")
-        val audioTrack = track(audio, session, session.tuple.audioItag, PlaybackTrackKind.Audio)
-        val videoTrack = dto.video?.let { track(it, session, session.tuple.videoItag, PlaybackTrackKind.Video) }
+        val ending = Ending(dto.endOfStream, dto.durationMs * MICROS_PER_MILLI)
+        val audioTrack = track(audio, session, session.tuple.audioItag, PlaybackTrackKind.Audio, previous?.audio, ending)
+        val videoTrack = dto.video?.let {
+            track(it, session, session.tuple.videoItag, PlaybackTrackKind.Video, previous?.video, ending)
+        }
         return try {
             PlaybackWindow(
                 generation = dto.generation,
@@ -33,8 +36,25 @@ class SabrWindowMapper(private val apiBase: HttpUrl) {
         }
     }
 
-    private fun track(dto: SabrTrackDto, session: SabrSession, itag: Int, kind: PlaybackTrackKind): PlaybackTrack {
-        if (dto.segments.isEmpty()) contract("track has no segments")
+    private class Ending(val endOfStream: Boolean, val durationUs: Long)
+
+    // The last windows of a video bring no new segment for a track that was already sent to its end, sometimes a
+    // window before the server marks the end of the stream: the track keeps the segments of the window before, as
+    // TypeType-Android does on the end of the stream, instead of failing a few seconds before the end.
+    private fun track(
+        dto: SabrTrackDto,
+        session: SabrSession,
+        itag: Int,
+        kind: PlaybackTrackKind,
+        previous: PlaybackTrack?,
+        ending: Ending,
+    ): PlaybackTrack {
+        if (dto.segments.isEmpty()) {
+            val kept = previous?.takeIf { it.kind == kind && it.id == itag.toString() } ?: contract("track has no segments")
+            val sentToTheEnd = kept.endPositionUs >= ending.durationUs - END_TOLERANCE_US
+            if (!ending.endOfStream && !sentToTheEnd) contract("track has no segments")
+            return kept
+        }
         return try {
             PlaybackTrack(
                 kind = kind,
@@ -64,5 +84,6 @@ class SabrWindowMapper(private val apiBase: HttpUrl) {
 
     private companion object {
         const val MICROS_PER_MILLI = 1_000L
+        const val END_TOLERANCE_US = 100_000L
     }
 }

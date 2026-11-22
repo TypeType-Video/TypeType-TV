@@ -52,6 +52,14 @@ data class HomeContent(
     // Only on instances that run the recommender: its rows take the place at recommendedSlot among the shelves.
     val recommended: RecommendedPage? = null,
     val recommendedSlot: Int = 0,
+    // The rows below the first screen, in order: each is asked for with homeShelf when the home scrolls near it.
+    val later: List<String> = emptyList(),
+)
+
+// The Live tab's first rows, and the rows below them to ask for with liveShelf as the tab scrolls near them.
+data class LiveContent(
+    val shelves: List<Shelf>,
+    val later: List<String> = emptyList(),
 )
 
 sealed interface LibrarySection {

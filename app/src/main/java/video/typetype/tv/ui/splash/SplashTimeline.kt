@@ -32,7 +32,7 @@ internal object SplashTimeline {
     private const val WRITE_START = 3_700f
     private const val WRITE = 1_500f
     private const val BLINK = 200f
-    private const val EXIT_START = 5_600f
+    const val EXIT_START = 5_600f
 
     // The first screen starts drawing under the still opaque splash while only the cursor blinks: its first frame
     // sends every image to the GPU and is slow, and it must not land on the fade.
