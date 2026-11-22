@@ -4,6 +4,9 @@ import androidx.compose.animation.animateColorAsState
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.ScrollState
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -34,6 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.res.pluralStringResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
@@ -175,10 +179,12 @@ fun MessagePanel(
     title: String,
     body: String,
     modifier: Modifier = Modifier,
+    scroll: ScrollState = rememberScrollState(),
     content: @Composable () -> Unit = {},
 ) {
     // Level with the search field on the left, so the list below keeps its room above the bottom edge.
-    Column(modifier = modifier.fillMaxSize()) {
+    // Long recent searches stack one per line, so the panel scrolls to the focused one.
+    Column(modifier = modifier.fillMaxSize().verticalScroll(scroll).padding(bottom = 48.dp)) {
         Box(
             modifier = Modifier.size(56.dp).clip(Shapes.Panel).background(Palette.Glass),
             contentAlignment = Alignment.Center,
@@ -200,6 +206,8 @@ fun RecentSearches(
     queries: List<String>,
     onPick: (String) -> Unit,
     entry: FocusRequester,
+    // Back on the first one, the panel scrolls to its top so its title is not left cut under the filters.
+    onFirstFocused: () -> Unit = {},
 ) {
     TextLabel(stringResource(R.string.search_recent), Type.Label)
     Spacer(Modifier.height(12.dp))
@@ -213,7 +221,7 @@ fun RecentSearches(
                 label = query,
                 icon = Icons.Rounded.History,
                 onClick = { onPick(query) },
-                modifier = if (index == 0) Modifier.focusRequester(entry) else Modifier,
+                modifier = if (index == 0) Modifier.focusRequester(entry).onFocusChanged { if (it.isFocused) onFirstFocused() } else Modifier,
             )
         }
     }
