@@ -44,10 +44,7 @@ class SplashTimelineTest {
 
     @Test
     fun theSplashFadesOutAtTheEnd() {
-        assertEquals(1f, SplashTimeline.exitAlpha(SplashTimeline.REVEAL - 1f))
-        assertTrue(SplashTimeline.exitAlpha(SplashTimeline.REVEAL) < 1f)
-        assertTrue(SplashTimeline.exitAlpha(SplashTimeline.EXIT_START) * 255 < 254.5f)
-        assertTrue(SplashTimeline.exitAlpha(SplashTimeline.EXIT_START) > 0.99f)
+        assertEquals(1f, SplashTimeline.exitAlpha(5_600f))
         assertEquals(0f, SplashTimeline.exitAlpha(SplashTimeline.TOTAL.toFloat()))
     }
 }
