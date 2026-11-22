@@ -34,4 +34,10 @@ class LoadFailuresTest {
         assertFalse(describeLoadFailure(failure(FailureCategory.Tls)).transient)
         assertFalse(describeLoadFailure(failure(FailureCategory.NotFound, 404)).transient)
     }
+
+    @Test
+    fun aScheduledLiveSaysItHasNotStarted() {
+        val failure = ApiException(ApiFailure(FailureCategory.Conflict, 409, "live_not_started", "later", "req"))
+        assertEquals(R.string.load_error_live_not_started, describeLoadFailure(failure).textRes)
+    }
 }

@@ -3,6 +3,7 @@ package video.typetype.tv.ui.search
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.AccountCircle
 import androidx.compose.material.icons.rounded.Animation
+import androidx.compose.material.icons.rounded.Category
 import androidx.compose.material.icons.rounded.LiveTv
 import androidx.compose.material.icons.rounded.Movie
 import androidx.compose.material.icons.rounded.MusicNote
@@ -23,10 +24,8 @@ import video.typetype.tv.ui.components.PillButton
 import video.typetype.tv.ui.components.ServiceMark
 import video.typetype.tv.ui.components.TabStrip
 
-fun nextSource(current: ContentSource): ContentSource {
-    val all = ContentSource.entries
-    return all[(all.indexOf(current) + 1) % all.size]
-}
+fun nextSource(current: ContentSource, sources: List<ContentSource>): ContentSource =
+    sources[(sources.indexOf(current) + 1) % sources.size]
 
 @Composable
 fun SourceButton(source: ContentSource, onCycle: () -> Unit) {
@@ -70,4 +69,5 @@ private fun SearchKind.icon(): ImageVector = when (this) {
     SearchKind.Movies -> Icons.Rounded.Movie
     SearchKind.MusicSongs -> Icons.Rounded.MusicNote
     SearchKind.MusicVideos -> Icons.Rounded.MusicVideo
+    SearchKind.Categories -> Icons.Rounded.Category
 }

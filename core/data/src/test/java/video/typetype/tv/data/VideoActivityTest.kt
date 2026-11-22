@@ -27,6 +27,12 @@ class VideoActivityTest {
     }
 
     @Test
+    fun theChosenWatchedShareDecidesWhenAVideoIsFinished() {
+        assertNotNull(video.withResume(550_000, 100).resumeFraction)
+        assertNull(video.withResume(300_000, 50).resumeFraction)
+    }
+
+    @Test
     fun inMemoryActivityTracksEveryAction() = runBlocking {
         val repository = InMemoryVideoActivity()
         repository.setWatchLater(video, true)

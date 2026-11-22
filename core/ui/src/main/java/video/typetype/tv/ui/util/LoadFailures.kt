@@ -6,6 +6,7 @@ import video.typetype.tv.data.net.FailureCategory
 import java.io.IOException
 
 private const val CONTENT_UNAVAILABLE = "content_unavailable"
+private const val LIVE_NOT_STARTED = "live_not_started"
 
 private val GATEWAY_FAILURES = setOf(502, 503, 504) + (520..530)
 
@@ -15,6 +16,7 @@ fun describeLoadFailure(failure: IOException): UiMessage {
         details.category == FailureCategory.Server && details.status in GATEWAY_FAILURES
     val text = when {
         details.code == CONTENT_UNAVAILABLE -> R.string.load_error_unavailable
+        details.code == LIVE_NOT_STARTED -> R.string.load_error_live_not_started
         details.category == FailureCategory.NotFound || details.category == FailureCategory.Gone -> R.string.load_error_unavailable
         unreachable || details.category == FailureCategory.Tls -> R.string.login_error_network
         details.category == FailureCategory.RateLimited -> R.string.login_error_rate_limited

@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.rounded.Forward10
 import androidx.compose.material.icons.rounded.Pause
@@ -198,7 +199,7 @@ private fun TimeLine(
                 if (state.isLive) LiveEdge.label(state.liveOffsetMillis).orEmpty() else formatMillis(scrubMillis ?: state.positionMillis)
             }
         }
-        TextLabel(elapsed, Type.Meta.copy(color = Palette.TextHigh), Modifier.width(48.dp))
+        TextLabel(elapsed, Type.Meta.copy(color = Palette.TextHigh), Modifier.widthIn(min = 48.dp), maxLines = 1)
         SeekBar(
             positionMillis = { state.positionMillis },
             bufferedMillis = { state.bufferedMillis },

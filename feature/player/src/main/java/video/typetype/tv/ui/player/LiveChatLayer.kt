@@ -1,5 +1,16 @@
 package video.typetype.tv.ui.player
 
+import video.typetype.tv.data.ChatPart
+import video.typetype.tv.data.ChatImage
+import coil3.compose.AsyncImage
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.unit.em
+import androidx.compose.ui.text.PlaceholderVerticalAlign
+import androidx.compose.ui.text.Placeholder
+import androidx.compose.foundation.text.appendInlineContent
+import androidx.compose.foundation.text.InlineTextContent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -56,9 +67,17 @@ class LiveChatState {
         private set
 
     fun apply(batch: List<LiveChatEvent>) {
-        val added = batch.filterIsInstance<LiveChatEvent.Message>().map { it.message }
-        if (added.isNotEmpty()) messages = (messages + added).takeLast(KEPT_MESSAGES)
-        if (batch.any { it == LiveChatEvent.Unavailable }) unavailable = true
+        var next = messages
+        batch.forEach { event ->
+            next = when (event) {
+                is LiveChatEvent.Message -> next + event.message
+                is LiveChatEvent.Removed -> next.filterNot { it.id == event.messageId }
+                is LiveChatEvent.Cleared -> event.author?.let { author -> next.filterNot { it.author.equals(author, ignoreCase = true) } }
+                    ?: emptyList()
+                LiveChatEvent.Unavailable -> next.also { unavailable = true }
+            }
+        }
+        if (next !== messages) messages = next.takeLast(KEPT_MESSAGES)
     }
 
     private companion object {
@@ -147,8 +166,52 @@ private fun NewestThatFit(modifier: Modifier, content: @Composable () -> Unit) {
 
 @Composable
 private fun ChatLine(message: LiveChatMessage) {
+    if (message.parts.isNotEmpty()) {
+        val line = remember(message.id) { twitchLine(message) }
+        BasicText(line.text, style = Type.Body, maxLines = 3, overflow = TextOverflow.Ellipsis, inlineContent = line.images)
+        return
+    }
     val text = remember(message.id) { chatText(message) }
     BasicText(text, style = Type.Body, maxLines = 3, overflow = TextOverflow.Ellipsis)
+}
+
+private class TwitchLine(val text: AnnotatedString, val images: Map<String, InlineTextContent>)
+
+// A Twitch line as on the web: badges, the name in the viewer's color, then the message with its emotes, which the
+// data layer already turned into still images behind the instance proxy.
+private fun twitchLine(message: LiveChatMessage): TwitchLine {
+    val images = HashMap<String, InlineTextContent>()
+    fun image(id: String, pictures: List<ChatImage>, size: Float) {
+        images[id] = InlineTextContent(Placeholder(size.em, size.em, PlaceholderVerticalAlign.TextCenter)) {
+            Box {
+                pictures.forEach { AsyncImage(it.url, null, Modifier.fillMaxSize(), contentScale = ContentScale.Fit) }
+            }
+        }
+    }
+    val nameColor = message.nameColor?.let(::Color) ?: Palette.AccentSoft
+    val text = buildAnnotatedString {
+        message.badges.forEachIndexed { index, badge ->
+            image("badge-$index", listOf(badge), BADGE_EM)
+            appendInlineContent("badge-$index", badge.name)
+            append(' ')
+        }
+        withStyle(SpanStyle(color = nameColor, fontWeight = FontWeight.Medium)) { append(message.author) }
+        append(if (message.action) " " else "  ")
+        withStyle(SpanStyle(color = if (message.action) nameColor else Palette.TextHigh)) {
+            message.parts.forEachIndexed { index, part ->
+                when (part) {
+                    is ChatPart.Text -> append(part.text)
+                    is ChatPart.Emote -> {
+                        image("emote-$index", listOf(part.image) + part.overlays, EMOTE_EM)
+                        appendInlineContent("emote-$index", part.image.name)
+                    }
+                    is ChatPart.Mention -> withStyle(SpanStyle(fontWeight = FontWeight.Bold)) { append(part.text) }
+                    is ChatPart.Link -> append(part.text)
+                }
+            }
+        }
+    }
+    return TwitchLine(text, images)
 }
 
 private fun chatText(message: LiveChatMessage): AnnotatedString = buildAnnotatedString {
@@ -161,6 +224,8 @@ private fun chatText(message: LiveChatMessage): AnnotatedString = buildAnnotated
 }
 
 private const val INCOMING_CAPACITY = 64
+private const val BADGE_EM = 1.1f
+private const val EMOTE_EM = 1.6f
 private const val PUBLISH_MILLIS = 400L
 private val LINE_GAP = 8.dp
 // The control bar keeps the full width; the newest lines stay above it while it is shown.

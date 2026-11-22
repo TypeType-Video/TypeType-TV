@@ -28,6 +28,7 @@ fun ContentSource.brandColor(): Color = when (this) {
     ContentSource.YouTube -> Color(0xFFFF0000)
     ContentSource.BiliBili -> Color(0xFF00A1D6)
     ContentSource.NicoNico -> Color(0xFFAAAAAA)
+    ContentSource.Twitch -> Color(0xFF9146FF)
 }
 
 @Composable

@@ -9,11 +9,15 @@ enum class ChannelTab(@StringRes val labelRes: Int) {
     Videos(R.string.channel_tab_videos),
     Live(R.string.channel_tab_live),
     Playlists(R.string.channel_tab_playlists),
+    Clips(R.string.channel_tab_clips),
     ;
 
     companion object {
-        fun available(channelUrl: String): List<ChannelTab> =
-            if (ContentSource.of(channelUrl) == ContentSource.YouTube) entries else listOf(Videos)
+        fun available(channelUrl: String): List<ChannelTab> = when {
+            ContentSource.of(channelUrl) == ContentSource.YouTube -> listOf(Videos, Live, Playlists)
+            TwitchUrls.channelLogin(channelUrl) != null -> listOf(Videos, Clips)
+            else -> listOf(Videos)
+        }
     }
 }
 

@@ -43,7 +43,7 @@ internal fun VideoItemDto.toVideo(now: Long, keepShorts: Boolean = false): Video
     )
 }
 
-internal fun LibraryVideoDto.toVideo(now: Long, resume: Boolean): Video? {
+internal fun LibraryVideoDto.toVideo(now: Long, resume: Boolean, watchedThresholdPercent: Int = 0): Video? {
     val url = link
     if (url.isBlank() || isShortUrl(url) || title.isBlank()) return null
     val resumeSeconds = if (progress > 0L) progress else watchPosition / 1_000L
@@ -56,7 +56,7 @@ internal fun LibraryVideoDto.toVideo(now: Long, resume: Boolean): Video? {
         age = Formatters.age(now, publishedAt),
         genre = "",
         description = "",
-        resumeFraction = if (resume) Formatters.resumeFraction(resumeSeconds, duration) else null,
+        resumeFraction = if (resume) Formatters.resumeFraction(resumeSeconds, duration, watchedThresholdPercent) else null,
         thumbnailUrl = thumbnail,
     )
 }

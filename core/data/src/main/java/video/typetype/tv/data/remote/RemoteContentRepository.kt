@@ -1,8 +1,11 @@
 package video.typetype.tv.data.remote
 
+import video.typetype.tv.data.Shelf
+import video.typetype.tv.data.proxiedImage
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.HomeContent
+import video.typetype.tv.data.RecommendedPage
 import video.typetype.tv.data.LibrarySection
 import video.typetype.tv.data.SettingsGroup
 import video.typetype.tv.data.Video
@@ -38,6 +41,10 @@ import video.typetype.tv.data.api.TypeTypeApi
 import video.typetype.tv.data.dto.BlockChannelRequest
 import video.typetype.tv.data.dto.BlockVideoRequest
 import video.typetype.tv.data.dto.StreamDto
+import video.typetype.tv.data.TwitchAccountLink
+import video.typetype.tv.data.TwitchRepository
+import video.typetype.tv.data.TwitchTarget
+import video.typetype.tv.data.TwitchUrls
 import video.typetype.tv.data.net.ApiException
 import video.typetype.tv.data.device.DeviceSection
 import video.typetype.tv.data.net.ServerWatch
@@ -55,14 +62,19 @@ class RemoteContentRepository(
     access: StreamAccess,
     private val deviceSections: List<DeviceSection>,
     private val clock: () -> Long = System::currentTimeMillis,
+    recommenderOffered: Boolean = false,
+    twitch: TwitchRepository? = null,
 ) : ContentRepository {
+    private val twitchContent = twitch?.takeIf { it.enabled }?.let(::TwitchContent)
+
     private val streams = StreamStore({ url -> access.anonymousFirst { api.streamFor(url, it) } }, clock)
     private val liveChat = LiveChatSource(api.liveChat)
+    private val twitchChat = TwitchChatSource(api.twitch, image = { proxiedImage(apiBase, it) })
     private val homeCache = TtlCache<String, HomeContent>(HOME_TTL_MILLIS, 1, clock)
     private val firstComments = TtlCache<String, CommentsPage>(STREAM_TTL_MILLIS, COMMENT_ENTRIES, clock)
     private val filter = ContentFilter(api, userSettings, clock)
     private val branding = DeArrowBranding(api, apiBase, userSettings, clock)
-    private val homeLoader = HomeLoader(api, filter, branding, texts, clock)
+    private val homeLoader = HomeLoader(api, filter, branding, texts, clock, recommenderOffered, twitch?.takeIf { it.enabled })
     private val playlists = PublicPlaylistSource(api, library, filter, branding, clock)
     private val subscriptions = RemoteSubscriptions(api, library, filter, branding, clock)
     private val activity = RemoteVideoActivity(library, api, userSettings) { homeCache.clear() }
@@ -76,18 +88,25 @@ class RemoteContentRepository(
         }
     }
 
+    override suspend fun recommendedRows(cursor: String?): RecommendedPage = watch.watch { homeLoader.recommendedRows(cursor) }
+
     override suspend fun subscriptionFeed(page: String?): SubscriptionFeedPage = watch.watch { subscriptions.subscriptionFeed(page) }
 
     override suspend fun subscribedChannels(): List<ChannelSummary> = watch.watch { subscriptions.subscribedChannels() }
 
-    override suspend fun video(id: String): Video? = watch.watch { branding.apply(listOf(stream(id).toVideo(id, clock()))).single() }
+    override suspend fun video(id: String): Video? = watch.watch {
+        twitchTarget(id)?.let { target -> return@watch twitchContent?.video(target) }
+        branding.apply(listOf(stream(id).toVideo(id, clock()))).single()
+    }
 
     override suspend fun prewarm(videoId: String) {
+        if (twitchTarget(videoId) != null) return
         stream(videoId)
     }
 
     override suspend fun related(id: String): List<Video> {
         if (filter.visibility().hideRelatedVideos) return emptyList()
+        twitchTarget(id)?.let { target -> return twitchContent?.related(target, video(id)).orEmpty() }
         val now = clock()
         val stream = stream(id)
         val related = branding.apply(filter.allowed(stream.relatedStreams.mapNotNull { it.toVideo(now) }))
@@ -96,11 +115,23 @@ class RemoteContentRepository(
         }
     }
 
-    override suspend fun search(query: String, source: ContentSource, kind: SearchKind, page: String?): SearchResults = watch.watch {
-        playlists.search(query, source, kind, page)
+    override val twitchAccount: TwitchAccountLink? = twitchContent?.let { RemoteTwitchAccountLink(api.twitch) }
+    private val twitchShelves = twitch?.takeIf { it.enabled }?.let { repository ->
+        TwitchShelves(repository, linked = { twitchAccount?.linked() == true }, filter = filter, texts = texts)
     }
 
-    override suspend fun publicPlaylist(url: String, page: String?): PublicPlaylistPage = watch.watch { playlists.page(url, page) }
+    override val searchSources: List<ContentSource>
+        get() = if (twitchContent != null) ContentSource.entries else ContentSource.extractors
+
+    override suspend fun search(query: String, source: ContentSource, kind: SearchKind, page: String?): SearchResults = watch.watch {
+        val twitch = twitchContent.takeIf { source == ContentSource.Twitch }
+        twitch?.search(query, kind, page) ?: playlists.search(query, source, kind, page)
+    }
+
+    override suspend fun publicPlaylist(url: String, page: String?): PublicPlaylistPage = watch.watch {
+        val category = TwitchUrls.categorySlug(url)?.let { slug -> twitchContent?.categoryPage(slug, page) }
+        category ?: playlists.page(url, page)
+    }
 
     override suspend fun channelPodcasts(channelUrl: String): List<PublicPlaylist> =
         if (ContentSource.of(channelUrl) == ContentSource.YouTube) playlists.podcasts(channelUrl) else emptyList()
@@ -124,11 +155,12 @@ class RemoteContentRepository(
 
     override suspend fun library(section: LibrarySection): List<Video> = watch.watch {
         val now = clock()
+        val watched = filter.visibility().watchedThresholdPercent
         val items = when (section) {
-            LibrarySection.History -> api.history(HISTORY_LIMIT).map { it.toVideo(now, resume = true) }
+            LibrarySection.History -> api.history(HISTORY_LIMIT).map { it.toVideo(now, resume = true, watched) }
             LibrarySection.Favorites -> api.favorites().map { it.toVideo(now, resume = false) }
             LibrarySection.WatchLater -> api.watchLater().map { it.toVideo(now, resume = false) }
-            is LibrarySection.Playlist -> api.playlist(section.id).videos.map { it.toVideo(now, resume = true) }
+            is LibrarySection.Playlist -> api.playlist(section.id).videos.map { it.toVideo(now, resume = true, watched) }
             is LibrarySection.Saved -> this.playlists.page(section.url, null).videos
             LibrarySection.Downloads -> emptyList()
         }
@@ -190,7 +222,7 @@ class RemoteContentRepository(
     }
 
     override suspend fun comments(videoUrl: String, page: String?): CommentsPage {
-        if (ContentSource.of(videoUrl) == ContentSource.NicoNico || filter.visibility().hideComments) {
+        if (ContentSource.of(videoUrl) == ContentSource.NicoNico || twitchTarget(videoUrl) != null || filter.visibility().hideComments) {
             return CommentsPage(emptyList(), null, true)
         }
         if (page != null) return api.comments(videoUrl, page).toCommentsPage(clock())
@@ -210,6 +242,7 @@ class RemoteContentRepository(
         sort: ChannelSort?,
         query: String?,
     ): ChannelPage = watch.watch {
+        TwitchUrls.channelLogin(url)?.let { login -> twitchContent?.let { return@watch it.channelPage(login, tab, page) } }
         val target = when {
             tab == ChannelTab.Live -> liveTabUrl(url)
             query != null -> searchUrl(url, query)
@@ -230,15 +263,19 @@ class RemoteContentRepository(
     private fun searchUrl(url: String, query: String): String =
         url.substringBefore('?').substringBefore('#').trimEnd('/') + "/search?query=" + URLEncoder.encode(query, Charsets.UTF_8.name())
 
-    override fun liveChat(videoUrl: String): Flow<LiveChatEvent> = liveChat.events(videoUrl)
+    override suspend fun liveShelves(): List<Shelf> = twitchShelves?.load().orEmpty()
+
+    override fun liveChat(videoUrl: String): Flow<LiveChatEvent> =
+        TwitchUrls.channelLogin(videoUrl)?.let(twitchChat::events) ?: liveChat.events(videoUrl)
 
     override suspend fun bulletComments(videoUrl: String): List<BulletComment> {
-        if (ContentSource.of(videoUrl) == ContentSource.YouTube) return emptyList()
+        if (ContentSource.of(videoUrl) == ContentSource.YouTube || twitchTarget(videoUrl) != null) return emptyList()
         return api.bulletComments(videoUrl).comments.mapNotNull { it.toBulletComment() }
     }
 
     override suspend fun playbackSetup(videoId: String): PlaybackSetup {
         val preferences = userSettings.playbackPreferences().let { it.copy(seekbarIcon = it.seekbarIcon.onInstance(apiBase)) }
+        if (twitchTarget(videoId) != null) return PlaybackSetup(preferences)
         val stream = runCatching { stream(videoId) }.getOrNull() ?: return PlaybackSetup(preferences)
         return PlaybackSetup(
             preferences = preferences,
@@ -278,6 +315,8 @@ class RemoteContentRepository(
     override fun reportPresence(report: PresenceReport) = presence.report(report)
 
     private suspend fun stream(url: String): StreamDto = streams.get(url)
+
+    private fun twitchTarget(url: String): TwitchTarget? = TwitchUrls.parse(url)
 
     private companion object {
         const val HOME_KEY = "home"
