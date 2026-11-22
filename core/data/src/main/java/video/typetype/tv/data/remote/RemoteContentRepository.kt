@@ -70,25 +70,20 @@ class RemoteContentRepository(
     private val streams = StreamStore({ url -> access.anonymousFirst { api.streamFor(url, it) } }, clock)
     private val liveChat = LiveChatSource(api.liveChat)
     private val twitchChat = TwitchChatSource(api.twitch, image = { proxiedImage(apiBase, it) })
-    private val homeCache = TtlCache<String, HomeContent>(HOME_TTL_MILLIS, 1, clock)
     private val firstComments = TtlCache<String, CommentsPage>(STREAM_TTL_MILLIS, COMMENT_ENTRIES, clock)
     private val filter = ContentFilter(api, userSettings, clock)
     private val branding = DeArrowBranding(api, apiBase, userSettings, clock)
-    private val homeLoader = HomeLoader(api, filter, branding, texts, clock, recommenderOffered, twitch?.takeIf { it.enabled })
+    private val homeFeed = HomeFeed(HomeLoader(api, filter, branding, texts, clock, recommenderOffered), watch, clock)
     private val playlists = PublicPlaylistSource(api, library, filter, branding, clock)
     private val subscriptions = RemoteSubscriptions(api, library, filter, branding, clock)
-    private val activity = RemoteVideoActivity(library, api, userSettings) { homeCache.clear() }
+    private val activity = RemoteVideoActivity(library, api, userSettings) { homeFeed.clear() }
 
-    override suspend fun home(): HomeContent {
-        homeCache.fresh(HOME_KEY)?.let { return it }
-        return try {
-            watch.watch { homeLoader.load() }.also { homeCache.put(HOME_KEY, it) }
-        } catch (failure: ApiException) {
-            homeCache.stale(HOME_KEY) ?: throw failure
-        }
-    }
+    override suspend fun home(services: Set<ContentSource>): HomeContent = homeFeed.home(services)
 
-    override suspend fun recommendedRows(cursor: String?): RecommendedPage = watch.watch { homeLoader.recommendedRows(cursor) }
+    override suspend fun homeShelf(id: String, services: Set<ContentSource>): Shelf? = homeFeed.shelf(id, services)
+
+    override suspend fun recommendedRows(cursor: String?, services: Set<ContentSource>): RecommendedPage =
+        homeFeed.recommendedRows(cursor, services)
 
     override suspend fun subscriptionFeed(page: String?): SubscriptionFeedPage = watch.watch { subscriptions.subscriptionFeed(page) }
 
@@ -207,12 +202,12 @@ class RemoteContentRepository(
 
     private fun afterBlockedChange() {
         filter.invalidate()
-        homeCache.clear()
+        homeFeed.clear()
     }
 
     override suspend fun markNotificationsRead() {
         api.markNotificationsRead()
-        homeCache.clear()
+        homeFeed.clear()
     }
 
     override suspend fun updateSetting(id: String, value: String) {
@@ -319,10 +314,8 @@ class RemoteContentRepository(
     private fun twitchTarget(url: String): TwitchTarget? = TwitchUrls.parse(url)
 
     private companion object {
-        const val HOME_KEY = "home"
         const val MILLIS_PER_SECOND = 1_000L
         const val STREAM_TTL_MILLIS = 5 * 60_000L
-        const val HOME_TTL_MILLIS = 2 * 60_000L
         const val COMMENT_ENTRIES = 8
         const val HISTORY_LIMIT = 120
         const val LIBRARY_LIMIT = 240

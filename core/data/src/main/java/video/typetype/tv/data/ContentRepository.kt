@@ -3,10 +3,14 @@ package video.typetype.tv.data
 import kotlinx.coroutines.flow.Flow
 
 interface ContentRepository : VideoActivityRepository, PresenceSink, SubscriptionsRepository {
-    suspend fun home(): HomeContent
+    suspend fun home(services: Set<ContentSource> = ContentSource.extractors.toSet()): HomeContent
+
+    // One of the rows HomeContent.later names, or null when it has nothing for these services.
+    suspend fun homeShelf(id: String, services: Set<ContentSource>): Shelf? = null
 
     // The recommender rows again (null cursor) or their next slice; only asked when the home has recommender rows.
-    suspend fun recommendedRows(cursor: String?): RecommendedPage = RecommendedPage(emptyList(), null)
+    suspend fun recommendedRows(cursor: String?, services: Set<ContentSource> = ContentSource.extractors.toSet()): RecommendedPage =
+        RecommendedPage(emptyList(), null)
 
     suspend fun video(id: String): Video?
 

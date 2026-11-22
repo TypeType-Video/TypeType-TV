@@ -252,6 +252,8 @@
     <string name="source_twitch">Twitch</string>
     <string name="shelf_trending_bilibili">Trending on Bilibili</string>
     <string name="shelf_trending_niconico">Trending on NicoNico</string>
+    <string name="shelf_recommended_bilibili">Recommended on Bilibili</string>
+    <string name="shelf_recommended_niconico">Recommended on NicoNico</string>
     <string name="shelf_twitch_live">Live on Twitch</string>
     <string name="shelf_twitch_followed">Followed on Twitch</string>
     <string name="shelf_twitch_replays">Past broadcasts of followed channels</string>

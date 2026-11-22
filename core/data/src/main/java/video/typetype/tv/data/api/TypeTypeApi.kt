@@ -42,11 +42,15 @@ class TypeTypeApi(private val client: ApiClient) {
 
     suspend fun account(): AccountDto = client.get("profile/account", AccountDto.serializer())
 
-    suspend fun homeRecommendations(limit: Int = 30, cursor: String? = null): HomeRecommendationsDto =
+    suspend fun homeRecommendations(
+        limit: Int = 30,
+        cursor: String? = null,
+        source: ContentSource = ContentSource.YouTube,
+    ): HomeRecommendationsDto =
         client.get(
             "recommendations/home",
             HomeRecommendationsDto.serializer(),
-            mapOf("service" to "0", "limit" to limit.toString(), "cursor" to cursor),
+            mapOf("service" to source.serviceId.toString(), "limit" to limit.toString(), "cursor" to cursor),
         )
 
     suspend fun recommenderSettings(): RecommenderSettingsDto =

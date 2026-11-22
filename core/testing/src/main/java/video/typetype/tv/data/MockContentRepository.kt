@@ -17,7 +17,7 @@ class MockContentRepository(
         const val DEFAULT_LATENCY_MILLIS = 750L
     }
 
-    override suspend fun home(): HomeContent {
+    override suspend fun home(services: Set<ContentSource>): HomeContent {
         delay(latencyMillis + 350L)
         val catalog = MockCatalog
         return HomeContent(
