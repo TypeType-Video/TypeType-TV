@@ -287,7 +287,11 @@ fun AppRoot(
                             navigator.selectTab(it.route)
                         },
                         account = account,
-                        contentEntry = sessions.home.heroEntry.takeIf { activeTab == TopTab.Home },
+                        contentEntry = when (activeTab) {
+                            TopTab.Home -> sessions.home.heroEntry
+                            TopTab.Live -> sessions.live.rowsEntry
+                            else -> null
+                        },
                         cornerEntry = sessions.home.servicesEntry.takeIf { activeTab == TopTab.Home },
                         navEntry = navEntry,
                         onNavFocusChange = { navFocused = it },
