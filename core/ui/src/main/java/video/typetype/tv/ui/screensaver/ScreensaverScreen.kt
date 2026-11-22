@@ -103,27 +103,42 @@ private fun Mascot(size: Dp) {
 
 @Composable
 private fun Thumbnails(artwork: List<ScreensaverArt>) {
-    if (artwork.isEmpty()) {
-        Drifting(LOGO_HEIGHT, LOGO_WIDTH) { size -> BrandLogo(markSize = size) }
+    // A picture that fails to load (a live without one, a removed video) is skipped at once; with none left, Tyme.
+    var failed by remember(artwork) { mutableStateOf(emptySet<Int>()) }
+    var index by remember(artwork) { mutableIntStateOf(0) }
+    if (artwork.isEmpty() || failed.size >= artwork.size) {
+        Drifting(MASCOT_HEIGHT, MASCOT_WIDTH) { size -> Mascot(size) }
         return
     }
-    var index by remember { mutableIntStateOf(0) }
     LaunchedEffect(artwork) {
         while (true) {
             delay(SLIDE_MILLIS)
-            index = (index + 1) % artwork.size
+            index = Slides.next(index, artwork.size, failed) ?: index
         }
     }
     Crossfade(targetState = index, animationSpec = tween(1_200), label = "screensaver-slide") { shown ->
         val art = artwork[shown % artwork.size]
+        var loaded by remember { mutableStateOf(false) }
         Box(Modifier.fillMaxSize()) {
-            AsyncImage(model = art.imageUrl, contentDescription = null, contentScale = ContentScale.Crop, modifier = Modifier.fillMaxSize())
-            Box(Modifier.fillMaxSize().background(Palette.Ink.copy(alpha = 0.35f)))
-            // The title changes corner with every picture, so no text stays in one place.
-            val corner = listOf(Alignment.BottomStart, Alignment.TopEnd, Alignment.BottomEnd, Alignment.TopStart)[shown % 4]
-            Column(Modifier.align(corner).padding(56.dp).widthIn(max = 560.dp)) {
-                TextLabel(art.title, Type.Headline, maxLines = 2)
-                TextLabel(art.channel, Type.Meta, maxLines = 1)
+            AsyncImage(
+                model = art.imageUrl,
+                contentDescription = null,
+                contentScale = ContentScale.Crop,
+                modifier = Modifier.fillMaxSize(),
+                onSuccess = { loaded = true },
+                onError = {
+                    failed = failed + shown
+                    if (index == shown) index = Slides.next(shown, artwork.size, failed) ?: shown
+                },
+            )
+            if (loaded) {
+                Box(Modifier.fillMaxSize().background(Palette.Ink.copy(alpha = 0.35f)))
+                // The title changes corner with every picture, so no text stays in one place.
+                val corner = listOf(Alignment.BottomStart, Alignment.TopEnd, Alignment.BottomEnd, Alignment.TopStart)[shown % 4]
+                Column(Modifier.align(corner).padding(56.dp).widthIn(max = 560.dp)) {
+                    TextLabel(art.title, Type.Headline, maxLines = 2)
+                    TextLabel(art.channel, Type.Meta, maxLines = 1)
+                }
             }
         }
     }
