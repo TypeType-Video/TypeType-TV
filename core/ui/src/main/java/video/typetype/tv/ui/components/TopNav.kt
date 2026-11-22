@@ -128,15 +128,15 @@ fun TopNav(
             horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
+            // A round button: with the Live tab, a labelled pill left no room for the last tab of the bar.
             if (updateVersion != null) {
-                PillButton(
-                    label = stringResource(R.string.update_pill),
+                CircleButton(
                     icon = Icons.Rounded.SystemUpdate,
-                    onClick = onUpdate,
-                    emphasized = true,
-                    compact = true,
                     description = stringResource(R.string.update_pill_description, updateVersion),
+                    onClick = onUpdate,
                     modifier = Modifier.focusProperties { (cornerEntry ?: contentEntry)?.let { down = it } },
+                    diameter = 40,
+                    emphasized = true,
                 )
             }
             Avatar(account, animated = LocalPerformance.current.animatedAvatar && LocalRemoteActivity.current.idle)
@@ -186,12 +186,12 @@ private fun NavTab(
         Row(
             modifier = Modifier
                 .background(container)
-                .padding(horizontal = 13.dp, vertical = 9.dp),
+                .padding(horizontal = 11.dp, vertical = 9.dp),
             horizontalArrangement = Arrangement.spacedBy(7.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
             Glyph(tab.icon, content, 18)
-            BasicText(label, style = Type.Button.copy(color = content))
+            BasicText(label, style = Type.Button.copy(color = content), maxLines = 1, softWrap = false)
         }
     }
 }
