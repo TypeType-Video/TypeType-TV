@@ -43,8 +43,6 @@ import video.typetype.tv.ui.components.TextLabel
 
 class ScreensaverArt(val imageUrl: String, val title: String, val channel: String)
 
-// The mascot's animation was drawn on this colour; the same background keeps its soft glow seamless.
-private val MascotBackground = Color(0xFF13151C)
 private val DriftSpeed = 22.dp
 private const val SLIDE_MILLIS = 10_000L
 private const val DRIFT_STEP_MILLIS = 100L
@@ -61,8 +59,8 @@ fun ScreensaverScreen(settings: Screensaver, artwork: List<ScreensaverArt>, modi
         // Fully darkened, nothing is drawn under the black: the screen stays still and costs nothing.
         if (settings.dimPercent >= FULL_DIM) return@Box
         when (settings.style) {
-            ScreensaverStyle.Mascot -> Drifting(Modifier.background(MascotBackground), MASCOT_HEIGHT, MASCOT_WIDTH) { size -> Mascot(size) }
-            ScreensaverStyle.Logo -> Drifting(Modifier, LOGO_HEIGHT, LOGO_WIDTH) { size -> BrandLogo(markSize = size) }
+            ScreensaverStyle.Mascot -> Drifting(MASCOT_HEIGHT, MASCOT_WIDTH) { size -> Mascot(size) }
+            ScreensaverStyle.Logo -> Drifting(LOGO_HEIGHT, LOGO_WIDTH) { size -> BrandLogo(markSize = size) }
             ScreensaverStyle.Thumbnails -> Thumbnails(artwork)
         }
         if (settings.dimPercent > 0) Box(Modifier.fillMaxSize().background(Color.Black.copy(alpha = settings.dimPercent / 100f)))
@@ -70,8 +68,8 @@ fun ScreensaverScreen(settings: Screensaver, artwork: List<ScreensaverArt>, modi
 }
 
 @Composable
-private fun Drifting(background: Modifier, heightShare: Float, widthRatio: Float, content: @Composable (Dp) -> Unit) {
-    BoxWithConstraints(background.fillMaxSize()) {
+private fun Drifting(heightShare: Float, widthRatio: Float, content: @Composable (Dp) -> Unit) {
+    BoxWithConstraints(Modifier.fillMaxSize()) {
         val density = LocalDensity.current
         val size = maxHeight * heightShare
         val freeWidth = with(density) { (maxWidth - size * widthRatio).roundToPx() }
@@ -106,7 +104,7 @@ private fun Mascot(size: Dp) {
 @Composable
 private fun Thumbnails(artwork: List<ScreensaverArt>) {
     if (artwork.isEmpty()) {
-        Drifting(Modifier, LOGO_HEIGHT, LOGO_WIDTH) { size -> BrandLogo(markSize = size) }
+        Drifting(LOGO_HEIGHT, LOGO_WIDTH) { size -> BrandLogo(markSize = size) }
         return
     }
     var index by remember { mutableIntStateOf(0) }
