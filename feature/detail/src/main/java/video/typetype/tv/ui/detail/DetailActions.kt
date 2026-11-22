@@ -7,4 +7,5 @@ class DetailActions(
     val onSubscribe: (Boolean) -> Unit,
     val onOpenChannel: () -> Unit,
     val onOpenPlaylists: () -> Unit,
+    val onStartOver: () -> Unit = {},
 )

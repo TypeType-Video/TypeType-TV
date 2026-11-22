@@ -27,7 +27,11 @@ class SabrWindowLoader(
     private val scope: CoroutineScope,
     private val maxPolls: Int = MAX_POLLS,
     private val windowDeadlineMillis: Long = WINDOW_DEADLINE_MILLIS,
+    private val tokenRenewalWaitMillis: Long = TOKEN_RENEWAL_WAIT_MILLIS,
 ) : PlaybackWindowLoader {
+
+    @Volatile
+    private var renewingToken = false
 
     suspend fun firstWindow(positionMs: Long): PlaybackWindow = awaitWindow { WindowPosition(positionMs, emptyList()) }
 
@@ -75,12 +79,25 @@ class SabrWindowLoader(
     // A stuck session is replaced in place once, as the Android app does, so the player keeps its buffer instead of
     // being rebuilt; only a second stall is reported.
     private suspend fun awaitWindow(position: () -> WindowPosition): PlaybackWindow {
-        withTimeoutOrNull(windowDeadlineMillis) { pollWindow(position) }?.let { return it }
+        pollWithinDeadline(position)?.let { return it }
         if (session.canRecover()) {
             createFreshSession(position().positionMs)
-            withTimeoutOrNull(windowDeadlineMillis) { pollWindow(position) }?.let { return it }
+            pollWithinDeadline(position)?.let { return it }
         }
         throw ApiException(ApiFailure(FailureCategory.Network, null, "sabr_timeout", "The video did not become ready", null))
+    }
+
+    // When YouTube asks a resumed session to attest, the server replaces its token session before telling the
+    // player to start a fresh one; a fresh session opened sooner would get the refused token again. That wait,
+    // reported as a blocker, does not count against the deadline, up to a bound of its own.
+    private suspend fun pollWithinDeadline(position: () -> WindowPosition): PlaybackWindow? {
+        val started = System.nanoTime()
+        while (true) {
+            renewingToken = false
+            withTimeoutOrNull(windowDeadlineMillis) { pollWindow(position) }?.let { return it }
+            val waitedMs = (System.nanoTime() - started) / NANOS_PER_MILLI
+            if (!renewingToken || waitedMs >= tokenRenewalWaitMillis) return null
+        }
     }
 
     // The server starts fetching on prefetch; asking again while it is already filling makes it reposition and
@@ -102,6 +119,7 @@ class SabrWindowLoader(
                 }
                 val window = api.segments(session.sessionId, body)
                 if (window.ready) return mapper.map(window, session)
+                renewingToken = window.blockedBy == TOKEN_SESSION_RENEWAL
                 if (recover(window, positionMs)) {
                     reported = false
                     requested = false
@@ -120,7 +138,8 @@ class SabrWindowLoader(
     }
 
     private suspend fun recover(window: SabrWindowDto, positionMs: Long): Boolean {
-        if (window.terminalError != null && window.recoveryAction == null) {
+        val spent = window.recoveryAction == RETRY_FRESH_SESSION && !session.canRecover()
+        if (window.terminalError != null && (window.recoveryAction == null || spent)) {
             throw ApiException(ApiFailure(FailureCategory.Server, null, window.terminalError, "Playback failed on the server", null))
         }
         if (window.recoveryAction == RETRY_FRESH_SESSION && session.canRecover()) {
@@ -169,6 +188,9 @@ class SabrWindowLoader(
         const val MIN_RETRY_MS = 150L
         const val MAX_RETRY_MS = 2_000L
         const val RETRY_FRESH_SESSION = "retry_fresh_session"
+        const val TOKEN_SESSION_RENEWAL = "token_session_renewal"
+        const val TOKEN_RENEWAL_WAIT_MILLIS = 60_000L
+        const val NANOS_PER_MILLI = 1_000_000L
         const val IDLE = "idle"
     }
 }

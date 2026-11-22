@@ -25,6 +25,7 @@ import video.typetype.tv.resources.R
 import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
+import video.typetype.tv.ui.components.QrCode
 import video.typetype.tv.ui.components.TextLabel
 
 private val QR_SIZE = 232.dp

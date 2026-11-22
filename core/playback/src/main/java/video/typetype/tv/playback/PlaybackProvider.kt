@@ -27,6 +27,7 @@ class PlayerHandle(
     val heights: List<Int> = emptyList(),
     val captionLanguages: List<CaptionLanguage> = emptyList(),
     val isLive: Boolean = false,
+    val isRecording: Boolean = false,
     val audioTracks: List<AudioTrackChoice> = emptyList(),
     val audioTrackId: String? = null,
     private val onRelease: () -> Unit = {},

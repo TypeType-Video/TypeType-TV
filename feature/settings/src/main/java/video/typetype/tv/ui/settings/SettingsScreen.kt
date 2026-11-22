@@ -90,15 +90,20 @@ fun SettingsScreen(
         }
         Unit
     }
+    var linkingTwitch by remember { mutableStateOf(false) }
     val handleAction = { id: String ->
         val channel = SettingActions.unblockedChannel(id)
-        if (channel == null) {
-            onAction(id)
-        } else {
-            scope.launch {
+        when {
+            channel != null -> scope.launch {
                 tryLoad({}) { repository.unblockChannel(channel) }
                 attempt++
             }
+            id == SettingActions.TWITCH_LINK -> linkingTwitch = true
+            id == SettingActions.TWITCH_UNLINK -> scope.launch {
+                tryLoad({}) { repository.twitchAccount?.unlink() }
+                attempt++
+            }
+            else -> onAction(id)
         }
         Unit
     }
@@ -156,6 +161,16 @@ fun SettingsScreen(
             ) { index ->
                 GroupPanel(groups[index], session, handleAction, onChange) { choosing = it }
             }
+        }
+        repository.twitchAccount?.takeIf { linkingTwitch }?.let { link ->
+            TwitchLinkPanel(
+                link = link,
+                onLinked = {
+                    linkingTwitch = false
+                    attempt++
+                },
+                onClose = { linkingTwitch = false },
+            )
         }
         choosing?.let { request ->
             val item = request.item

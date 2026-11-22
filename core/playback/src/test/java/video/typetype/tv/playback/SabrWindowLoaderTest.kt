@@ -149,6 +149,31 @@ class SabrWindowLoaderTest {
     }
 
     @Test
+    fun aFreshSessionTheClientCanNoLongerOpenIsReportedAtOnce() {
+        val attestation = """{"ready":false,"terminalError":"SABR attestation required","recoveryAction":"retry_fresh_session"}"""
+        responses += { _ -> MockResponse().setResponseCode(202).setBody(attestation) }
+        val session = newSession().apply { repeat(2) { adopt(SabrSessionDto(sessionId = "s$it", generation = 1), replacement = true) } }
+        try {
+            runBlocking { loader(session, polls = 40).firstWindow(69_343) }
+            fail("expected a failure")
+        } catch (error: ApiException) {
+            assertEquals("SABR attestation required", error.failure.code)
+        }
+        assertEquals(1, segmentsPaths.size)
+    }
+
+    @Test
+    fun aTokenSessionRenewalIsAwaitedPastTheDeadline() = runBlocking {
+        val renewing = """{"ready":false,"status":"terminal","retryAfterMs":150,"blockedBy":"token_session_renewal"}"""
+        repeat(6) { responses += { _ -> MockResponse().setResponseCode(202).setBody(renewing) } }
+        responses += { _ -> MockResponse().setResponseCode(200).setBody(ready("s1", 1)) }
+        val session = newSession()
+        val window = loader(session, polls = 40, deadlineMillis = 400).firstWindow(69_343)
+        assertEquals("s1", session.sessionId)
+        assertEquals(1L, window.generation)
+    }
+
+    @Test
     fun aWindowThatNeverBecomesReadyTimesOut() {
         repeat(10) { responses += { _ -> MockResponse().setResponseCode(202).setBody("""{"ready":false,"retryAfterMs":150}""") } }
         try {

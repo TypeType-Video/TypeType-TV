@@ -34,12 +34,14 @@ class RemoteVideoActivity(
 
     override suspend fun activity(video: Video): VideoActivity = coroutineScope {
         val progress = async { runCatching { library.progress(video.id) }.getOrNull() }
+        val threshold = async { watchedThresholdPercent() }
         val saved = membership.current()
         VideoActivity(
             watchLater = video.id in saved.watchLater,
             favorite = video.id in saved.favorites,
             subscribed = video.channel.url.isNotBlank() && video.channel.url in saved.subscriptions,
             resumePositionMs = progress.await()?.position ?: 0L,
+            watchedThresholdPercent = threshold.await(),
         )
     }
 
@@ -110,6 +112,8 @@ class RemoteVideoActivity(
         membership.update { it.copy(subscriptions = it.subscriptions.toggled(channel.url, enabled)) }
         onLibraryChanged()
     }
+
+    override suspend fun watchedThresholdPercent(): Int = settings.contentVisibility().watchedThresholdPercent
 
     override suspend fun resumePositionMs(videoId: String): Long =
         runCatching { library.progress(videoId)?.position }.getOrNull() ?: 0L

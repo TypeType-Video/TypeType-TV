@@ -73,6 +73,7 @@ fun TopNav(
     onNavFocusChange: (Boolean) -> Unit = {},
     updateVersion: String? = null,
     onUpdate: () -> Unit = {},
+    hidden: Set<TopTab> = emptySet(),
 ) {
     Row(
         modifier = modifier
@@ -109,7 +110,7 @@ fun TopNav(
             horizontalArrangement = Arrangement.spacedBy(4.dp),
             verticalAlignment = Alignment.CenterVertically,
         ) {
-            TopTab.entries.forEach { tab ->
+            TopTab.entries.filterNot { it in hidden }.forEach { tab ->
                 NavTab(
                     tab = tab,
                     selected = tab == selected,
