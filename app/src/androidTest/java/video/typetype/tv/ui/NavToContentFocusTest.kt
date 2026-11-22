@@ -1,5 +1,7 @@
 package video.typetype.tv.ui
 
+import video.typetype.tv.data.device.HomeServices
+import video.typetype.tv.data.device.MemoryDeviceStore
 import androidx.compose.foundation.layout.Box
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -31,7 +33,7 @@ class NavToContentFocusTest {
         val session = HomeSession()
         rule.setContent {
             Box(Modifier) {
-                HomeScreen(MockContentRepository(0), remember { session }, onOpen = {}, onPlay = {})
+                HomeScreen(MockContentRepository(0), remember { session }, HomeServices(MemoryDeviceStore()), onOpen = {}, onPlay = {})
                 Box(Modifier.align(Alignment.TopCenter)) {
                     TopNav(TopTab.Home, onSelect = {}, account = AccountBadge("A"), contentEntry = session.heroEntry)
                 }

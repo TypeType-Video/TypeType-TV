@@ -179,6 +179,7 @@ private fun AppState(container: AppContainer, state: SessionState, scope: Corout
                     },
                     performance = performance,
                     updates = container.updates,
+                    homeServices = container.homeServices,
                 )
             }
         }

@@ -32,6 +32,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import video.typetype.tv.data.AccountBadge
 import video.typetype.tv.data.ContentRepository
+import video.typetype.tv.data.device.HomeServices
 import video.typetype.tv.data.LibrarySection
 import video.typetype.tv.data.LandingPage
 import video.typetype.tv.data.Video
@@ -93,6 +94,7 @@ fun AppRoot(
     onSettingsAction: (String) -> Unit,
     performance: Performance = Performance(),
     updates: UpdateController,
+    homeServices: HomeServices,
 ) {
     val navigator = remember { MockNavigator() }
     val updateState by updates.state.collectAsState()
@@ -211,6 +213,7 @@ fun AppRoot(
                     Route.Home -> HomeScreen(
                         repository = repository,
                         session = homeSession,
+                        services = homeServices,
                         onOpen = openDetail,
                         onPlay = { navigator.push(Route.Player(it.id, preview = it)) },
                     )

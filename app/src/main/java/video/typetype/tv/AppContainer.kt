@@ -12,6 +12,7 @@ import video.typetype.tv.data.PresenceReport
 import video.typetype.tv.data.device.CodecSettings
 import video.typetype.tv.data.device.PerformanceSettings
 import video.typetype.tv.data.device.PreferencesDeviceStore
+import video.typetype.tv.data.device.HomeServices
 import video.typetype.tv.data.device.ScreensaverSettings
 import video.typetype.tv.data.device.UpdateSettings
 import video.typetype.tv.data.dto.UserProfileDto
@@ -59,6 +60,7 @@ class AppContainer(context: Context) {
     val updateSettings by lazy { UpdateSettings(PreferencesDeviceStore(appContext, PreferencesDeviceStore.UPDATES)) }
     private val codecSettings by lazy { CodecSettings(PreferencesDeviceStore(appContext)) }
     val screensaver by lazy { ScreensaverSettings(PreferencesDeviceStore(appContext)) }
+    val homeServices by lazy { HomeServices(PreferencesDeviceStore(appContext)) }
 
     fun warmUp() {
         Thread({ secrets.warmUp() }, "secrets-warmup").start()

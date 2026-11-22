@@ -1,197 +1,84 @@
 package video.typetype.tv.ui.home
 
-import androidx.activity.compose.BackHandler
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.lazy.itemsIndexed
-import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.launch
 import video.typetype.tv.data.ContentRepository
-import video.typetype.tv.ui.util.LocalIntroPlaying
-import video.typetype.tv.ui.util.UiMessage
-import video.typetype.tv.ui.components.ScreenFailure
-import video.typetype.tv.ui.util.tryLoad
-import video.typetype.tv.data.HomeContent
-import video.typetype.tv.data.Shelf
 import video.typetype.tv.data.Video
-import video.typetype.tv.theme.Dimens
-import video.typetype.tv.ui.components.Backdrop
-import video.typetype.tv.ui.components.LocalStreamPrewarm
-import video.typetype.tv.ui.components.ShelfRow
-import video.typetype.tv.ui.components.ShelfSkeleton
-import video.typetype.tv.ui.util.requestFocusWhenReady
+import video.typetype.tv.data.device.HomeServices
+import video.typetype.tv.ui.components.ScreenFailure
+import video.typetype.tv.ui.util.UiMessage
+import video.typetype.tv.ui.util.tryLoad
 
-private const val HERO_ROTATION_MILLIS = 9_000L
-private const val BACKDROP_SETTLE_MILLIS = 260L
-private const val PENDING_SKELETON_SHELVES = 2
+// Several quick presses on the services make one reload, once the choice settles.
+private const val SERVICES_SETTLE_MILLIS = 650L
+
+private enum class HomePhase { Loading, Failed, Loaded }
 
 @Composable
 fun HomeScreen(
     repository: ContentRepository,
     session: HomeSession,
+    services: HomeServices,
     onOpen: (Video) -> Unit,
     onPlay: (Video) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     var failure by remember { mutableStateOf<UiMessage?>(null) }
     var attempt by remember { mutableIntStateOf(0) }
-    LaunchedEffect(attempt) {
-        if (session.content == null) {
-            failure = null
-            session.content = tryLoad({ failure = it }) { repository.home() }
+    val chosen by services.current.collectAsState()
+    LaunchedEffect(attempt, chosen) {
+        if (session.content != null && session.services == chosen) return@LaunchedEffect
+        val replacing = session.content != null
+        if (replacing) {
+            session.reloading = true
+            delay(SERVICES_SETTLE_MILLIS)
+        }
+        failure = null
+        try {
+            val loaded = tryLoad({ if (!replacing) failure = it }) { repository.home(chosen) }
+            if (loaded != null) session.show(loaded, chosen)
+        } finally {
+            session.reloading = false
         }
     }
-    val content = session.content
+    val phase = when {
+        session.content != null -> HomePhase.Loaded
+        failure != null -> HomePhase.Failed
+        else -> HomePhase.Loading
+    }
+    // Keyed on the phase, not on the content: a new choice of services swaps the rows under the same screen, so the
+    // focus stays on the service just pressed.
     Crossfade(
-        targetState = content,
+        targetState = phase,
         animationSpec = tween(450),
         modifier = modifier.fillMaxSize(),
         label = "home-state",
-    ) { loaded ->
-        if (loaded == null && failure != null) {
-            ScreenFailure(failure, onRetry = { attempt++ })
-        } else if (loaded == null) {
-            HomeSkeleton()
-        } else {
-            HomeLoaded(loaded, session, repository, onOpen, onPlay)
-        }
-    }
-}
-
-@Composable
-private fun HomeLoaded(
-    content: HomeContent,
-    session: HomeSession,
-    repository: ContentRepository,
-    onOpen: (Video) -> Unit,
-    onPlay: (Video) -> Unit,
-) {
-    var focusedCard by remember { mutableStateOf<Video?>(null) }
-    var heroIndex by remember { mutableIntStateOf(0) }
-    val hero = content.featured[heroIndex]
-    val listState = rememberLazyListState()
-    val playRequester = session.heroEntry
-    val scope = rememberCoroutineScope()
-    val prewarm = LocalStreamPrewarm.current
-    val restoreAnchor = remember { session.anchor }
-    var pendingRestore by remember { mutableStateOf(restoreAnchor != null) }
-
-    var previewPlaying by remember { mutableStateOf(false) }
-    var focusedShelf by remember { mutableIntStateOf(-1) }
-    val recommended = remember(content) { session.recommendedFor(content) }
-    val slot = content.recommendedSlot
-    LaunchedEffect(recommended) {
-        recommended?.awaitRows { repository.recommendedRows(null) }
-    }
-    // Rows that arrive while focus is below their place wait, so nothing moves under the user.
-    LaunchedEffect(recommended?.arrived, focusedShelf) {
-        if (recommended?.arrived != null && focusedShelf < slot) recommended.applyArrived()
-    }
-    val before = content.shelves.take(slot)
-    val after = content.shelves.drop(slot)
-    val middle = recommended?.visible.orEmpty()
-    val skeletons = if (recommended?.pending == true) PENDING_SKELETON_SHELVES else 0
-    val heroInView = focusedCard == null && !previewPlaying && !LocalIntroPlaying.current
-    LaunchedEffect(content, heroInView) {
-        while (heroInView) {
-            delay(HERO_ROTATION_MILLIS)
-            heroIndex = (heroIndex + 1) % content.featured.size
-        }
-    }
-    LaunchedEffect(Unit) {
-        if (restoreAnchor == null) {
-            playRequester.requestFocusWhenReady()
-        } else {
-            val skipped = if (restoreAnchor.shelfIndex >= slot) skeletons else 0
-            listState.scrollToItem(restoreAnchor.shelfIndex + 1 + skipped)
-        }
-    }
-
-    // Back from a row returns to the top first, as on other TV apps; only Back from the top leaves.
-    BackHandler(enabled = focusedCard != null) {
-        focusedCard = null
-        scope.launch {
-            listState.scrollToItem(0)
-            playRequester.requestFocusWhenReady()
-        }
-    }
-
-    val target = focusedCard ?: hero
-    var shown by remember { mutableStateOf(target) }
-    LaunchedEffect(target) {
-        // Only card focus waits, so a fast scroll through a row does not load every backdrop; the hero
-        // rotation changes title and image together.
-        if (focusedCard != null) delay(BACKDROP_SETTLE_MILLIS)
-        shown = target
-    }
-    Box(Modifier.fillMaxSize()) {
-        Backdrop(shown.thumbnailUrl, focusY = shown.focusY, preview = shown, onPreviewPlaying = { previewPlaying = it })
-        LazyColumn(
-            state = listState,
-            modifier = Modifier.fillMaxSize(),
-            contentPadding = PaddingValues(bottom = 56.dp),
-            verticalArrangement = Arrangement.spacedBy(Dimens.RowGap),
-        ) {
-            item(key = "hero") {
-                HeroBlock(
-                    video = hero,
-                    index = heroIndex,
-                    count = content.featured.size,
-                    playRequester = playRequester,
-                    onPlay = { onPlay(hero) },
-                    onOpen = { onOpen(hero) },
-                    onFocusHero = {
-                        focusedCard = null
-                        focusedShelf = -1
-                        prewarm?.focus(hero)
-                        scope.launch { listState.animateScrollToItem(0) }
-                    },
-                    modifier = Modifier.padding(bottom = 6.dp),
+    ) { shown ->
+        when (shown) {
+            HomePhase.Failed -> failure?.let { ScreenFailure(it, onRetry = { attempt++ }) }
+            HomePhase.Loading -> HomeSkeleton()
+            HomePhase.Loaded -> session.content?.let { content ->
+                HomeLoaded(
+                    content = content,
+                    session = session,
+                    repository = repository,
+                    chosen = chosen,
+                    onToggle = services::toggle,
+                    onOpen = onOpen,
+                    onPlay = onPlay,
                 )
             }
-            val shelfRow: @Composable (Int, Shelf) -> Unit = { shelfIndex, shelf ->
-                val paged = recommended?.takeIf { holder -> holder.shelves.any { it.id == shelf.id } }
-                val loadMore = paged?.let { holder -> { holder.loadMore(shelf.id, scope, repository::recommendedRows) } }
-                ShelfRow(
-                    shelf = shelf,
-                    onOpen = { video, itemIndex ->
-                        session.anchor = HomeAnchor(shelfIndex, itemIndex)
-                        onOpen(video)
-                    },
-                    onFocusVideo = {
-                        focusedCard = it
-                        focusedShelf = shelfIndex
-                        if (shelf.id == paged?.shelves?.lastOrNull()?.id) loadMore?.invoke()
-                    },
-                    restoreIndex = restoreAnchor
-                        ?.takeIf { pendingRestore && it.shelfIndex == shelfIndex }
-                        ?.itemIndex,
-                    onRestored = { pendingRestore = false },
-                    loadingMore = paged?.loadingRow == shelf.id,
-                    onNearEnd = loadMore,
-                )
-            }
-            itemsIndexed(before, key = { _, shelf -> shelf.id }) { shelfIndex, shelf -> shelfRow(shelfIndex, shelf) }
-            items(skeletons, key = { "recommended-skeleton-$it" }) { ShelfSkeleton() }
-            itemsIndexed(middle + after, key = { _, shelf -> shelf.id }) { index, shelf -> shelfRow(slot + index, shelf) }
         }
     }
 }
