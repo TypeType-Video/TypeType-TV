@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyItemScope
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -37,6 +38,7 @@ import video.typetype.tv.ui.components.LocalStreamPrewarm
 import video.typetype.tv.ui.components.ShelfRow
 import video.typetype.tv.ui.components.ShelfSkeleton
 import video.typetype.tv.ui.util.LocalIntroPlaying
+import video.typetype.tv.ui.util.LocalPerformance
 import video.typetype.tv.ui.util.requestFocusWhenReady
 
 private const val HERO_ROTATION_MILLIS = 9_000L
@@ -48,6 +50,8 @@ private const val ITEMS_BEFORE_SHELVES = 2
 
 // A later row is asked for when it comes this many items below the last one on screen.
 private const val LATER_AHEAD = 2
+
+private const val ROWS_FADE_MILLIS = 380
 
 @Composable
 internal fun HomeLoaded(
@@ -96,7 +100,15 @@ internal fun HomeLoaded(
             }
         }
     }
-    val heroInView = focusedCard == null && !previewPlaying && !LocalIntroPlaying.current
+    val introPlaying = LocalIntroPlaying.current
+    val heroInView = focusedCard == null && !previewPlaying && !introPlaying
+    // Under the intro the home composes its hero alone: the rows' first frame is the heaviest of the start, and drawn
+    // with the hero it froze the word at the start of the fade. They fade in once the intro is gone.
+    var rowsShown by remember { mutableStateOf(!introPlaying) }
+    LaunchedEffect(introPlaying) {
+        if (!introPlaying) rowsShown = true
+    }
+    val rowsFade = if (LocalPerformance.current.smoothAnimations) tween<Float>(ROWS_FADE_MILLIS) else null
     LaunchedEffect(content, heroInView) {
         while (heroInView && content.featured.size > 1) {
             delay(HERO_ROTATION_MILLIS)
@@ -160,7 +172,8 @@ internal fun HomeLoaded(
                     )
                 }
             }
-            val shelfRow: @Composable (Int, Shelf) -> Unit = { shelfIndex, shelf ->
+            if (!rowsShown) return@LazyColumn
+            val shelfRow: @Composable LazyItemScope.(Int, Shelf) -> Unit = { shelfIndex, shelf ->
                 val paged = recommended?.takeIf { holder -> holder.shelves.any { it.id == shelf.id } }
                 val loadMore = paged?.let { holder -> { holder.loadMore(shelf.id, scope) { cursor -> repository.recommendedRows(cursor, chosen) } } }
                 ShelfRow(
@@ -180,11 +193,13 @@ internal fun HomeLoaded(
                     onRestored = { pendingRestore = false },
                     loadingMore = paged?.loadingRow == shelf.id,
                     onNearEnd = loadMore,
-                    modifier = Modifier.graphicsLayer { alpha = rowsAlpha },
+                    modifier = Modifier
+                        .animateItem(fadeInSpec = rowsFade, placementSpec = null, fadeOutSpec = null)
+                        .graphicsLayer { alpha = rowsAlpha },
                 )
             }
             itemsIndexed(before, key = { _, shelf -> shelf.id }) { shelfIndex, shelf -> shelfRow(shelfIndex, shelf) }
-            items(skeletons, key = { "recommended-skeleton-$it" }) { ShelfSkeleton() }
+            items(skeletons, key = { "recommended-skeleton-$it" }) { ShelfSkeleton(Modifier.animateItem(fadeInSpec = rowsFade, placementSpec = null, fadeOutSpec = null)) }
             itemsIndexed(middle + after, key = { _, shelf -> shelf.id }) { index, shelf -> shelfRow(slot + index, shelf) }
             itemsIndexed(later, key = { _, id -> "later-$id" }) { index, id ->
                 when (val row = session.later.state(id)) {
