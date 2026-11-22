@@ -35,7 +35,10 @@ class MediaLoadErrorPolicy(
         return delegate.getRetryDelayMsFor(loadErrorInfo)
     }
 
-    override fun getMinimumLoadableRetryCount(dataType: Int): Int = delegate.getMinimumLoadableRetryCount(dataType)
+    // Media3 throws a load error to the player once it failed more often than this while the buffer is empty, even
+    // when the delays above still retry it (3 by default: a server down for a few seconds reloaded the whole video).
+    // The delays alone decide when a load is given up.
+    override fun getMinimumLoadableRetryCount(dataType: Int): Int = Int.MAX_VALUE
 
     override fun onLoadTaskConcluded(loadTaskId: Long) {
         firstFailureAt.remove(loadTaskId)

@@ -21,6 +21,7 @@ import video.typetype.tv.data.AccountBadge
 import video.typetype.tv.data.AccountInitials
 import video.typetype.tv.data.InstanceUrls
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import kotlinx.coroutines.launch
 import video.typetype.tv.AppContainer
+import video.typetype.tv.data.device.ScreensaverSettings
 import video.typetype.tv.data.device.UpdateSettings
 import video.typetype.tv.data.session.SessionState
 import video.typetype.tv.ui.auth.LoginScreen
@@ -81,15 +83,16 @@ fun AppEntry(container: AppContainer) {
         restoreFocus = false
     }
     // Keys are held back while the intro plays, so the remote cannot move focus into a field behind it. Before
-    // Android 13 the Back key reaches Compose first, which turns it into "leave the focus group", so inside a panel
-    // the first press only moved the focus: there it goes to the back dispatcher. From Android 13 the system sends
-    // Back to the dispatcher itself, and doing it here as well would go back twice.
+    // Android 16 the Back key reaches Compose first, which turns it into "leave the focus group", so inside a panel
+    // or on the end-of-video card the first press only moved the focus: there it goes to the back dispatcher. From
+    // Android 16 predictive back is on for this target and the system sends Back to the dispatcher itself, and doing
+    // it here as well would go back twice. Android 13 to 15 still send the key (seen on Android 13: two presses).
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     Box(
         Modifier.fillMaxSize().onPreviewKeyEvent { event ->
             when {
                 splash -> true
-                event.key == Key.Back && backDispatcher != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU -> {
+                event.key == Key.Back && backDispatcher != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA -> {
                     if (event.type == KeyEventType.KeyUp) backDispatcher.onBackPressed()
                     true
                 }
@@ -153,30 +156,36 @@ private fun AppState(container: AppContainer, state: SessionState, scope: Corout
             LaunchedEffect(current.profile.id) {
                 if (!guest) accountName = tryLoad({}) { current.backend.api.account().name } ?: accountName
             }
-            AppRoot(
-                repository = repository,
-                playback = playback,
-                connectivity = container.connectivity,
-                account = AccountBadge(
-                    initials = AccountInitials.of(accountName, guest),
-                    name = accountName.takeUnless { guest },
-                    imageUrl = InstanceUrls.resolve(current.backend.apiBase, current.profile.avatarUrl),
-                ),
-                onSettingsAction = { action ->
-                    scope.launch {
-                        when (action) {
-                            "sign-out" -> session.signOut()
-                            "change-instance" -> onChangeInstance()
-                            "forget-certificate" -> session.forgetCertificate()
-                            "mark-notifications-read" -> tryLoad({}) { repository.markNotificationsRead() }
-                            "forget-decoders" -> container.decoderFailures.forget()
-                            UpdateSettings.CHECK_NOW -> container.updates.checkNow()
+            val screensaver by container.screensaver.current.collectAsState()
+            var screensaverRequests by remember { mutableIntStateOf(0) }
+            ScreensaverHost(screensaver, artwork = { repository.screensaverArt() }, startRequests = screensaverRequests) {
+                AppRoot(
+                    repository = repository,
+                    playback = playback,
+                    connectivity = container.connectivity,
+                    account = AccountBadge(
+                        initials = AccountInitials.of(accountName, guest),
+                        name = accountName.takeUnless { guest },
+                        imageUrl = InstanceUrls.resolve(current.backend.apiBase, current.profile.avatarUrl),
+                    ),
+                    onSettingsAction = { action ->
+                        scope.launch {
+                            when (action) {
+                                "sign-out" -> session.signOut()
+                                "change-instance" -> onChangeInstance()
+                                "forget-certificate" -> session.forgetCertificate()
+                                "mark-notifications-read" -> tryLoad({}) { repository.markNotificationsRead() }
+                                "forget-decoders" -> container.decoderFailures.forget()
+                                UpdateSettings.CHECK_NOW -> container.updates.checkNow()
+                                ScreensaverSettings.START_NOW -> screensaverRequests++
+                            }
                         }
-                    }
-                },
-                performance = performance,
-                updates = container.updates,
-            )
+                    },
+                    performance = performance,
+                    updates = container.updates,
+                    homeServices = container.homeServices,
+                )
+            }
         }
     }
 }

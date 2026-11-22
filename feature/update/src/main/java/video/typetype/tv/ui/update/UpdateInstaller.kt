@@ -17,7 +17,7 @@ sealed interface InstallResult {
 interface UpdateInstaller {
     val packageName: String
 
-    // Hands the APK to the system and waits for its answer. A successful update replaces this app, so the process
-    // usually ends before the answer arrives.
-    suspend fun install(apk: File): InstallResult
+    // Hands the APK, with its compiled-code profile when there is one, to the system and waits for its answer. A
+    // successful update replaces this app, so the process usually ends before the answer arrives.
+    suspend fun install(apk: File, profile: File? = null): InstallResult
 }

@@ -70,6 +70,41 @@ class SabrWindowMapperTest {
     fun rejectsATrackWithoutSegments() =
         expectContract { mapper.map(window(audio = track(140).copy(segments = emptyList())), session) }
 
+    @Test
+    fun theLastWindowKeepsTheTracksAlreadySent() {
+        val before = mapper.map(window(), session)
+        val last = window(video = track(137).copy(segments = emptyList())).copy(endOfStream = true)
+
+        val mapped = mapper.map(last, session, before)
+
+        assertTrue(mapped.endOfStream)
+        assertEquals(before.video, mapped.video)
+        assertEquals(2, mapped.audio.segments.size)
+    }
+
+    @Test
+    fun aTrackAlreadySentToTheEndIsKeptBeforeTheEndOfStream() {
+        val full = window(audio = track(140).copy(segments = listOf(SabrSegmentDto(
+            "https://typetype.example/api/sabr/playback/s1/140/segment/1?generation=3", 590_000L, 10_050L,
+        ))))
+        val before = mapper.map(full, session)
+
+        val mapped = mapper.map(window(audio = track(140).copy(segments = emptyList())), session, before)
+
+        assertEquals(before.audio, mapped.audio)
+    }
+
+    @Test
+    fun anEmptyTrackInTheMiddleIsStillRejected() {
+        val before = mapper.map(window(), session)
+
+        expectContract { mapper.map(window(audio = track(140).copy(segments = emptyList())), session, before) }
+    }
+
+    @Test
+    fun anEmptyTrackAtTheEndWithNothingBeforeIsRejected() =
+        expectContract { mapper.map(window(video = track(137).copy(segments = emptyList())).copy(endOfStream = true), session) }
+
     private fun expectContract(block: () -> Unit) {
         try {
             block()

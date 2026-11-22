@@ -16,10 +16,11 @@ class RoutingPlaybackProvider(
     codecs: CodecSupport,
     access: StreamAccess,
     private val failures: DecoderFailures? = null,
+    preference: CodecPreference = CodecPreference { null },
     online: () -> Boolean = { true },
 ) : PlaybackProvider {
-    private val youtube = SabrPlaybackProvider(backend, codecs, access, online)
-    private val standard = StandardPlaybackProvider(backend, codecs, access, online)
+    private val youtube = SabrPlaybackProvider(backend, codecs, access, online, preference)
+    private val standard = StandardPlaybackProvider(backend, codecs, access, online, preference)
     private val live = HlsPlayerFactory(backend, online)
     private val twitch = TwitchPlaybackProvider(backend, online)
 

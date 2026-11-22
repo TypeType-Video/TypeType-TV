@@ -29,6 +29,7 @@ class SabrPlaybackProvider(
     private val codecs: CodecSupport,
     private val access: StreamAccess,
     private val online: () -> Boolean = { true },
+    private val preference: CodecPreference = CodecPreference { null },
 ) : PlaybackProvider {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private val preloads = SabrPreloads<SabrTarget, PreparedSabr>(scope, release = { it.loader.release() })
@@ -77,7 +78,7 @@ class SabrPlaybackProvider(
         }
         return PlayerHandle(
             player = player,
-            heights = FormatSelector.heights(plan.stream, Int.MAX_VALUE, codecs),
+            heights = FormatSelector.heights(plan.stream, Int.MAX_VALUE, codecs, preference.mimeType()),
             audioTracks = plan.tracks,
             audioTrackId = plan.target.tuple.audioTrackId,
             captionLanguages = captions.map { CaptionLanguage(it.language, it.label) },
@@ -94,7 +95,7 @@ class SabrPlaybackProvider(
         val tracks = FormatSelector.audioTracks(stream)
         val chosenTrack = request.audioTrackId?.takeIf { id -> tracks.any { it.id == id } }
             ?: FormatSelector.defaultAudioTrack(tracks, request.audioLanguage, request.preferOriginalAudio)
-        val tuple = FormatSelector.select(stream, request.maxHeight ?: Int.MAX_VALUE, codecs, chosenTrack)
+        val tuple = FormatSelector.select(stream, request.maxHeight ?: Int.MAX_VALUE, codecs, chosenTrack, preference.mimeType())
             ?: failure("No compatible video format")
         return Plan(SabrTarget(videoId, tuple, request.startMs), stream, tracks)
     }
