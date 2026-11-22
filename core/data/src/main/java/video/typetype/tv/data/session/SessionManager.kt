@@ -14,6 +14,7 @@ import video.typetype.tv.data.api.PresenceApi
 import video.typetype.tv.data.api.SabrApi
 import video.typetype.tv.data.api.TypeTypeApi
 import video.typetype.tv.data.dto.InstanceDto
+import video.typetype.tv.data.dto.UserProfileDto
 import video.typetype.tv.data.dto.SessionResponse
 import video.typetype.tv.data.net.AccessTokens
 import video.typetype.tv.data.net.ApiClient
@@ -86,10 +87,20 @@ class SessionManager(private val store: SecretStore) : AccessTokens, TokenRefres
             is SessionCheck.Valid -> {
                 profiles.put(check.profile)
                 mutableState.value = SessionState.SignedIn(built, check.profile)
+                refreshInstance(apiBase, built, check.profile)
             }
             SessionCheck.Rejected -> expire()
             SessionCheck.Unknown -> Unit
         }
+    }
+
+    // The instance was stored when it was chosen; an older app or an older server stored less than it offers now, so
+    // Twitch or the recommender would stay hidden until the instance is chosen again.
+    private suspend fun refreshInstance(apiBase: HttpUrl, built: Backend, profile: UserProfileDto) {
+        val fresh = discovery.refresh(apiBase) ?: return
+        if (fresh == built.instance || backend !== built) return
+        store.put(KEY_INSTANCE, ApiJson.instance.encodeToString(InstanceDto.serializer(), fresh))
+        mutableState.value = SessionState.SignedIn(build(apiBase, fresh), profile)
     }
 
     private suspend fun reconnect(built: Backend) {
