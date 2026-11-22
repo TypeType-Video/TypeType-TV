@@ -5,6 +5,7 @@ import video.typetype.tv.data.proxiedImage
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.HomeContent
+import video.typetype.tv.data.LiveContent
 import video.typetype.tv.data.RecommendedPage
 import video.typetype.tv.data.LibrarySection
 import video.typetype.tv.data.SettingsGroup
@@ -258,7 +259,9 @@ class RemoteContentRepository(
     private fun searchUrl(url: String, query: String): String =
         url.substringBefore('?').substringBefore('#').trimEnd('/') + "/search?query=" + URLEncoder.encode(query, Charsets.UTF_8.name())
 
-    override suspend fun liveShelves(): List<Shelf> = twitchShelves?.load().orEmpty()
+    override suspend fun liveTab(): LiveContent = twitchShelves?.load() ?: LiveContent(emptyList())
+
+    override suspend fun liveShelf(id: String): Shelf? = twitchShelves?.categoryRow(id)
 
     override fun liveChat(videoUrl: String): Flow<LiveChatEvent> =
         TwitchUrls.channelLogin(videoUrl)?.let(twitchChat::events) ?: liveChat.events(videoUrl)

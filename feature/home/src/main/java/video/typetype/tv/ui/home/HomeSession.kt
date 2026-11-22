@@ -19,7 +19,7 @@ class HomeSession {
     var services by mutableStateOf<Set<ContentSource>?>(null)
         private set
     var reloading by mutableStateOf(false)
-    val later = HomeLaterRows()
+    val later = LaterRows()
 
     // Kept with the session so paged and retried rows survive opening a video and coming back.
     private var recommended: Pair<HomeContent, RecommendedShelves>? = null

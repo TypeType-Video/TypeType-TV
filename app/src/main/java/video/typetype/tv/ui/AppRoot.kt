@@ -221,7 +221,7 @@ fun AppRoot(
                         onOpen = openDetail,
                     )
                     Route.Subscriptions -> SubscriptionsScreen(session = sessions.subscriptions, onOpen = openDetail)
-                    Route.Live -> LiveScreen(repository = repository, onOpen = openDetail)
+                    Route.Live -> LiveScreen(repository = repository, session = sessions.live, onOpen = openDetail)
                     Route.Settings -> SettingsScreen(repository, sessions.settings, onSettingsAction)
                     is Route.Detail -> DetailScreen(
                         videoId = route.videoId,

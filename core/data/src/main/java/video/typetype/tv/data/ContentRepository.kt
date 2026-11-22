@@ -63,7 +63,10 @@ interface ContentRepository : VideoActivityRepository, PresenceSink, Subscriptio
 
     fun liveChat(videoUrl: String): Flow<LiveChatEvent>
 
-    suspend fun liveShelves(): List<Shelf> = emptyList()
+    suspend fun liveTab(): LiveContent = LiveContent(emptyList())
+
+    // One of the rows LiveContent.later names, or null when it has nothing to show.
+    suspend fun liveShelf(id: String): Shelf? = null
 
     // Videos or Live; the Playlists tab has its own call below. A query searches the channel's videos instead.
     suspend fun channel(

@@ -3,6 +3,7 @@ package video.typetype.tv.ui
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.ui.home.HomeSession
 import video.typetype.tv.ui.library.LibrarySession
+import video.typetype.tv.ui.live.LiveSession
 import video.typetype.tv.ui.search.SearchSession
 import video.typetype.tv.ui.settings.SettingsSession
 import video.typetype.tv.ui.subscriptions.SubscriptionsSession
@@ -14,4 +15,5 @@ class TabSessions(repository: ContentRepository) {
     val library = LibrarySession()
     val subscriptions = SubscriptionsSession(repository)
     val settings = SettingsSession()
+    val live = LiveSession()
 }

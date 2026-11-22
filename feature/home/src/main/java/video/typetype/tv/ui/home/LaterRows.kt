@@ -14,9 +14,9 @@ sealed interface LaterRow {
     data object Empty : LaterRow
 }
 
-// The rows below the first screen of the home, asked for a few rows before they scroll into view. A row that has
-// nothing for the chosen services, or fails, leaves the home instead of showing an error in the middle of it.
-class HomeLaterRows {
+// The rows below the first screen of a tab, asked for a few rows before they scroll into view. A row that has
+// nothing to show, or fails, leaves the tab instead of showing an error in the middle of it.
+class LaterRows {
     private val rows = mutableStateMapOf<String, LaterRow>()
 
     fun state(id: String): LaterRow? = rows[id]
