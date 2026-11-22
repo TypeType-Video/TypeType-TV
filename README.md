@@ -27,6 +27,12 @@ synchronization. It supports YouTube, Bilibili, and NicoNico.
 > TypeType TV is a client for [TypeType-Server](https://github.com/TypeType-Video/TypeType-Server). You need access
 > to a compatible TypeType instance.
 
+## Install
+
+On a Fire TV or an Android TV device, open the [Downloader](https://www.aftvnews.com/downloader/) app and enter the
+code `9262028`: it always downloads the latest stable release. The APK of every version is also on the
+[releases page](https://github.com/TypeType-Video/TypeType-TV/releases).
+
 ## Screenshots
 
 | Home | Video details | Player |
