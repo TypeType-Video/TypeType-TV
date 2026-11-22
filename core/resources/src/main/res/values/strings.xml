@@ -254,6 +254,11 @@
     <string name="shelf_trending_niconico">Trending on NicoNico</string>
     <string name="shelf_recommended_bilibili">Recommended on Bilibili</string>
     <string name="shelf_recommended_niconico">Recommended on NicoNico</string>
+    <string name="home_services">Services on the home</string>
+    <string name="home_service_toggle">%1$s on the home</string>
+    <string name="home_service_shown">Shown</string>
+    <string name="home_service_hidden">Hidden</string>
+    <string name="home_services_keep_one">Keep at least one service</string>
     <string name="shelf_twitch_live">Live on Twitch</string>
     <string name="shelf_twitch_followed">Followed on Twitch</string>
     <string name="shelf_twitch_replays">Past broadcasts of followed channels</string>
