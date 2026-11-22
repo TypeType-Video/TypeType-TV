@@ -12,6 +12,7 @@ import kotlinx.coroutines.launch
 import video.typetype.tv.data.device.UpdatePreferences
 import video.typetype.tv.data.device.UpdateSettings
 import video.typetype.tv.data.update.ApkDownload
+import android.os.Build
 import video.typetype.tv.data.update.AppRelease
 import video.typetype.tv.data.update.AppVersion
 import video.typetype.tv.data.update.ReleaseSource
@@ -68,6 +69,7 @@ class UpdateController(
     // Off for debug builds: their key differs from the releases', so Android would refuse every update.
     private val automatic: Boolean,
     private val clock: () -> Long = System::currentTimeMillis,
+    private val sdkLevel: Int = Build.VERSION.SDK_INT,
 ) {
     private val mutableState = MutableStateFlow<UpdateState>(UpdateState.Idle)
     val state: StateFlow<UpdateState> = mutableState.asStateFlow()
@@ -171,13 +173,13 @@ class UpdateController(
         }
     }
 
-    // The release's compiled-code profile is optional: an old release has none, and one that fails to download or to
-    // match its checksum only leaves the update uncompiled, as every update was before.
+    // The release's compiled-code profile in the format this Android reads is optional: an old release has none, and
+    // one that fails to download or to match its checksum only leaves the update uncompiled, as before.
     private suspend fun downloadProfile(release: AppRelease, manifest: UpdateManifest): File? {
-        val url = release.profileUrl ?: return null
-        val sha256 = manifest.dmSha256 ?: return null
+        val profile = manifest.profiles.firstOrNull { sdkLevel in it.minSdk..it.maxSdk } ?: return null
+        val url = release.assetUrls[profile.asset] ?: return null
         return try {
-            download.download(url, sha256, profileFile) {}
+            download.download(url, profile.sha256, profileFile) {}
             profileFile
         } catch (_: IOException) {
             profileFile.delete()

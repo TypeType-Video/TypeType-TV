@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.compose.compiler)
     alias(libs.plugins.kotlin.serialization)
+    id("typetype.dex-metadata")
 }
 
 // The release workflow reads this line: "x.y.z-beta.n" is published from the beta branch, "x.y.z" from main.

@@ -9,7 +9,7 @@ data class AppRelease(
     val notes: String,
     val apkUrl: String,
     val manifestUrl: String,
-    val profileUrl: String? = null,
+    val assetUrls: Map<String, String> = emptyMap(),
 )
 
 // The release to install, and every release newer than the installed one, newest first, whose notes say what changes.

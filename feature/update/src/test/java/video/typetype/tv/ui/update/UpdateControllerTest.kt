@@ -16,6 +16,7 @@ import video.typetype.tv.data.device.UpdateSettings
 import video.typetype.tv.data.update.ApkDownload
 import video.typetype.tv.data.update.AppRelease
 import video.typetype.tv.data.update.AppVersion
+import video.typetype.tv.data.update.ProfileAsset
 import video.typetype.tv.data.update.ReleaseSource
 import video.typetype.tv.data.update.UpdateManifest
 import video.typetype.tv.data.update.UpdateVerificationException
@@ -84,7 +85,9 @@ class UpdateControllerTest {
         onProgress(1f)
     }
 
-    private fun controller(automatic: Boolean = true) = UpdateController(
+    private val profiles = listOf(ProfileAsset("p.dm", "psha", 28, 30), ProfileAsset("s.dm", "ssha", 31))
+
+    private fun controller(automatic: Boolean = true, sdkLevel: Int = 34) = UpdateController(
         releases = source,
         download = { url, sha, target, progress -> download.download(url, sha, target, progress) },
         installer = installer,
@@ -94,6 +97,7 @@ class UpdateControllerTest {
         scope = scope,
         automatic = automatic,
         clock = { now },
+        sdkLevel = sdkLevel,
     )
 
     @After
@@ -169,29 +173,40 @@ class UpdateControllerTest {
 
     @Test
     fun theReleaseProfileIsCheckedAndInstalledWithTheApk() {
-        source.listed = listOf(release("v0.1.1").copy(profileUrl = "dm/v0.1.1"))
-        source.manifest = source.manifest.copy(dmAsset = "app.dm", dmSha256 = "dmsha")
-        val updates = controller()
+        source.listed = listOf(release("v0.1.1").copy(assetUrls = mapOf("p.dm" to "dm/p", "s.dm" to "dm/s")))
+        source.manifest = source.manifest.copy(profiles = profiles)
+        val updates = controller(sdkLevel = 29)
         updates.checkNow()
         updates.install()
-        assertEquals(listOf("apk/v0.1.1 sha", "dm/v0.1.1 dmsha"), downloads)
-        assertEquals(listOf<String?>("dm/v0.1.1"), installer.profiles)
+        assertEquals(listOf("apk/v0.1.1 sha", "dm/p psha"), downloads)
+        assertEquals(listOf<String?>("dm/p"), installer.profiles)
         assertFalse(folder.root.resolve("update.dm").exists())
     }
 
     @Test
     fun aProfileThatFailsLeavesThePlainApkInstall() {
-        source.listed = listOf(release("v0.1.1").copy(profileUrl = "dm/v0.1.1"))
-        source.manifest = source.manifest.copy(dmAsset = "app.dm", dmSha256 = "dmsha")
+        source.listed = listOf(release("v0.1.1").copy(assetUrls = mapOf("p.dm" to "dm/p", "s.dm" to "dm/s")))
+        source.manifest = source.manifest.copy(profiles = profiles)
         val apkOnly = download
         download = ApkDownload { url, sha256, target, onProgress ->
             if (url.startsWith("dm/")) throw IOException("missing")
             apkOnly.download(url, sha256, target, onProgress)
         }
-        val updates = controller()
+        val updates = controller(sdkLevel = 34)
         updates.checkNow()
         updates.install()
         assertEquals(listOf("apk/v0.1.1"), installer.installed)
+        assertEquals(listOf<String?>(null), installer.profiles)
+    }
+
+    @Test
+    fun anAndroidWithoutAProfileFormatGetsThePlainApk() {
+        source.listed = listOf(release("v0.1.1").copy(assetUrls = mapOf("p.dm" to "dm/p", "s.dm" to "dm/s")))
+        source.manifest = source.manifest.copy(profiles = profiles)
+        val updates = controller(sdkLevel = 25)
+        updates.checkNow()
+        updates.install()
+        assertEquals(listOf("apk/v0.1.1 sha"), downloads)
         assertEquals(listOf<String?>(null), installer.profiles)
         assertEquals(UpdateState.UpToDate, updates.state.value)
     }

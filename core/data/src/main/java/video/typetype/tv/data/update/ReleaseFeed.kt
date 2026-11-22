@@ -22,8 +22,16 @@ data class UpdateManifest(
     val versionCode: Long,
     val apkAsset: String,
     val sha256: String,
-    val dmAsset: String? = null,
-    val dmSha256: String? = null,
+    val profiles: List<ProfileAsset> = emptyList(),
+)
+
+// A compiled-code profile of the release as dex metadata, for the Android versions that read its format.
+@Serializable
+data class ProfileAsset(
+    val asset: String,
+    val sha256: String,
+    val minSdk: Int,
+    val maxSdk: Int = Int.MAX_VALUE,
 )
 
 @Serializable
@@ -83,7 +91,7 @@ class ReleaseFeed(
             notes = body.orEmpty(),
             apkUrl = files["TypeType-TV-$tagName.apk"] ?: return null,
             manifestUrl = files[MANIFEST] ?: return null,
-            profileUrl = files["TypeType-TV-$tagName.dm"],
+            assetUrls = files,
         )
     }
 

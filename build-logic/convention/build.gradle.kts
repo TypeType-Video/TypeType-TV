@@ -17,5 +17,9 @@ gradlePlugin {
             id = "typetype.android.compose"
             implementationClass = "AndroidComposeConventionPlugin"
         }
+        register("dexMetadata") {
+            id = "typetype.dex-metadata"
+            implementationClass = "DexMetadataConventionPlugin"
+        }
     }
 }

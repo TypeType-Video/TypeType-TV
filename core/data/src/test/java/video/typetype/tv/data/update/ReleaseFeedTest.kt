@@ -43,7 +43,7 @@ class ReleaseFeedTest {
         assertEquals("Beta", releases.first().notes)
         assertEquals("", releases.last().notes)
         assertEquals(server.url("/files/TypeType-TV-v0.1.0.apk").toString(), releases.last().apkUrl)
-        assertEquals(null, releases.last().profileUrl)
+        assertEquals(setOf("TypeType-TV-v0.1.0.apk", "typetype-update.json"), releases.last().assetUrls.keys)
         val request = server.takeRequest()
         assertEquals("/repos/owner/app/releases?per_page=30", request.path)
     }
@@ -70,7 +70,24 @@ class ReleaseFeedTest {
                 ${asset("typetype-update.json")}]}]""",
             ),
         )
-        assertEquals(server.url("/files/TypeType-TV-v0.4.0.dm").toString(), feed.releases().single().profileUrl)
+        assertEquals(server.url("/files/TypeType-TV-v0.4.0.dm").toString(), feed.releases().single().assetUrls["TypeType-TV-v0.4.0.dm"])
+    }
+
+    @Test
+    fun theProfilesOfAReleaseAreReadFromItsManifest() = runBlocking {
+        server.enqueue(
+            MockResponse().setBody(
+                """{"schemaVersion":1,"packageName":"video.typetype.tv","versionName":"0.6.0","versionCode":60099,
+                "apkAsset":"TypeType-TV-v0.6.0.apk","sha256":"abc","profiles":[
+                {"asset":"TypeType-TV-v0.6.0-p.dm","sha256":"p1","minSdk":28,"maxSdk":30},
+                {"asset":"TypeType-TV-v0.6.0-s.dm","sha256":"s1","minSdk":31}]}""",
+            ),
+        )
+        val release = AppRelease(AppVersion(0, 6, 0), "v0.6.0", "", "", server.url("/files/typetype-update.json").toString())
+        assertEquals(
+            listOf(ProfileAsset("TypeType-TV-v0.6.0-p.dm", "p1", 28, 30), ProfileAsset("TypeType-TV-v0.6.0-s.dm", "s1", 31)),
+            feed.manifest(release).profiles,
+        )
     }
 
     @Test
