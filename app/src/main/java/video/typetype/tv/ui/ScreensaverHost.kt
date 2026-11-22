@@ -65,9 +65,13 @@ fun ScreensaverHost(
             emptyList()
         }
     }
-    BackHandler(enabled = showing) {
-        showing = false
-        lastKey = System.nanoTime()
+    // Registered when it shows, so it is the newest Back callback and wins over the screen below: from Android 16 Back
+    // comes through the dispatcher only, never as a key the box below swallows.
+    if (showing) {
+        BackHandler {
+            showing = false
+            lastKey = System.nanoTime()
+        }
     }
     Box(
         Modifier.fillMaxSize().onPreviewKeyEvent { event ->
