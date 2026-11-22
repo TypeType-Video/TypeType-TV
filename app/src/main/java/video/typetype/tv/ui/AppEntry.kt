@@ -81,15 +81,16 @@ fun AppEntry(container: AppContainer) {
         restoreFocus = false
     }
     // Keys are held back while the intro plays, so the remote cannot move focus into a field behind it. Before
-    // Android 13 the Back key reaches Compose first, which turns it into "leave the focus group", so inside a panel
-    // the first press only moved the focus: there it goes to the back dispatcher. From Android 13 the system sends
-    // Back to the dispatcher itself, and doing it here as well would go back twice.
+    // Android 16 the Back key reaches Compose first, which turns it into "leave the focus group", so inside a panel
+    // or on the end-of-video card the first press only moved the focus: there it goes to the back dispatcher. From
+    // Android 16 predictive back is on for this target and the system sends Back to the dispatcher itself, and doing
+    // it here as well would go back twice. Android 13 to 15 still send the key (seen on Android 13: two presses).
     val backDispatcher = LocalOnBackPressedDispatcherOwner.current?.onBackPressedDispatcher
     Box(
         Modifier.fillMaxSize().onPreviewKeyEvent { event ->
             when {
                 splash -> true
-                event.key == Key.Back && backDispatcher != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU -> {
+                event.key == Key.Back && backDispatcher != null && Build.VERSION.SDK_INT < Build.VERSION_CODES.BAKLAVA -> {
                     if (event.type == KeyEventType.KeyUp) backDispatcher.onBackPressed()
                     true
                 }
