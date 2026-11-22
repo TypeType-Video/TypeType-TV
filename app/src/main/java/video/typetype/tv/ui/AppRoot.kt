@@ -55,16 +55,11 @@ import video.typetype.tv.ui.channel.ChannelScreen
 import video.typetype.tv.ui.playlist.CollectionKind
 import video.typetype.tv.ui.playlist.PlaylistScreen
 import video.typetype.tv.ui.detail.DetailScreen
-import video.typetype.tv.ui.home.HomeSession
 import video.typetype.tv.ui.library.LibraryScreen
-import video.typetype.tv.ui.library.LibrarySession
 import video.typetype.tv.ui.player.PlayerScreen
 import video.typetype.tv.ui.search.SearchScreen
-import video.typetype.tv.ui.search.SearchSession
 import video.typetype.tv.ui.subscriptions.SubscriptionsScreen
-import video.typetype.tv.ui.subscriptions.SubscriptionsSession
 import video.typetype.tv.ui.settings.SettingsScreen
-import video.typetype.tv.ui.settings.SettingsSession
 import video.typetype.tv.ui.components.LocalStreamPrewarm
 import video.typetype.tv.ui.components.LocalVideoPreviews
 import video.typetype.tv.ui.detail.VideoMenuPanel
@@ -98,11 +93,7 @@ fun AppRoot(
 ) {
     val navigator = remember { MockNavigator() }
     val updateState by updates.state.collectAsState()
-    val homeSession = remember { HomeSession() }
-    val searchSession = remember { SearchSession() }
-    val librarySession = remember { LibrarySession() }
-    val subscriptionsSession = remember(repository) { SubscriptionsSession(repository) }
-    val settingsSession = remember { SettingsSession() }
+    val sessions = remember(repository) { TabSessions(repository) }
     var lastTab by remember { mutableStateOf(TopTab.Home) }
     val activeTab = navigator.current.topTab()
     LaunchedEffect(activeTab) {
@@ -110,7 +101,7 @@ fun AppRoot(
     }
     LaunchedEffect(repository) {
         val startup = repository.startupPreferences()
-        if (searchSession.query.isEmpty()) searchSession.source = startup.searchSource
+        if (sessions.search.query.isEmpty()) sessions.search.source = startup.searchSource
         val section = when (startup.landing) {
             LandingPage.History -> LibrarySection.History
             LandingPage.Favorites -> LibrarySection.Favorites
@@ -118,7 +109,7 @@ fun AppRoot(
             LandingPage.Home -> null
         }
         if (section != null && navigator.current == Route.Home && navigator.stack.size == 1) {
-            librarySession.selected = section
+            sessions.library.selected = section
             navigator.selectTab(Route.Library)
         }
     }
@@ -138,7 +129,7 @@ fun AppRoot(
             // The remote's search or microphone key, from any screen: the search opens listening.
             code == AndroidKeyEvent.KEYCODE_SEARCH -> {
                 if (fresh) {
-                    searchSession.voiceRequested = true
+                    sessions.search.voiceRequested = true
                     navigator.selectTab(Route.Search)
                 }
                 true
@@ -212,26 +203,26 @@ fun AppRoot(
                 when (route) {
                     Route.Home -> HomeScreen(
                         repository = repository,
-                        session = homeSession,
+                        session = sessions.home,
                         services = homeServices,
                         onOpen = openDetail,
                         onPlay = { navigator.push(Route.Player(it.id, preview = it)) },
                     )
                     Route.Search -> SearchScreen(
                         repository = repository,
-                        session = searchSession,
+                        session = sessions.search,
                         onOpen = openDetail,
                         onOpenPlaylist = { navigator.push(Route.Playlist(it)) },
                         onOpenChannel = { navigator.push(Route.Channel(it)) },
                     )
                     Route.Library -> LibraryScreen(
                         repository = repository,
-                        session = librarySession,
+                        session = sessions.library,
                         onOpen = openDetail,
                     )
-                    Route.Subscriptions -> SubscriptionsScreen(session = subscriptionsSession, onOpen = openDetail)
+                    Route.Subscriptions -> SubscriptionsScreen(session = sessions.subscriptions, onOpen = openDetail)
                     Route.Live -> LiveScreen(repository = repository, onOpen = openDetail)
-                    Route.Settings -> SettingsScreen(repository, settingsSession, onSettingsAction)
+                    Route.Settings -> SettingsScreen(repository, sessions.settings, onSettingsAction)
                     is Route.Detail -> DetailScreen(
                         videoId = route.videoId,
                         preview = route.preview,
@@ -289,14 +280,14 @@ fun AppRoot(
                         hidden = if (repository.twitchAccount == null) setOf(TopTab.Live) else emptySet(),
                         selected = activeTab ?: lastTab,
                         onSelect = {
-                            homeSession.anchor = null
-                            librarySession.restoreVideoId = null
-                            searchSession.restoreVideoId = null
-                            if (it == TopTab.Subscriptions) subscriptionsSession.refresh()
+                            sessions.home.anchor = null
+                            sessions.library.restoreVideoId = null
+                            sessions.search.restoreVideoId = null
+                            if (it == TopTab.Subscriptions) sessions.subscriptions.refresh()
                             navigator.selectTab(it.route)
                         },
                         account = account,
-                        contentEntry = homeSession.heroEntry.takeIf { activeTab == TopTab.Home },
+                        contentEntry = sessions.home.heroEntry.takeIf { activeTab == TopTab.Home },
                         navEntry = navEntry,
                         onNavFocusChange = { navFocused = it },
                         updateVersion = updateState.offer?.target?.version?.toString(),
