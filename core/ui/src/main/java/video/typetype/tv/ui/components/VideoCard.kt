@@ -70,7 +70,13 @@ fun VideoCard(
         Spacer(Modifier.height(10.dp))
         TextLabel(video.title, Type.Title.copy(color = titleColor), maxLines = 1)
         Spacer(Modifier.height(2.dp))
-        TextLabel(metaLine(video.channel.name, video.views), Type.Meta, maxLines = 1)
+        TextLabel(video.channel.name, Type.Meta, maxLines = 1)
+        // The views and the age get their own line: on a narrow card they would cut the channel name short.
+        val stats = metaLine(video.views, video.age)
+        if (stats.isNotEmpty()) {
+            Spacer(Modifier.height(2.dp))
+            TextLabel(stats, Type.Meta, maxLines = 1)
+        }
     }
 }
 
