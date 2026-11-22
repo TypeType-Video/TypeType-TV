@@ -167,6 +167,8 @@ jobs:
             flags=(--prerelease --latest=false)
           else
             flags=(--latest)
+            # The Downloader code points at releases/latest/download/TypeType-TV.apk, so each stable keeps this name too.
+            cp "artifacts/TypeType-TV-$RELEASE_TAG.apk" artifacts/TypeType-TV.apk
           fi
           gh release create "$RELEASE_TAG" artifacts/* \
             --target "$GITHUB_SHA" \
