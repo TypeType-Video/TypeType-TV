@@ -34,6 +34,9 @@ class SabrWindowLoader(
     private var renewingToken = false
 
     @Volatile
+    private var serverUnavailable = false
+
+    @Volatile
     private var lastWindow: PlaybackWindow? = null
 
     suspend fun firstWindow(positionMs: Long): PlaybackWindow = awaitWindow { WindowPosition(positionMs, emptyList()) }
@@ -92,14 +95,16 @@ class SabrWindowLoader(
 
     // When YouTube asks a resumed session to attest, the server replaces its token session before telling the
     // player to start a fresh one; a fresh session opened sooner would get the refused token again. That wait,
-    // reported as a blocker, does not count against the deadline, up to a bound of its own.
+    // reported as a blocker, does not count against the deadline, up to a bound of its own. A server that answers
+    // only 5xx is waited for the same way: a fresh session asked from it would fail too and reload the video.
     private suspend fun pollWithinDeadline(position: () -> WindowPosition): PlaybackWindow? {
         val started = System.nanoTime()
         while (true) {
             renewingToken = false
+            serverUnavailable = false
             withTimeoutOrNull(windowDeadlineMillis) { pollWindow(position) }?.let { return it }
             val waitedMs = (System.nanoTime() - started) / NANOS_PER_MILLI
-            if (!renewingToken || waitedMs >= tokenRenewalWaitMillis) return null
+            if (!(renewingToken || serverUnavailable) || waitedMs >= tokenRenewalWaitMillis) return null
         }
     }
 
@@ -121,6 +126,7 @@ class SabrWindowLoader(
                     requested = true
                 }
                 val window = api.segments(session.sessionId, body)
+                serverUnavailable = false
                 if (window.ready) return mapper.map(window, session, lastWindow).also { lastWindow = it }
                 renewingToken = window.blockedBy == TOKEN_SESSION_RENEWAL
                 if (recover(window, positionMs)) {
@@ -131,8 +137,16 @@ class SabrWindowLoader(
                     delay(retryDelay(window))
                 }
             } catch (failure: ApiException) {
-                if (!isSessionLost(failure) || !session.canRecover()) throw failure
-                createFreshSession(positionMs)
+                when {
+                    isSessionLost(failure) && session.canRecover() -> createFreshSession(positionMs)
+                    // A server that answers 5xx for a moment, or a dropped connection, is waited out within the window
+                    // deadline like a window that is not ready yet: the buffer keeps playing instead of a full reload.
+                    isTransient(failure) -> {
+                        serverUnavailable = true
+                        delay(transientDelay(failure))
+                    }
+                    else -> throw failure
+                }
                 reported = false
                 requested = false
             }
@@ -180,6 +194,16 @@ class SabrWindowLoader(
         },
     )
 
+    // Only an HTTP answer or the network: a terminal error of the window carries no status and is final.
+    private fun isTransient(failure: ApiException): Boolean = when (failure.failure.category) {
+        FailureCategory.Network, FailureCategory.RateLimited -> true
+        FailureCategory.Server -> failure.failure.status in TRANSIENT_STATUSES
+        else -> false
+    }
+
+    private fun transientDelay(failure: ApiException): Long =
+        (failure.failure.retryAfterMillis ?: TRANSIENT_RETRY_MS).coerceIn(MIN_RETRY_MS, MAX_RETRY_MS)
+
     private fun retryDelay(window: SabrWindowDto): Long =
         (window.retryAfterMs ?: DEFAULT_RETRY_MS).coerceIn(MIN_RETRY_MS, MAX_RETRY_MS)
 
@@ -195,6 +219,8 @@ class SabrWindowLoader(
         const val TOKEN_RENEWAL_WAIT_MILLIS = 60_000L
         const val NANOS_PER_MILLI = 1_000_000L
         const val IDLE = "idle"
+        const val TRANSIENT_RETRY_MS = 1_000L
+        val TRANSIENT_STATUSES = setOf(500, 502, 503, 504)
     }
 }
 

@@ -127,6 +127,29 @@ class SabrWindowLoaderTest {
     }
 
     @Test
+    fun aServerThatAnswers503ForAMomentIsWaitedOut() = runBlocking {
+        repeat(2) { responses += { _ -> MockResponse().setResponseCode(503).setBody("""{"error":"down"}""") } }
+        responses += { _ -> MockResponse().setResponseCode(200).setBody(ready("s1", 1)) }
+
+        val window = loader(newSession(), polls = 10).firstWindow(0)
+
+        assertEquals(1L, window.generation)
+        assertEquals(3, segmentsPaths.size)
+    }
+
+    @Test
+    fun aServerDownPastTheDeadlineIsWaitedForInsteadOfOpeningAFreshSession() = runBlocking {
+        repeat(8) { responses += { _ -> MockResponse().setResponseCode(503).setBody("""{"error":"down"}""") } }
+        responses += { _ -> MockResponse().setResponseCode(200).setBody(ready("s1", 1)) }
+        val session = newSession()
+
+        val window = loader(session, polls = 40, deadlineMillis = 1_500).firstWindow(0)
+
+        assertEquals("s1", session.sessionId)
+        assertEquals(1L, window.generation)
+    }
+
+    @Test
     fun aTerminalServerErrorIsReportedWithoutFurtherPolling() {
         responses += { _ -> MockResponse().setResponseCode(200).setBody("""{"ready":false,"terminalError":"youtube_unplayable"}""") }
         try {
