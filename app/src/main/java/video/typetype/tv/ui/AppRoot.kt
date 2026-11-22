@@ -288,6 +288,7 @@ fun AppRoot(
                         },
                         account = account,
                         contentEntry = sessions.home.heroEntry.takeIf { activeTab == TopTab.Home },
+                        cornerEntry = sessions.home.servicesEntry.takeIf { activeTab == TopTab.Home },
                         navEntry = navEntry,
                         onNavFocusChange = { navFocused = it },
                         updateVersion = updateState.offer?.target?.version?.toString(),

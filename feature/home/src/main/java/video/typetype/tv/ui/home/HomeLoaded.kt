@@ -21,6 +21,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
@@ -33,6 +34,7 @@ import video.typetype.tv.data.Shelf
 import video.typetype.tv.data.Video
 import video.typetype.tv.theme.Dimens
 import video.typetype.tv.ui.components.Backdrop
+import video.typetype.tv.ui.components.FadeVisibility
 import video.typetype.tv.ui.components.LocalStreamPrewarm
 import video.typetype.tv.ui.components.ShelfRow
 import video.typetype.tv.ui.components.ShelfSkeleton
@@ -43,8 +45,8 @@ private const val HERO_ROTATION_MILLIS = 9_000L
 private const val BACKDROP_SETTLE_MILLIS = 260L
 private const val PENDING_SKELETON_SHELVES = 2
 
-// The services row and the hero come before the shelves in the list.
-private const val ITEMS_BEFORE_SHELVES = 2
+// The hero comes before the shelves in the list.
+private const val ITEMS_BEFORE_SHELVES = 1
 
 // A later row is asked for when it comes this many items below the last one on screen.
 private const val LATER_AHEAD = 2
@@ -138,9 +140,6 @@ internal fun HomeLoaded(
             contentPadding = PaddingValues(bottom = 56.dp),
             verticalArrangement = Arrangement.spacedBy(Dimens.RowGap),
         ) {
-            item(key = "services") {
-                HomeServicesRow(chosen = chosen, onToggle = onToggle)
-            }
             item(key = "hero") {
                 if (hero != null) {
                     HeroBlock(
@@ -192,6 +191,10 @@ internal fun HomeLoaded(
                     else -> ShelfSkeleton()
                 }
             }
+        }
+        // Only at the top of the home: down in the rows the button would sit over them.
+        FadeVisibility(focusedCard == null, Modifier.align(Alignment.TopEnd)) {
+            HomeServicesMenu(chosen = chosen, onToggle = onToggle, entry = session.servicesEntry, below = playRequester)
         }
     }
 }

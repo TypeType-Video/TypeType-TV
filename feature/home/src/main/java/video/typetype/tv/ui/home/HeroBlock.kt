@@ -56,7 +56,10 @@ fun HeroBlock(
     modifier: Modifier = Modifier,
 ) {
     Column(
-        modifier = modifier.padding(start = Dimens.SafeStart, top = 12.dp),
+        modifier = modifier.padding(
+            start = Dimens.SafeStart,
+            top = Dimens.TopNavHeight + Dimens.SafeTop + 38.dp,
+        ),
     ) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(14.dp)) {
             TextLabel(stringResource(R.string.home_featured), Type.Label.copy(color = Palette.Accent))

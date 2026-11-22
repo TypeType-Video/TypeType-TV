@@ -8,6 +8,7 @@ import androidx.compose.foundation.interaction.collectIsFocusedAsState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.defaultMinSize
+import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.BasicText
@@ -84,6 +85,7 @@ fun ServiceToggle(
     ) {
         Row(
             modifier = Modifier
+                .fillMaxWidth()
                 .drawBehind { drawRect(container) }
                 .defaultMinSize(minHeight = 40.dp)
                 .padding(start = 14.dp, end = 16.dp),
@@ -96,8 +98,9 @@ fun ServiceToggle(
                 colorFilter = ColorFilter.tint(if (on) source.brandColor() else Palette.TextLow),
                 modifier = Modifier.size(20.dp).alpha(if (on || focused) 1f else 0.7f),
             )
-            BasicText(name, style = Type.Button, color = { text }, maxLines = 1)
-            if (on) Glyph(Icons.Rounded.Check, { text }, 18)
+            BasicText(name, modifier = Modifier.weight(1f), style = Type.Button, color = { text }, maxLines = 1)
+            // The check keeps its place when it is hidden, so a service never changes width when it is toggled.
+            Glyph(Icons.Rounded.Check, { text }, 18, Modifier.alpha(if (on) 1f else 0f))
         }
     }
 }

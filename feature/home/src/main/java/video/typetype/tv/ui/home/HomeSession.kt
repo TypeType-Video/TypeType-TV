@@ -11,6 +11,7 @@ data class HomeAnchor(val shelfIndex: Int, val itemIndex: Int)
 
 class HomeSession {
     val heroEntry = FocusRequester()
+    val servicesEntry = FocusRequester()
     var content by mutableStateOf<HomeContent?>(null)
         private set
     var anchor by mutableStateOf<HomeAnchor?>(null)

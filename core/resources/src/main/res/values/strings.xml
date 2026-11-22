@@ -254,7 +254,10 @@
     <string name="shelf_trending_niconico">Trending on NicoNico</string>
     <string name="shelf_recommended_bilibili">Recommended on Bilibili</string>
     <string name="shelf_recommended_niconico">Recommended on NicoNico</string>
-    <string name="home_services">Services on the home</string>
+    <string name="home_services_button">Services</string>
+    <string name="home_services_menu">Services on the home: %1$s</string>
+    <string name="home_services_open">List open</string>
+    <string name="home_services_closed">List closed</string>
     <string name="home_service_toggle">%1$s on the home</string>
     <string name="home_service_shown">Shown</string>
     <string name="home_service_hidden">Hidden</string>
