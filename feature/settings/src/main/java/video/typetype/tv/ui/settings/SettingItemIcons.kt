@@ -24,6 +24,7 @@ import androidx.compose.material.icons.rounded.Logout
 import androidx.compose.material.icons.rounded.MarkEmailRead
 import androidx.compose.material.icons.rounded.Notifications
 import androidx.compose.material.icons.rounded.Person
+import androidx.compose.material.icons.rounded.PlayCircle
 import androidx.compose.material.icons.rounded.PersonOff
 import androidx.compose.material.icons.rounded.Replay
 import androidx.compose.material.icons.rounded.Restore
@@ -76,6 +77,7 @@ internal fun SettingItem.icon(): ImageVector = when {
         "screensaver-after" -> Icons.Rounded.Timer
         "screensaver-style" -> Icons.Rounded.Animation
         "screensaver-dim" -> Icons.Rounded.Brightness4
+        "screensaver-start-now" -> Icons.Rounded.PlayCircle
         "mascot" -> Icons.Rounded.Favorite
         "forget-decoders" -> Icons.Rounded.Restore
         "check-updates" -> Icons.Rounded.SystemUpdate

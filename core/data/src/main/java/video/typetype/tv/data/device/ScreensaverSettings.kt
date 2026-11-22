@@ -87,6 +87,7 @@ class ScreensaverSettings(private val store: DeviceStore) : DeviceSection {
                     wireValues = DIMS.map(Int::toString),
                     summaryRes = R.string.settings_screensaver_dim_summary,
                 ),
+                SettingItem.Action(START_NOW, R.string.settings_screensaver_start_now, R.string.settings_screensaver_start_now_summary),
             ),
         )
     }
@@ -100,14 +101,15 @@ class ScreensaverSettings(private val store: DeviceStore) : DeviceSection {
         dimPercent = store.text(DIM, "0").toIntOrNull()?.takeIf { it in DIMS } ?: 0,
     )
 
-    private companion object {
-        const val GROUP = "screensaver"
-        const val BEFORE_GROUP = "account"
-        const val AFTER = "screensaver-after"
-        const val STYLE = "screensaver-style"
-        const val DIM = "screensaver-dim"
-        const val FULL_DIM = 100
-        val MINUTES = listOf(0, 2, 5, 10, 15, 30)
-        val DIMS = listOf(0, 25, 50, 75, FULL_DIM)
+    companion object {
+        const val START_NOW = "screensaver-start-now"
+        private const val GROUP = "screensaver"
+        private const val BEFORE_GROUP = "account"
+        private const val AFTER = "screensaver-after"
+        private const val STYLE = "screensaver-style"
+        private const val DIM = "screensaver-dim"
+        private const val FULL_DIM = 100
+        private val MINUTES = listOf(0, 2, 5, 10, 15, 30)
+        private val DIMS = listOf(0, 25, 50, 75, FULL_DIM)
     }
 }

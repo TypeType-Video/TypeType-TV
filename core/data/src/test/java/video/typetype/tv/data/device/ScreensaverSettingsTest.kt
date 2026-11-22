@@ -67,8 +67,9 @@ class ScreensaverSettingsTest {
         val group = settings.addTo(emptyList(), texts).single()
 
         assertEquals("screensaver", group.id)
-        assertEquals(listOf("screensaver-after", "screensaver-style", "screensaver-dim"), group.items.map { it.id })
-        val dim = group.items.last() as SettingItem.Choice
+        assertEquals(listOf("screensaver-after", "screensaver-style", "screensaver-dim", "screensaver-start-now"), group.items.map { it.id })
+        assertTrue(group.items.last() is SettingItem.Action)
+        val dim = group.items.single { it.id == "screensaver-dim" } as SettingItem.Choice
         assertEquals(listOf("0", "25", "50", "75", "100"), dim.wireValues)
     }
 }

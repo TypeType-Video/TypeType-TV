@@ -21,6 +21,7 @@ import video.typetype.tv.data.AccountBadge
 import video.typetype.tv.data.AccountInitials
 import video.typetype.tv.data.InstanceUrls
 import androidx.compose.runtime.setValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
@@ -37,6 +38,7 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.media3.common.util.UnstableApi
 import kotlinx.coroutines.launch
 import video.typetype.tv.AppContainer
+import video.typetype.tv.data.device.ScreensaverSettings
 import video.typetype.tv.data.device.UpdateSettings
 import video.typetype.tv.data.session.SessionState
 import video.typetype.tv.ui.auth.LoginScreen
@@ -155,7 +157,8 @@ private fun AppState(container: AppContainer, state: SessionState, scope: Corout
                 if (!guest) accountName = tryLoad({}) { current.backend.api.account().name } ?: accountName
             }
             val screensaver by container.screensaver.current.collectAsState()
-            ScreensaverHost(screensaver, artwork = { repository.screensaverArt() }) {
+            var screensaverRequests by remember { mutableIntStateOf(0) }
+            ScreensaverHost(screensaver, artwork = { repository.screensaverArt() }, startRequests = screensaverRequests) {
                 AppRoot(
                     repository = repository,
                     playback = playback,
@@ -174,6 +177,7 @@ private fun AppState(container: AppContainer, state: SessionState, scope: Corout
                                 "mark-notifications-read" -> tryLoad({}) { repository.markNotificationsRead() }
                                 "forget-decoders" -> container.decoderFailures.forget()
                                 UpdateSettings.CHECK_NOW -> container.updates.checkNow()
+                                ScreensaverSettings.START_NOW -> screensaverRequests++
                             }
                         }
                     },

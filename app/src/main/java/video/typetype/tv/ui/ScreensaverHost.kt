@@ -33,7 +33,12 @@ private const val MILLIS_PER_MINUTE = 60_000L
 // key that wakes it only wakes it: its press and its release are kept from the screen below, so OK never clicks the
 // button that was focused.
 @Composable
-fun ScreensaverHost(settings: Screensaver, artwork: suspend () -> List<ScreensaverArt>, content: @Composable () -> Unit) {
+fun ScreensaverHost(
+    settings: Screensaver,
+    artwork: suspend () -> List<ScreensaverArt>,
+    startRequests: Int = 0,
+    content: @Composable () -> Unit,
+) {
     val gate = remember { ScreensaverGate() }
     var lastKey by remember { mutableLongStateOf(0L) }
     var showing by remember { mutableStateOf(false) }
@@ -48,6 +53,10 @@ fun ScreensaverHost(settings: Screensaver, artwork: suspend () -> List<Screensav
         }
         delay(settings.afterMinutes * MILLIS_PER_MINUTE)
         showing = true
+    }
+    // "Start now" in the settings shows it at once, whatever the delay, even when it is set to never start.
+    LaunchedEffect(startRequests) {
+        if (startRequests > 0) showing = true
     }
     LaunchedEffect(showing, settings.style) {
         if (showing && settings.style == ScreensaverStyle.Thumbnails && art.isEmpty()) art = try {

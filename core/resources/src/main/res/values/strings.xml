@@ -370,6 +370,8 @@
     <string name="settings_screensaver_style_thumbnails">Thumbnails</string>
     <string name="settings_screensaver_style_logo">Logo</string>
     <string name="settings_screensaver_dim">Darken</string>
+    <string name="settings_screensaver_start_now">Start now</string>
+    <string name="settings_screensaver_start_now_summary">Shows the screensaver as it is set here. Any key wakes it.</string>
     <string name="settings_screensaver_dim_summary">How dark the screensaver is. Black keeps the sound and turns the picture off, for falling asleep with music on.</string>
     <string name="settings_screensaver_dim_none">Not darkened</string>
     <string name="settings_screensaver_dim_percent">%1$d %%</string>
