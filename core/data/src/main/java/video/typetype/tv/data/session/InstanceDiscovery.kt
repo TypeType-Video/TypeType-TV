@@ -54,6 +54,10 @@ class InstanceDiscovery(private val http: OkHttpClient) {
         return DiscoveryResult.NotTypeType(lastStatus)
     }
 
+    // The instance's answer again, for an instance already chosen: what it offers (Twitch, the recommender) can
+    // change with a server update. Null when it does not answer or no longer speaks the supported API.
+    suspend fun refresh(apiBase: HttpUrl): InstanceDto? = (probe(apiBase) as? DiscoveryResult.Compatible)?.instance
+
     private fun DiscoveryResult.isConnectionFailure() =
         this is DiscoveryResult.TlsFailure || this == DiscoveryResult.NetworkUnavailable
 

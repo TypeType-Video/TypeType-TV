@@ -398,7 +398,6 @@
     <string name="settings_update_channel_beta">Beta</string>
     <string name="settings_update_on_start">Check when the app opens</string>
     <string name="settings_update_on_start_summary">Asks GitHub, where TypeType TV is published, when the app opens and every few hours while it stays open.</string>
-    <string name="update_pill">Update</string>
     <string name="update_pill_description">TypeType TV %1$s is available. OK opens the update.</string>
     <string name="update_title_checking">Looking for updates…</string>
     <string name="update_title_up_to_date">TypeType TV is up to date</string>
