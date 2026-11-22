@@ -82,7 +82,7 @@ jobs:
           } >> "$GITHUB_ENV"
 
       - name: Build
-        run: ./gradlew --stacktrace :app:assembleRelease
+        run: ./gradlew --stacktrace :app:assembleRelease :app:dexMetadata
 
       - name: Sign
         env:
@@ -124,6 +124,14 @@ jobs:
           cd artifacts
           apk="TypeType-TV-$RELEASE_TAG.apk"
           sha256sum "$apk" > "$apk.sha256"
+          # The baseline profile of this APK as dex metadata, one file per profile format (Android 9-11 and 12+): the
+          # in-app update installs the matching one with the APK, so a box compiles the new version while installing it.
+          p_dm="TypeType-TV-$RELEASE_TAG-p.dm"
+          s_dm="TypeType-TV-$RELEASE_TAG-s.dm"
+          cp ../app/build/outputs/dexmetadata/profile-p.dm "$p_dm"
+          cp ../app/build/outputs/dexmetadata/profile-s.dm "$s_dm"
+          sha256sum "$p_dm" > "$p_dm.sha256"
+          sha256sum "$s_dm" > "$s_dm.sha256"
           jq -n \
             --arg channel "$RELEASE_CHANNEL" \
             --arg packageName "$APPLICATION_ID" \
@@ -131,8 +139,14 @@ jobs:
             --argjson versionCode "$RELEASE_CODE" \
             --arg apkAsset "$apk" \
             --arg sha256 "$(cut -d ' ' -f 1 "$apk.sha256")" \
+            --arg pAsset "$p_dm" \
+            --arg pSha256 "$(cut -d ' ' -f 1 "$p_dm.sha256")" \
+            --arg sAsset "$s_dm" \
+            --arg sSha256 "$(cut -d ' ' -f 1 "$s_dm.sha256")" \
             '{schemaVersion: 1, channel: $channel, packageName: $packageName, versionName: $versionName,
-              versionCode: $versionCode, apkAsset: $apkAsset, sha256: $sha256}' > typetype-update.json
+              versionCode: $versionCode, apkAsset: $apkAsset, sha256: $sha256,
+              profiles: [{asset: $pAsset, sha256: $pSha256, minSdk: 28, maxSdk: 30},
+                         {asset: $sAsset, sha256: $sSha256, minSdk: 31}]}' > typetype-update.json
           cat typetype-update.json
 
       - name: Keep the files with the run

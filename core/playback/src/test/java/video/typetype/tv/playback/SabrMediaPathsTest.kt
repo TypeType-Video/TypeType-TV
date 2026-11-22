@@ -43,4 +43,11 @@ class SabrMediaPathsTest {
         assertEquals(2_000L, MediaLoadErrorPolicy.backoffMs(1, 8, 2_000L))
         assertEquals(androidx.media3.common.C.TIME_UNSET, MediaLoadErrorPolicy.backoffMs(9, 8, null))
     }
+
+    @Test
+    fun onlyTheRetryDelaysGiveALoadUp() {
+        val policy = MediaLoadErrorPolicy()
+
+        assertEquals(Int.MAX_VALUE, policy.getMinimumLoadableRetryCount(androidx.media3.common.C.DATA_TYPE_MEDIA))
+    }
 }

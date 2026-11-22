@@ -1,5 +1,7 @@
 package video.typetype.tv.ui
 
+import video.typetype.tv.data.device.HomeServices
+import video.typetype.tv.data.device.MemoryDeviceStore
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.semantics.SemanticsNode
@@ -54,7 +56,7 @@ class FullScreenAccessibilityTest {
 
     @Test
     fun homeNamesEveryControl() = assertEveryControlIsNamed("home") {
-        HomeScreen(repository, remember { HomeSession() }, onOpen = {}, onPlay = {})
+        HomeScreen(repository, remember { HomeSession() }, HomeServices(MemoryDeviceStore()), onOpen = {}, onPlay = {})
     }
 
     @Test
