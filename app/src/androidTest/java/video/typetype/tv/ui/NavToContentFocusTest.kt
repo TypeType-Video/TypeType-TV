@@ -10,6 +10,8 @@ import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.test.ExperimentalTestApi
 import androidx.compose.ui.test.assertIsFocused
 import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.isFocused
+import androidx.compose.ui.test.hasContentDescription
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onFirst
 import androidx.compose.ui.test.performKeyInput
@@ -29,7 +31,7 @@ class NavToContentFocusTest {
     val rule = createComposeRule()
 
     @Test
-    fun downFromTheHomeTabReachesTheFirstHeroButton() {
+    fun upFromTheHeroPassesTheServicesAndDownComesBackToTheHero() {
         val session = HomeSession()
         rule.setContent {
             Box(Modifier) {
@@ -42,6 +44,10 @@ class NavToContentFocusTest {
         rule.waitUntil(10_000) { rule.onAllNodes(hasText("More info")).fetchSemanticsNodes().isNotEmpty() }
         rule.waitForIdle()
         rule.onAllNodes(hasText("More info")).onFirst().performKeyInput { pressKey(Key.DirectionUp) }
+        rule.waitForIdle()
+        val toggle = rule.onAllNodes(hasContentDescription("on the home", substring = true) and isFocused()).onFirst()
+        toggle.assertIsFocused()
+        toggle.performKeyInput { pressKey(Key.DirectionUp) }
         rule.waitForIdle()
         rule.onAllNodes(hasText("Home")).onFirst().assertIsFocused()
         rule.onAllNodes(hasText("Home")).onFirst().performKeyInput { pressKey(Key.DirectionDown) }
