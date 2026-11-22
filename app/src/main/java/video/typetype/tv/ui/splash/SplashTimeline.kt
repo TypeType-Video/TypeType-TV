@@ -88,7 +88,16 @@ internal object SplashTimeline {
         return time >= written && time < EXIT_START && ((time - written) / BLINK).toInt() % 2 == 0
     }
 
-    fun exitAlpha(time: Float): Float = 1f - fraction(time, EXIT_START, TOTAL.toFloat())
+    // From REVEAL the splash is a hair short of opaque: the GPU skips what an opaque layer covers, so the first screen
+    // would only be drawn, and its shaders compiled, on the first frame of the fade. Drawn during the cursor's blink,
+    // that cost overlaps the blink instead of freezing the start of the fade.
+    fun exitAlpha(time: Float): Float = when {
+        time < REVEAL -> 1f
+        else -> minOf(REVEALING_ALPHA, 1f - fraction(time, EXIT_START, TOTAL.toFloat()))
+    }
+
+    // 254 of 255 in 8 bits: 0.999 would round back to opaque.
+    private const val REVEALING_ALPHA = 0.996f
 
     private fun fraction(time: Float, start: Float, end: Float): Float = ((time - start) / (end - start)).coerceIn(0f, 1f)
 }
