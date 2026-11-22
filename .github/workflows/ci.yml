@@ -7,14 +7,12 @@ on:
     paths-ignore:
       - '**.md'
       - 'assets/**'
+  # No paths-ignore here: beta and main require this check, so a pull request that skipped it could never merge.
   pull_request:
     branches:
       - dev
       - beta
       - main
-    paths-ignore:
-      - '**.md'
-      - 'assets/**'
   workflow_call:
   workflow_dispatch:
 

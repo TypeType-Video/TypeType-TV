@@ -29,9 +29,20 @@ synchronization. It supports YouTube, Bilibili, and NicoNico.
 
 ## Install
 
-On a Fire TV or an Android TV device, open the [Downloader](https://www.aftvnews.com/downloader/) app and enter the
-code `9262028`: it always downloads the latest stable release. The APK of every version is also on the
-[releases page](https://github.com/TypeType-Video/TypeType-TV/releases).
+<div align="center">
+
+[<img src="assets/widgets/downloader.svg" alt="Downloader code 9262028" height="60">](https://aftv.news/9262028)
+&nbsp;
+[<img src="assets/widgets/github-releases.svg" alt="Download the APK on GitHub" height="60">](https://github.com/TypeType-Video/TypeType-TV/releases/latest)
+
+</div>
+
+- **Downloader**: on a Fire TV or an Android TV device, open the
+  [Downloader](https://www.aftvnews.com/downloader/) app and enter the code `9262028`. It always downloads the
+  latest stable release.
+- **GitHub**: download `TypeType-TV.apk` from the
+  [latest release](https://github.com/TypeType-Video/TypeType-TV/releases/latest) and install it on your TV.
+  Betas and older versions are on the [releases page](https://github.com/TypeType-Video/TypeType-TV/releases).
 
 ## Screenshots
 
