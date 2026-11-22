@@ -23,8 +23,6 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.grid.rememberLazyGridState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Download
 import androidx.compose.runtime.Composable
 import video.typetype.tv.ui.components.PlaylistContext
 import video.typetype.tv.ui.components.LocalPlaylistContext
@@ -130,6 +128,7 @@ fun LibraryScreen(
                 selectedId = session.selected.id,
                 onSelect = { id -> tabs.firstOrNull { it.id == id }?.let { session.selected = it } },
                 selectedRequester = selectedRequester,
+                contentFocusable = !items.isNullOrEmpty() || itemsFailure != null,
             )
             Crossfade(
                 targetState = items,
@@ -140,7 +139,7 @@ fun LibraryScreen(
                 when {
                     loaded == null && itemsFailure != null -> ScreenFailure(itemsFailure, onRetry = { itemsAttempt++ })
                     loaded == null -> VideoGridSkeleton()
-                    loaded.isEmpty() -> EmptyLibrary()
+                    loaded.isEmpty() -> EmptyLibrary(session.selected)
                     else -> CompositionLocalProvider(LocalPlaylistContext provides playlist) {
                         LibraryGrid(
                             videos = loaded,
@@ -206,7 +205,7 @@ private fun LibraryGrid(
 }
 
 @Composable
-private fun EmptyLibrary() {
+private fun EmptyLibrary(section: LibrarySection) {
     Column(
         modifier = Modifier.fillMaxSize(),
         horizontalAlignment = Alignment.CenterHorizontally,
@@ -216,14 +215,14 @@ private fun EmptyLibrary() {
             Modifier.size(84.dp).background(Palette.Glass, Shapes.Panel),
             contentAlignment = Alignment.Center,
         ) {
-            Glyph(Icons.Rounded.Download, Palette.TextHigh, 40)
+            Glyph(section.icon(), Palette.TextHigh, 40)
         }
         Spacer(Modifier.height(20.dp))
-        TextLabel(stringResource(R.string.library_empty_title), Type.Headline)
+        TextLabel(stringResource(section.emptyTitle()), Type.Headline)
         Spacer(Modifier.height(8.dp))
         Box(Modifier.size(width = 380.dp, height = 44.dp), contentAlignment = Alignment.TopCenter) {
             TextLabel(
-                stringResource(R.string.library_empty_body),
+                stringResource(section.emptyBody()),
                 Type.Body.copy(textAlign = androidx.compose.ui.text.style.TextAlign.Center),
                 maxLines = 2,
             )
