@@ -40,6 +40,10 @@ class StandardPlaybackProvider(
         player.setMediaSource(merged, request.startMs)
         player.prepare()
         player.playWhenReady = true
+        request.trace?.let {
+            player.addListener(FirstFrameTrace(it))
+            player.addAnalyticsListener(StartupLoads(it))
+        }
         return PlayerHandle(player = player, heights = selection.heights)
     }
 
