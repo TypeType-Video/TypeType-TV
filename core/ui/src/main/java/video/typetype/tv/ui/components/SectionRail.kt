@@ -13,9 +13,12 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -28,7 +31,7 @@ import video.typetype.tv.theme.Palette
 import video.typetype.tv.theme.Shapes
 import video.typetype.tv.theme.Type
 import video.typetype.tv.ui.util.focusEntersAt
-import video.typetype.tv.ui.util.trapFocusDown
+import video.typetype.tv.ui.util.trapFocus
 
 data class RailEntry(val id: String, val label: String, val icon: ImageVector)
 
@@ -40,11 +43,22 @@ fun SectionRail(
     onSelect: (String) -> Unit,
     selectedRequester: FocusRequester,
     modifier: Modifier = Modifier,
+    // False while the content beside the rail has nothing to focus (empty, loading): Right then stays on the rail
+    // instead of jumping to the top bar.
+    contentFocusable: Boolean = true,
 ) {
-    Column(modifier = modifier.width(232.dp).trapFocusDown()) {
+    val blocked = if (contentFocusable) listOf(FocusDirection.Down) else listOf(FocusDirection.Down, FocusDirection.Right)
+    Column(modifier = modifier.width(232.dp).trapFocus(blocked)) {
         TextLabel(title, Type.Headline)
         Spacer(Modifier.height(20.dp))
-        Column(Modifier.focusEntersAt(selectedRequester), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+        // The entries include the user's playlists, so the rail scrolls to the focused one instead of running off screen.
+        Column(
+            modifier = Modifier
+                .focusEntersAt(selectedRequester)
+                .verticalScroll(rememberScrollState())
+                .padding(bottom = 48.dp),
+            verticalArrangement = Arrangement.spacedBy(6.dp),
+        ) {
             entries.forEach { entry ->
                 val isSelected = entry.id == selectedId
                 RailItem(

@@ -40,3 +40,20 @@ internal fun LibrarySection.label(): String = when (this) {
     is LibrarySection.Playlist -> name
     is LibrarySection.Saved -> name
 }
+
+// What an empty section says: each one tells how videos get there, so an empty history never talks about downloads.
+internal fun LibrarySection.emptyTitle(): Int = when (this) {
+    LibrarySection.History -> R.string.library_empty_history_title
+    LibrarySection.Favorites -> R.string.library_empty_favorites_title
+    LibrarySection.WatchLater -> R.string.library_empty_watch_later_title
+    LibrarySection.Downloads -> R.string.library_empty_title
+    is LibrarySection.Playlist, is LibrarySection.Saved -> R.string.library_empty_playlist_title
+}
+
+internal fun LibrarySection.emptyBody(): Int = when (this) {
+    LibrarySection.History -> R.string.library_empty_history_body
+    LibrarySection.Favorites -> R.string.library_empty_favorites_body
+    LibrarySection.WatchLater -> R.string.library_empty_watch_later_body
+    LibrarySection.Downloads -> R.string.library_empty_body
+    is LibrarySection.Playlist, is LibrarySection.Saved -> R.string.library_empty_playlist_body
+}
