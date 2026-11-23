@@ -31,6 +31,8 @@ fun CardSkeleton(modifier: Modifier = Modifier) {
         SkeletonBox(Modifier.size(width = 150.dp, height = 12.dp), Shapes.Chip)
         Spacer(Modifier.height(6.dp))
         SkeletonBox(Modifier.size(width = 96.dp, height = 10.dp), Shapes.Chip)
+        Spacer(Modifier.height(6.dp))
+        SkeletonBox(Modifier.size(width = 120.dp, height = 10.dp), Shapes.Chip)
     }
 }
 
