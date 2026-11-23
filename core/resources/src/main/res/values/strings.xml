@@ -106,6 +106,14 @@
     </plurals>
     <string name="library_empty_title">No downloads yet</string>
     <string name="library_empty_body">Videos you download from the details screen appear here.</string>
+    <string name="library_empty_history_title">Nothing watched yet</string>
+    <string name="library_empty_history_body">The videos you watch appear here, the latest first.</string>
+    <string name="library_empty_favorites_title">No favorites yet</string>
+    <string name="library_empty_favorites_body">Add a video to your favorites from its details screen to find it here.</string>
+    <string name="library_empty_watch_later_title">Nothing saved for later</string>
+    <string name="library_empty_watch_later_body">Save a video to watch later from its details screen to find it here.</string>
+    <string name="library_empty_playlist_title">This playlist is empty</string>
+    <string name="library_empty_playlist_body">Add videos to it from their details screen to find them here.</string>
 
     <string name="settings_title">Settings</string>
     <string name="settings_group_account">Account</string>

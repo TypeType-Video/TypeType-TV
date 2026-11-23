@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.key.Key
@@ -40,6 +41,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import video.typetype.tv.resources.R
 import video.typetype.tv.data.ContentRepository
 import video.typetype.tv.data.SearchResults
@@ -183,18 +185,23 @@ fun SearchScreen(
                     label = "search-results",
                 ) { current ->
                     when (current) {
-                        ResultsState.Idle -> MessagePanel(
-                            title = stringResource(R.string.search_start_title),
-                            body = stringResource(R.string.search_start_body),
-                        ) {
-                            RecentSearches(
-                                queries = ideas,
-                                onPick = {
-                                    session.query = it
-                                    moveFocusToResults = true
-                                },
-                                entry = resultsEntry,
-                            )
+                        ResultsState.Idle -> {
+                            val ideasScroll = rememberScrollState()
+                            MessagePanel(
+                                title = stringResource(R.string.search_start_title),
+                                body = stringResource(R.string.search_start_body),
+                                scroll = ideasScroll,
+                            ) {
+                                RecentSearches(
+                                    queries = ideas,
+                                    onPick = {
+                                        session.query = it
+                                        moveFocusToResults = true
+                                    },
+                                    entry = resultsEntry,
+                                    onFirstFocused = { scope.launch { ideasScroll.animateScrollTo(0) } },
+                                )
+                            }
                         }
                         ResultsState.Loading -> ResultsSkeleton(Modifier.padding(top = 26.dp))
                         is ResultsState.Failed -> ScreenFailure(current.message, onRetry = { searchAttempt++ })
