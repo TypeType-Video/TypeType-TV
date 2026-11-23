@@ -66,5 +66,9 @@ private fun CardSkeleton() {
         SkeletonBox(Modifier.fillMaxWidth().height(156.dp))
         Spacer(Modifier.height(10.dp))
         SkeletonBox(Modifier.size(width = 190.dp, height = 12.dp), Shapes.Chip)
+        Spacer(Modifier.height(6.dp))
+        SkeletonBox(Modifier.size(width = 96.dp, height = 10.dp), Shapes.Chip)
+        Spacer(Modifier.height(6.dp))
+        SkeletonBox(Modifier.size(width = 120.dp, height = 10.dp), Shapes.Chip)
     }
 }
