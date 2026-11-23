@@ -29,6 +29,7 @@ import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.drawBehind
+import androidx.compose.ui.focus.FocusDirection
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusProperties
 import androidx.compose.ui.focus.focusRequester
@@ -106,7 +107,11 @@ fun TopNav(
             modifier = Modifier
                 .weight(1f)
                 .wrapContentWidth(Alignment.CenterHorizontally)
-                .focusProperties { enter = { selectedRequester } }
+                .focusProperties {
+                    enter = { selectedRequester }
+                    // Left from the first tab stays on it instead of dropping into the screen below.
+                    exit = { if (it == FocusDirection.Left) FocusRequester.Cancel else FocusRequester.Default }
+                }
                 .focusGroup()
                 .onFocusChanged { onNavFocusChange(it.hasFocus) },
             horizontalArrangement = Arrangement.spacedBy(4.dp),

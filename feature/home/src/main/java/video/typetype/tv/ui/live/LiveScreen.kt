@@ -18,6 +18,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import video.typetype.tv.data.ContentRepository
@@ -48,6 +50,9 @@ class LiveSession {
     var content by mutableStateOf<LiveContent?>(null)
     var anchor by mutableStateOf<HomeAnchor?>(null)
     val later = LaterRows()
+
+    // What Down reaches from the top bar: the rows start behind the bar, so a plain focus search never enters them.
+    val rowsEntry = FocusRequester()
 }
 
 // Twitch on its own tab: rows only, so the remote moves down between them and sideways inside one, like the home.
@@ -116,7 +121,7 @@ private fun LiveRows(content: LiveContent, session: LiveSession, repository: Con
     }
     LazyColumn(
         state = listState,
-        modifier = Modifier.fillMaxSize(),
+        modifier = Modifier.fillMaxSize().focusRequester(session.rowsEntry),
         contentPadding = PaddingValues(top = Dimens.TabContentTop, bottom = 56.dp),
         verticalArrangement = Arrangement.spacedBy(Dimens.RowGap),
     ) {
