@@ -3,6 +3,8 @@ package video.typetype.tv.ui.components
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.background
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -64,7 +66,8 @@ fun <T : Any> TabStrip(
             placed = true
         }
     }
-    Column(modifier) {
+    // The tabs and their mark scroll together, so a channel with many tabs never leaves one off screen.
+    Column(modifier.horizontalScroll(rememberScrollState())) {
         Row(Modifier.focusEntersAt(openTab), horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             tabs.forEach { tab ->
                 val isOpen = tab == open

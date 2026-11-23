@@ -28,6 +28,8 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.lazy.rememberLazyListState
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.runtime.Composable
 import kotlinx.coroutines.launch
 import androidx.compose.runtime.rememberCoroutineScope
@@ -139,8 +141,12 @@ fun SettingsScreen(
             Column(Modifier.width(232.dp).trapFocusDown()) {
                 TextLabel(stringResource(R.string.settings_title), Type.Headline)
                 Spacer(Modifier.height(20.dp))
+                // The groups no longer fit the height of a TV screen: the rail scrolls to the focused one.
                 Column(
-                    modifier = Modifier.focusEntersAt(firstRequester),
+                    modifier = Modifier
+                        .focusEntersAt(firstRequester)
+                        .verticalScroll(rememberScrollState())
+                        .padding(bottom = 48.dp),
                     verticalArrangement = Arrangement.spacedBy(6.dp),
                 ) {
                     groups.forEachIndexed { index, group ->
